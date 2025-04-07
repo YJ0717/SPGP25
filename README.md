@@ -56,25 +56,32 @@
 
 --- <br>
 
-## 🖼️ 게임 진행 흐름 예시 (스케치) <br>
+## 🖼️ 게임 진행 흐름 예시 (스크린샷) <br>
 
-예시 그림: <br>
+<h3>- 게임 시작:</h3>
+<img src="https://github.com/user-attachments/assets/e7d1797f-5f34-4bb1-8e32-0899332a7f3b" width="400"/>
 
-- 게임 시작: ![Image](https://github.com/user-attachments/assets/e7d1797f-5f34-4bb1-8e32-0899332a7f3b) <br>
+<h3>- 월드 선택:</h3>
+<img src="https://github.com/user-attachments/assets/4427daf1-c703-485e-a936-b1e0a40656b6" width="400"/>
 
-- 월드 선택: ![Image](https://github.com/user-attachments/assets/4427daf1-c703-485e-a936-b1e0a40656b6) <br>
+<h3>- 스테이지 선택:</h3>
+<img src="https://github.com/user-attachments/assets/0efbca80-f9c8-4e70-bc2d-273fab6e7d17" width="400"/>
 
-- 스테이지 선택: ![Image](https://github.com/user-attachments/assets/0efbca80-f9c8-4e70-bc2d-273fab6e7d17)
+<h3>- 전투 상단:</h3>
+<img src="https://github.com/user-attachments/assets/5ef57b13-4388-43de-b774-fc57e0edfa22" width="400"/>
 
-- 전투 상단: ![Image](https://github.com/user-attachments/assets/5ef57b13-4388-43de-b774-fc57e0edfa22) <br>
+<h3>- 전투 중단:</h3>
+<img src="https://github.com/user-attachments/assets/efde59ca-d0ec-4cb4-812f-2c77a65b96e7" width="400"/>
 
-- 전투 중단: ![Image](https://github.com/user-attachments/assets/efde59ca-d0ec-4cb4-812f-2c77a65b96e7) <br>
+<h3>- 전투 하단:</h3>
+<img src="https://github.com/user-attachments/assets/93be8964-b075-47d1-a3a1-ef073fa05425" width="400"/>
 
-- 전투 하단: ![Image](https://github.com/user-attachments/assets/93be8964-b075-47d1-a3a1-ef073fa05425) <br>
+<h3>- 특성 선택:</h3>
+<img src="https://github.com/user-attachments/assets/644412b9-ac62-4fb0-b866-22349f5d244a" width="400"/>
 
-- 특성 선택: ![Image](https://github.com/user-attachments/assets/644412b9-ac62-4fb0-b866-22349f5d244a) <br>
+<h3>- 순서도:</h3>
+<img src="https://github.com/user-attachments/assets/086cb41e-44c6-4c0a-9c6a-4d8ecc46a1ef" width="400"/>
 
-- 순서도: ![Image](https://github.com/user-attachments/assets/086cb41e-44c6-4c0a-9c6a-4d8ecc46a1ef) <br>
 
 --- <br>
 
