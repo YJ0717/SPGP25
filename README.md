@@ -40,7 +40,7 @@
 
 ## 🧩 예상 게임 실행 흐름 <br>
 
-1. 게임 시작 → 메인 메뉴 <br>
+1. 게임 시작 → 월드 선택 <br>
 
 2. 스테이지 선택 (예: 1-1) <br>
 
@@ -60,11 +60,21 @@
 
 예시 그림: <br>
 
-- 상단: 몬스터 등장, HP 표시 <br>
+- 게임 시작: ![Image](https://github.com/user-attachments/assets/e7d1797f-5f34-4bb1-8e32-0899332a7f3b) <br>
 
-- 중간: 특성 아이콘 및 현재 턴 표시 <br>
+- 월드 선택: ![Image](https://github.com/user-attachments/assets/4427daf1-c703-485e-a936-b1e0a40656b6) <br>
 
-- 하단: 6x6 퍼즐 보드, 블럭(칼/물약/마법) 배치 <br>
+- 스테이지 선택: ![Image](https://github.com/user-attachments/assets/0efbca80-f9c8-4e70-bc2d-273fab6e7d17)
+
+- 전투 상단: ![Image](https://github.com/user-attachments/assets/5ef57b13-4388-43de-b774-fc57e0edfa22) <br>
+
+- 전투 중단: ![Image](https://github.com/user-attachments/assets/efde59ca-d0ec-4cb4-812f-2c77a65b96e7) <br>
+
+- 전투 하단: ![Image](https://github.com/user-attachments/assets/93be8964-b075-47d1-a3a1-ef073fa05425) <br>
+
+- 특성 선택: ![Image](https://github.com/user-attachments/assets/644412b9-ac62-4fb0-b866-22349f5d244a) <br>
+
+- 순서도: ![Image](https://github.com/user-attachments/assets/086cb41e-44c6-4c0a-9c6a-4d8ecc46a1ef) <br>
 
 --- <br>
 
