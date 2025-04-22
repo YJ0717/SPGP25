@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.samplegame.app;
+package ac.tukorea.yunjun.pegglepang.PegglePang.app;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +15,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onBtnStartGame(View view) {
-        Intent intent = new Intent(this, SampleGameActivity.class);
+        Intent intent = new Intent(this, PegglePangActivity.class);
         startActivity(intent);
     }
 }

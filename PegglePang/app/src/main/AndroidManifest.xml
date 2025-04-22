@@ -13,10 +13,10 @@
         android:theme="@style/Theme.SampleGame"
         tools:targetApi="31">
         <activity
-            android:name="ac.tukorea.yunjun.pegglepang.samplegame.app.SampleGameActivity"
+            android:name="ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity"
             android:exported="false" />
         <activity
-            android:name="ac.tukorea.yunjun.pegglepang.samplegame.app.MainActivity"
+            android:name="ac.tukorea.yunjun.pegglepang.PegglePang.app.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
