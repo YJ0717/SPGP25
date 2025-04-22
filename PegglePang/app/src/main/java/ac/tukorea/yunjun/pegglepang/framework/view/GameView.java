@@ -100,7 +100,7 @@ public class GameView extends View implements Choreographer.FrameCallback {
     }
 
     @Override
-    protected void onDraw(@NonNull Canvas canvas) {
+    protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.save();
         Metrics.concat(canvas);

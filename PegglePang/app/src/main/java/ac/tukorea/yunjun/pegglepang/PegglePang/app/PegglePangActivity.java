@@ -1,14 +1,26 @@
 package ac.tukorea.yunjun.pegglepang.PegglePang.app;
 
 import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import ac.tukorea.yunjun.pegglepang.R;
+import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.SubScene;
 
-import ac.tukorea.yunjun.pegglepang.framework.activity.GameActivity;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.MainScene;
+public class PegglePangActivity extends AppCompatActivity {
+    private GameView gameView;
 
-public class PegglePangActivity extends GameActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        new MainScene().push();
+        setContentView(R.layout.world_select);
+
+        gameView = findViewById(R.id.game_view);
+
+        if (gameView != null) {
+            SubScene subScene = new SubScene(this);
+            gameView.pushScene(subScene);
+        } else {
+            throw new RuntimeException("GameView is not initialized");
+        }
     }
 }
