@@ -1,27 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
     tools:context=".app.MainActivity">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="40sp"
-        android:layout_margin="30dp"
-        android:text="@string/app_name"
-        />
+    <ImageView
+        android:id="@+id/start_screen_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:src="@mipmap/startscreen" />
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/start_game"
+        android:text="Start Game"
         android:textSize="30sp"
+        android:textColor="@android:color/transparent"
         android:onClick="onBtnStartGame"
-        />
+        android:background="@android:color/transparent"
+        android:layout_gravity="center"
+        android:layout_marginTop="100dp" />
 
-</LinearLayout>
+</FrameLayout>
