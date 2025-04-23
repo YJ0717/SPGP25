@@ -85,3 +85,6 @@ public class JoyStick implements IGameObject {
         return false;
     }
 }
+
+
+//조이스틱 관련 페글팡에서는 미사용

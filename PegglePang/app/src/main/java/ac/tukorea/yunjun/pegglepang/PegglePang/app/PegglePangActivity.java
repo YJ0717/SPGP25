@@ -4,7 +4,7 @@ import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.SubScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.worldSelectScene;
 
 public class PegglePangActivity extends AppCompatActivity {
     private GameView gameView;
@@ -17,8 +17,8 @@ public class PegglePangActivity extends AppCompatActivity {
         gameView = findViewById(R.id.game_view);
 
         if (gameView != null) {
-            SubScene subScene = new SubScene(this);
-            gameView.pushScene(subScene);
+            worldSelectScene worldSelectScene = new worldSelectScene(this);
+            gameView.pushScene(worldSelectScene);
         } else {
             throw new RuntimeException("GameView is not initialized");
         }

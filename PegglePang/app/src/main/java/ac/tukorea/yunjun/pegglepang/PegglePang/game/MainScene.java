@@ -7,10 +7,10 @@ import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 
 public class MainScene extends Scene {
-    private Context context; // Context를 저장할 변수
+    private Context context; 
 
     public MainScene(Context context) {
-        this.context = context; // Context 저장
+        this.context = context; 
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -18,7 +18,7 @@ public class MainScene extends Scene {
             float[] pts = Metrics.fromScreen(event.getX(), event.getY());
             float x = pts[0], y = pts[1];
             if (x < 100 && y < 100) {
-                new SubScene(context).push(); // Context 전달
+                new worldSelectScene(context).push(); // Context 전달 스테이지1 클리어 시 월드2선택화면이 열리기 위해 
                 return false;
             }
         }
