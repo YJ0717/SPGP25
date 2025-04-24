@@ -6,8 +6,11 @@ import android.graphics.Paint;
 import android.content.Context;
 import android.view.MotionEvent;
 import android.util.DisplayMetrics;
+import android.widget.Button;
 
+import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
 public class worldSelectScene extends Scene {
     private Paint paint; 
@@ -23,27 +26,47 @@ public class worldSelectScene extends Scene {
         screenHeight = metrics.heightPixels; 
     }
 
+    private void setupStage1Button() {
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            Button stage1Button = activity.findViewById(R.id.stage1_button);
+            
+            if (stage1Button != null) {
+                stage1Button.setOnClickListener(v -> {
+                    activity.setContentView(R.layout.stage1_select);
+                    Stage1_Scene stage1Scene = new Stage1_Scene(context);
+                    activity.getGameView().pushScene(stage1Scene);
+                });
+            }
+        }
+    }
+
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
     }
 
-    
-    //스테이지 1 화면을 전환하기 위한 터치 이벤트 메인화면처럼 버튼객체를 만드는것보다 그냥 터치이벤트로 바로 실행하는게 코드가 더 간편함 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-            float x = event.getX();
-            float y = event.getY();
-            if (x > 50 && x < 350 && y > screenHeight - 450 && y < screenHeight - 100) {  
-                new Stage1_Scene(context).push(); // Context를 전달하여 스테이지 1 씬으로 전환
-                return true;
-            }
-        }
+        // 터치 이벤트 보다 버튼으로 월드선택이 효율적 -> 스테이지 클리어할때마다 월드 잠금해제 시스템을 넣기위해
         return false;
     }
 
+    @Override
+    public void onEnter() {
+        super.onEnter();
+        setupStage1Button();  // 씬 시작할 때 버튼 설정
+    }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            activity.setContentView(R.layout.world_select);
+            setupStage1Button();  // 씬 돌아올 때도 동일한 버튼 설정
+        }
+    }
 
     @Override
     public void onExit() {

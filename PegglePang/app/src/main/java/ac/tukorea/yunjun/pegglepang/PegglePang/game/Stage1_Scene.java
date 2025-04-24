@@ -10,6 +10,7 @@ import android.widget.TextView;
 
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
 public class Stage1_Scene extends Scene {
     private Paint paint; 
@@ -20,11 +21,14 @@ public class Stage1_Scene extends Scene {
         paint = new Paint();
         paint.setColor(Color.WHITE);
         
-        Activity activity = (Activity) context;
-        activity.setContentView(R.layout.stage1_select);
-        
-        TextView backText = activity.findViewById(R.id.back_text);
-        backText.setOnClickListener(v -> Scene.pop());
+        TextView backText = ((Activity)context).findViewById(R.id.back_text);
+        backText.setOnClickListener(v -> {
+            if (context instanceof PegglePangActivity) {
+                PegglePangActivity gameActivity = (PegglePangActivity) context;
+                gameActivity.setContentView(R.layout.world_select);
+                gameActivity.getGameView().popScene();
+            }
+        });
     }
 
     @Override
