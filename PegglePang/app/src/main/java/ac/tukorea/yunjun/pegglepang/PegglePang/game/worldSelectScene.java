@@ -55,7 +55,11 @@ public class worldSelectScene extends Scene {
     @Override
     public void onEnter() {
         super.onEnter();
-        setupStage1Button();  // 씬 시작할 때 버튼 설정
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            activity.setContentView(R.layout.world_select);
+            setupStage1Button();
+        }
     }
 
     @Override
@@ -64,7 +68,7 @@ public class worldSelectScene extends Scene {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
-            setupStage1Button();  // 씬 돌아올 때도 동일한 버튼 설정
+            setupStage1Button();
         }
     }
 
