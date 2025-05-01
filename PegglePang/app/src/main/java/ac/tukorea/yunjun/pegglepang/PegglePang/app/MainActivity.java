@@ -1,3 +1,5 @@
+// 앱의 시작점. 게임 시작 버튼을 통해 PegglePangActivity로 전환하는 메인 화면을 관리
+
 package ac.tukorea.yunjun.pegglepang.PegglePang.app;
 
 import android.content.Intent;

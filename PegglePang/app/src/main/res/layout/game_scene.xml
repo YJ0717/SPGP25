@@ -3,13 +3,13 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:background="@android:color/transparent">
 
     <ac.tukorea.yunjun.pegglepang.framework.view.GameView
         android:id="@+id/game_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@android:color/white" />
+        android:background="@android:color/transparent" />
 
     <TextView
         android:id="@+id/back_text"

@@ -1,3 +1,5 @@
+//  스테이지 해금 시스템의 핵심 로직을 담당
+
 package ac.tukorea.yunjun.pegglepang.PegglePang.game;
 
 import java.util.HashMap;
@@ -9,8 +11,7 @@ public class StageManager {
 
     private StageManager() {
         stageDataMap = new HashMap<>();
-        // 초기 스테이지 데이터 설정
-        stageDataMap.put("1-1", new StageData(true));  // 첫 스테이지는 항상 잠금 해제
+        stageDataMap.put("1-1", new StageData(true));  
         stageDataMap.put("1-2", new StageData(false)); //추후 클리어 조건을 넣어 앞으로의 스테이지 클리어 선택
         stageDataMap.put("1-3", new StageData(false));
     }

@@ -1,3 +1,6 @@
+// 모든 스테이지 씬의 기본 클래스. 공통 기능(뒤로가기, 레이아웃 설정 등)을 구현
+// 각 스테이지는 이 클래스를 상속받아 stageSpecificElements 매서드를 통해  각 스테이지마다 표시되는 요소를 구현
+
 package ac.tukorea.yunjun.pegglepang.PegglePang.game;
 
 import android.graphics.Canvas;
@@ -40,7 +43,6 @@ public abstract class BaseStageScene extends Scene {
     @Override
     public void draw(Canvas canvas) {
         super.draw(canvas);
-        canvas.drawColor(Color.WHITE);
     }
 
     @Override

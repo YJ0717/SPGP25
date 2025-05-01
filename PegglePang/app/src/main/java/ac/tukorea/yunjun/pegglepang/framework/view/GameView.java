@@ -138,6 +138,17 @@ public class GameView extends View implements Choreographer.FrameCallback {
 
         popScene();
     }
+    public void restoreFromGameView(GameView oldView) {
+        sceneStack.clear();
+        sceneStack.addAll(oldView.sceneStack);
+        GameView.view = this;  
+        
+        int last = sceneStack.size() - 1;
+        if (last >= 0) {
+            sceneStack.get(last).onResume();
+        }
+    }
+
     private void scheduleUpdate() {
         Choreographer.getInstance().postFrameCallback(this);
     }

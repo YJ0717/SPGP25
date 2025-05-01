@@ -1,3 +1,7 @@
+// 스테이지 1의 선택 화면을 관리하는 씬
+// 스테이지 1의 서브스테이지(1-1, 1-2, 1-3)로의 진입을 관리
+// 스테이지 잠금해제 시스템과 연동됨
+
 package ac.tukorea.yunjun.pegglepang.PegglePang.game;
 
 import android.graphics.Canvas;
@@ -5,7 +9,6 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.content.Context;
 import android.view.MotionEvent;
-import android.app.Activity;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -24,52 +27,32 @@ public class Stage1_Scene extends Scene {
     }
 
     private void setupBackButton() {
-        TextView backText = ((Activity)context).findViewById(R.id.back_text);
-        backText.setOnClickListener(v -> {
-            if (context instanceof PegglePangActivity) {
-                PegglePangActivity gameActivity = (PegglePangActivity) context;
-                gameActivity.setContentView(R.layout.world_select);
-                gameActivity.getGameView().popScene();
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            TextView backText = activity.findViewById(R.id.back_text);
+            if (backText != null) {
+                backText.setOnClickListener(null);
+                backText.setOnClickListener(v -> {
+                    if (context instanceof PegglePangActivity) {
+                        Scene.pop();
+                    }
+                });
             }
-        });
+        }
     }
 
     private void setupStageButtons() {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             
-            // 스테이지 1-1 버튼
             Button stage1_1Button = activity.findViewById(R.id.stage1_1_button);
             if (stage1_1Button != null) {
                 stage1_1Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 1));
                 stage1_1Button.setOnClickListener(v -> {
-                    activity.setContentView(R.layout.game_scene);
                     Scene stage = StageFactory.createStage(context, 1, 1);
                     activity.getGameView().pushScene(stage);
                 });
             }
-
-            // 스테이지 1-2 버튼 
-            // Button stage1_2Button = activity.findViewById(R.id.stage1_2_button);
-            // if (stage1_2Button != null) {
-            //     stage1_2Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 2));
-            //     stage1_2Button.setOnClickListener(v -> {
-            //         activity.setContentView(R.layout.game_scene);
-            //         Scene stage = StageFactory.createStage(context, 1, 2);
-            //         activity.getGameView().pushScene(stage);
-            //     });
-            // }
-
-            // 스테이지 1-3 버튼 
-            // Button stage1_3Button = activity.findViewById(R.id.stage1_3_button);
-            // if (stage1_3Button != null) {
-            //     stage1_3Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 3));
-            //     stage1_3Button.setOnClickListener(v -> {
-            //         activity.setContentView(R.layout.game_scene);
-            //         Scene stage = StageFactory.createStage(context, 1, 3);
-            //         activity.getGameView().pushScene(stage);
-            //     });
-            // }
         }
     }
 
@@ -108,5 +91,12 @@ public class Stage1_Scene extends Scene {
     @Override
     public void onExit() {
         super.onExit();
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            activity.setContentView(R.layout.world_select);
+            if (Scene.top() instanceof worldSelectScene) {
+                ((worldSelectScene)Scene.top()).setupStage1Button();
+            }
+        }
     }
 }

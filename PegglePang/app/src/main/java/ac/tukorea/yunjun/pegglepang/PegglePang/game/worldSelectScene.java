@@ -1,3 +1,6 @@
+// 게임의 월드 선택 화면을 관리하는 씬
+// 각 월드로의 진입점 역할을 하며, 메인 화면으로의 복귀도 담당
+
 package ac.tukorea.yunjun.pegglepang.PegglePang.game;
 
 import android.graphics.Canvas;
@@ -7,15 +10,19 @@ import android.content.Context;
 import android.view.MotionEvent;
 import android.util.DisplayMetrics;
 import android.widget.Button;
+import android.widget.TextView;
+import android.content.Intent;
+import android.app.Activity;
 
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.MainActivity;
 
 public class worldSelectScene extends Scene {
     private Paint paint; 
     private Context context;
-    private int screenHeight; // 화면 높이를 저장할 변수 <디바이스에 따라 화면 높이를 가져오기 위해
+    private int screenHeight;
 
     public worldSelectScene(Context context) {
         paint = new Paint();
@@ -26,16 +33,30 @@ public class worldSelectScene extends Scene {
         screenHeight = metrics.heightPixels; 
     }
 
-    private void setupStage1Button() {
+    public void setupStage1Button() {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             Button stage1Button = activity.findViewById(R.id.stage1_button);
             
             if (stage1Button != null) {
+                stage1Button.setOnClickListener(null);
                 stage1Button.setOnClickListener(v -> {
-                    activity.setContentView(R.layout.stage1_select);
                     Stage1_Scene stage1Scene = new Stage1_Scene(context);
                     activity.getGameView().pushScene(stage1Scene);
+                });
+            }
+        }
+    }
+
+    private void setupBackButton() {
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            TextView backText = activity.findViewById(R.id.back_text);
+            if (backText != null) {
+                backText.setOnClickListener(v -> {
+                    Intent intent = new Intent(context, MainActivity.class);
+                    context.startActivity(intent);
+                    ((Activity)context).finish();
                 });
             }
         }
@@ -48,7 +69,6 @@ public class worldSelectScene extends Scene {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // 터치 이벤트 보다 버튼으로 월드선택이 효율적 -> 스테이지 클리어할때마다 월드 잠금해제 시스템을 넣기위해
         return false;
     }
 
@@ -59,6 +79,7 @@ public class worldSelectScene extends Scene {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
             setupStage1Button();
+            setupBackButton();
         }
     }
 
@@ -69,6 +90,7 @@ public class worldSelectScene extends Scene {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
             setupStage1Button();
+            setupBackButton();
         }
     }
 
