@@ -25,12 +25,14 @@ import ac.tukorea.yunjun.pegglepang.R;
 public class S1_1 extends BaseStageScene {
 
     private static final int GRID_SIZE = 6;              
-    private static final float SWIPE_THRESHOLD = 20.0f;   //20px이상 밀었을 때 스와이프 처리 
+    private static final float SWIPE_THRESHOLD = 20.0f;   
     
     private Paint linePaint;      
     private Bitmap gridBitmap;    
     private RectF gridRect;       
     private BlockGrid blockGrid;
+    private PlayerStats playerStats;
+    private boolean isPuzzleFrozen;
     
     private float blockSize;      
     private float puzzleLeft;     
@@ -52,7 +54,10 @@ public class S1_1 extends BaseStageScene {
         gridBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.grid);
         gridRect = new RectF();
         
+        playerStats = new PlayerStats();
         blockGrid = new BlockGrid(context);
+        blockGrid.setPlayerStats(playerStats);
+        isPuzzleFrozen = false;
     }
 
     @Override
@@ -63,11 +68,15 @@ public class S1_1 extends BaseStageScene {
     public void update() {
         super.update();
         blockGrid.update(0.016f);
+        
+        if (playerStats.isGameOver() && !isPuzzleFrozen) {
+            isPuzzleFrozen = true;
+        }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (blockGrid.isAnyBlockAnimating()) {
+        if (blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
             return true;
         }
 
@@ -149,6 +158,12 @@ public class S1_1 extends BaseStageScene {
         textPaint.setTextAlign(Paint.Align.CENTER);
 
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
-        canvas.drawText("플레이어 정보", Metrics.width/2, playerInfoStart + (puzzleStart - playerInfoStart)/2, textPaint);
+        playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
+    }
+
+    public void startNewPuzzlePhase() {
+        isPuzzleFrozen = false;
+        playerStats.reset();
+        blockGrid.reset();
     }
 }

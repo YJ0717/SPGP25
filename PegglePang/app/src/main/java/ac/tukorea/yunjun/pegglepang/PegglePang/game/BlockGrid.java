@@ -16,6 +16,11 @@ public class BlockGrid {
     private Bitmap[] blockBitmaps;
     private Random random;
     private float puzzleLeft, puzzleTop, blockSize;
+    private PlayerStats playerStats;
+
+    public void setPlayerStats(PlayerStats stats) {
+        this.playerStats = stats;
+    }
 
     public BlockGrid(Context context) {
         blocks = new Block[GRID_SIZE][GRID_SIZE];
@@ -181,6 +186,9 @@ public class BlockGrid {
     private void processMatches() {
         boolean[][] toRemove = new boolean[GRID_SIZE][GRID_SIZE];
         boolean hasMatches = false;
+        int swordCount = 0;
+        int magicCount = 0;
+        int healCount = 0;
 
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
@@ -190,25 +198,39 @@ public class BlockGrid {
                     if (col <= GRID_SIZE - 3 &&
                         blocks[row][col + 1] != null && blocks[row][col + 1].getType() == type &&
                         blocks[row][col + 2] != null && blocks[row][col + 2].getType() == type) {
-                        toRemove[row][col] = true;
-                        toRemove[row][col + 1] = true;
-                        toRemove[row][col + 2] = true;
+                        for (int i = 0; i < 3; i++) {
+                            toRemove[row][col + i] = true;
+                            switch(type) {
+                                case Block.SWORD: swordCount++; break;
+                                case Block.MAGIC: magicCount++; break;
+                                case Block.HEAL: healCount++; break;
+                            }
+                        }
                         hasMatches = true;
                     }
 
                     if (row <= GRID_SIZE - 3 &&
                         blocks[row + 1][col] != null && blocks[row + 1][col].getType() == type &&
                         blocks[row + 2][col] != null && blocks[row + 2][col].getType() == type) {
-                        toRemove[row][col] = true;
-                        toRemove[row + 1][col] = true;
-                        toRemove[row + 2][col] = true;
+                        for (int i = 0; i < 3; i++) {
+                            toRemove[row + i][col] = true;
+                            switch(type) {
+                                case Block.SWORD: swordCount++; break;
+                                case Block.MAGIC: magicCount++; break;
+                                case Block.HEAL: healCount++; break;
+                            }
+                        }
                         hasMatches = true;
                     }
                 }
             }
         }
 
-        if (hasMatches) {
+        if (hasMatches && playerStats != null) {
+            playerStats.addPhysicalAttack(swordCount);
+            playerStats.addMagicAttack(magicCount);
+            playerStats.addHealing(healCount);
+
             for (int row = 0; row < GRID_SIZE; row++) {
                 for (int col = 0; col < GRID_SIZE; col++) {
                     if (toRemove[row][col]) {
@@ -218,7 +240,6 @@ public class BlockGrid {
             }
 
             dropBlocks();
-
             fillNewBlocks();
 
             new Thread(() -> {
@@ -325,5 +346,14 @@ public class BlockGrid {
 
     public static int getGridSize() {
         return GRID_SIZE;
+    }
+
+    public boolean isGameOver() {
+        return playerStats.isGameOver();
+    }
+
+    public void reset() {
+        playerStats.reset();
+        initializeBlocks();
     }
 } 
