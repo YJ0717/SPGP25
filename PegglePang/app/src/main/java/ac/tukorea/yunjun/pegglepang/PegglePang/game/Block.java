@@ -19,7 +19,10 @@ public class Block {
     private float currentX, currentY;    
     private float targetX, targetY;      
     private boolean isAnimating = false; 
-    private static final float ANIM_SPEED = 0.2f; 
+    private boolean isFalling = false;
+    private static final float SLIDE_SPEED = 0.2f;
+    private static final float GRAVITY = 1.5f;
+    private float velocityY = 0;
     
     public Block(int type, Bitmap bitmap) {
         this.type = type;
@@ -33,29 +36,54 @@ public class Block {
             currentY = top;
             targetX = left;
             targetY = top;
+            velocityY = 0;
         }
         rect.set(currentX, currentY, currentX + (right - left), currentY + (bottom - top));
     }
 
-    public void startAnimation(float targetLeft, float targetTop) {
+    public void startAnimation(float targetLeft, float targetTop, boolean falling) {
         this.targetX = targetLeft;
         this.targetY = targetTop;
         this.isAnimating = true;
+        this.isFalling = falling;
+        if (falling) {
+            this.velocityY = 0;
+        }
     }
 
     public void update(float deltaTime) {
         if (isAnimating) {
-            float dx = targetX - currentX;
-            float dy = targetY - currentY;
-            
-            currentX += dx * ANIM_SPEED;
-            currentY += dy * ANIM_SPEED;
-            
-            if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
-                currentX = targetX;
-                currentY = targetY;
-                isAnimating = false;
+            if (isFalling) {
+                velocityY += GRAVITY;
+                currentY += velocityY;
+                
+                float dx = targetX - currentX;
+                currentX += dx * SLIDE_SPEED;
+                
+                if (currentY >= targetY) {
+                    currentY = targetY;
+                    currentX = targetX;
+                    isAnimating = false;
+                    isFalling = false;
+                    velocityY = 0;
+                }
+            } else {
+                float dx = targetX - currentX;
+                float dy = targetY - currentY;
+                
+                currentX += dx * SLIDE_SPEED;
+                currentY += dy * SLIDE_SPEED;
+                
+                if (Math.abs(dx) < 1 && Math.abs(dy) < 1) {
+                    currentX = targetX;
+                    currentY = targetY;
+                    isAnimating = false;
+                }
             }
+            
+            float width = rect.width();
+            float height = rect.height();
+            rect.set(currentX, currentY, currentX + width, currentY + height);
         }
     }
     

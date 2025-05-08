@@ -17,6 +17,8 @@ import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
 import java.util.Random;
+import java.util.ArrayList;
+import java.util.Arrays;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 
@@ -66,7 +68,6 @@ public class S1_1 extends BaseStageScene {
     protected void setupStageSpecificElements() {
     }
 
-    // 초기 블록 배치 - 3개 이상 매칭되지 않도록 설정
     private void initializeBlocks() {
         do {
             for (int row = 0; row < GRID_SIZE; row++) {
@@ -78,7 +79,6 @@ public class S1_1 extends BaseStageScene {
         } while (hasInitialMatches()); 
     }
 
-    // 초기 매치 검사 - 가로/세로 방향으로 3개 이상 연속된 같은 블록이 있는지 확인
     private boolean hasInitialMatches() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE - 2; col++) {
@@ -100,64 +100,181 @@ public class S1_1 extends BaseStageScene {
         return false;
     }
 
+    private boolean isAnyBlockAnimating() {
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                if (blocks[row][col] != null && blocks[row][col].isAnimating()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private void processMatches() {
+        new Thread(() -> {
+            try {
+                while (isAnyBlockAnimating()) {
+                    Thread.sleep(50);
+                }
+                
+                while (checkAndRemoveMatches()) {
+                    while (isAnyBlockAnimating()) {
+                        Thread.sleep(50);
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+
     private boolean checkAndRemoveMatches() {
+        boolean[][] toRemove = new boolean[GRID_SIZE][GRID_SIZE];
         boolean hasMatches = false;
         
         for (int row = 0; row < GRID_SIZE; row++) {
-            int matchStart = 0;
-            int matchLength = 1;
-            
-            for (int col = 1; col < GRID_SIZE; col++) {
-                if (blocks[row][col] != null && blocks[row][col-1] != null &&
-                    blocks[row][col].getType() == blocks[row][col-1].getType()) {
-                    matchLength++;
-                } else {
-                    if (matchLength >= 3) {
-                        for (int i = 0; i < matchLength; i++) {
-                            blocks[row][matchStart + i] = null;
-                        }
-                        hasMatches = true;
+            for (int col = 0; col < GRID_SIZE - 2; col++) {
+                if (blocks[row][col] != null) {
+                    int matchLength = 1;
+                    while (col + matchLength < GRID_SIZE && 
+                           blocks[row][col + matchLength] != null &&
+                           blocks[row][col].getType() == blocks[row][col + matchLength].getType()) {
+                        matchLength++;
                     }
-                    matchStart = col;
-                    matchLength = 1;
+                    
+                    if (matchLength >= 3) {
+                        hasMatches = true;
+                        for (int i = 0; i < matchLength; i++) {
+                            toRemove[row][col + i] = true;
+                        }
+                    }
                 }
-            }
-            if (matchLength >= 3) {
-                for (int i = 0; i < matchLength; i++) {
-                    blocks[row][matchStart + i] = null;
-                }
-                hasMatches = true;
             }
         }
         
         for (int col = 0; col < GRID_SIZE; col++) {
-            int matchStart = 0;
-            int matchLength = 1;
-            
-            for (int row = 1; row < GRID_SIZE; row++) {
-                if (blocks[row][col] != null && blocks[row-1][col] != null &&
-                    blocks[row][col].getType() == blocks[row-1][col].getType()) {
-                    matchLength++;
-                } else {
-                    if (matchLength >= 3) {
-                        for (int i = 0; i < matchLength; i++) {
-                            blocks[matchStart + i][col] = null;
-                        }
-                        hasMatches = true;
+            for (int row = 0; row < GRID_SIZE - 2; row++) {
+                if (blocks[row][col] != null) {
+                    int matchLength = 1;
+                    while (row + matchLength < GRID_SIZE && 
+                           blocks[row + matchLength][col] != null &&
+                           blocks[row][col].getType() == blocks[row + matchLength][col].getType()) {
+                        matchLength++;
                     }
-                    matchStart = row;
-                    matchLength = 1;
+                    
+                    if (matchLength >= 3) {
+                        hasMatches = true;
+                        for (int i = 0; i < matchLength; i++) {
+                            toRemove[row + i][col] = true;
+                        }
+                    }
                 }
-            }
-            if (matchLength >= 3) {
-                for (int i = 0; i < matchLength; i++) {
-                    blocks[matchStart + i][col] = null;
-                }
-                hasMatches = true;
             }
         }
         
+        if (hasMatches) {
+            for (int row = 0; row < GRID_SIZE; row++) {
+                for (int col = 0; col < GRID_SIZE; col++) {
+                    if (toRemove[row][col]) {
+                        blocks[row][col] = null;
+                    }
+                }
+            }
+            dropBlocks();
+            fillNewBlocks();
+        }
+        
         return hasMatches;
+    }
+
+    private void dropBlocks() {
+        for (int col = 0; col < GRID_SIZE; col++) {
+            int insertRow = GRID_SIZE - 1;
+            Block[] validBlocks = new Block[GRID_SIZE];
+            int validCount = 0;
+            
+            for (int row = GRID_SIZE - 1; row >= 0; row--) {
+                if (blocks[row][col] != null) {
+                    validBlocks[validCount++] = blocks[row][col];
+                    blocks[row][col] = null;
+                }
+            }
+            
+            for (int i = 0; i < validCount; i++) {
+                int targetRow = GRID_SIZE - 1 - i;
+                blocks[targetRow][col] = validBlocks[i];
+                float targetY = puzzleTop + targetRow * blockSize;
+                validBlocks[i].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+            }
+        }
+    }
+
+    private int getSmartRandomType(int row, int col) {
+        ArrayList<Integer> availableTypes = new ArrayList<>(Arrays.asList(0, 1, 2));
+        
+        if (row >= 2) {
+            if (blocks[row-1][col] != null && blocks[row-2][col] != null &&
+                blocks[row-1][col].getType() == blocks[row-2][col].getType()) {
+                availableTypes.remove(Integer.valueOf(blocks[row-1][col].getType()));
+            }
+        }
+        
+        if (col >= 2) {
+            if (blocks[row][col-1] != null && blocks[row][col-2] != null &&
+                blocks[row][col-1].getType() == blocks[row][col-2].getType()) {
+                availableTypes.remove(Integer.valueOf(blocks[row][col-1].getType()));
+            }
+        }
+        
+        if (availableTypes.isEmpty()) {
+            return random.nextInt(3);
+        } else {
+            return availableTypes.get(random.nextInt(availableTypes.size()));
+        }
+    }
+
+    private void fillNewBlocks() {
+        for (int col = 0; col < GRID_SIZE; col++) {
+            int emptyCount = 0;
+            for (int row = 0; row < GRID_SIZE; row++) {
+                if (blocks[row][col] == null) {
+                    emptyCount++;
+                }
+            }
+            
+            if (emptyCount > 0) {
+                Block[] tempBlocks = new Block[GRID_SIZE];
+                int validCount = 0;
+                
+                for (int row = GRID_SIZE - 1; row >= 0; row--) {
+                    if (blocks[row][col] != null) {
+                        tempBlocks[validCount++] = blocks[row][col];
+                        blocks[row][col] = null;
+                    }
+                }
+                
+                for (int i = 0; i < validCount; i++) {
+                    int targetRow = GRID_SIZE - 1 - i;
+                    blocks[targetRow][col] = tempBlocks[i];
+                    float targetY = puzzleTop + targetRow * blockSize;
+                    tempBlocks[i].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+                }
+                
+                for (int i = 0; i < emptyCount; i++) {
+                    int targetRow = emptyCount - 1 - i;
+                    int type = getSmartRandomType(targetRow, col);
+                    blocks[targetRow][col] = new Block(type, blockBitmaps[type]);
+                    
+                    float startY = puzzleTop - (i + 1) * blockSize;
+                    float targetY = puzzleTop + targetRow * blockSize;
+                    
+                    blocks[targetRow][col].setPosition(puzzleLeft + col * blockSize, startY, 
+                                                     puzzleLeft + col * blockSize + blockSize, startY + blockSize);
+                    blocks[targetRow][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+                }
+            }
+        }
     }
 
     private void swapBlocks(int row1, int col1, int row2, int col2) {
@@ -166,8 +283,8 @@ public class S1_1 extends BaseStageScene {
         float left2 = puzzleLeft + col2 * blockSize;
         float top2 = puzzleTop + row2 * blockSize;
         
-        blocks[row1][col1].startAnimation(left2, top2);
-        blocks[row2][col2].startAnimation(left1, top1);
+        blocks[row1][col1].startAnimation(left2, top2, false);
+        blocks[row2][col2].startAnimation(left1, top1, false);
         
         Block temp = blocks[row1][col1];
         blocks[row1][col1] = blocks[row2][col2];
@@ -192,13 +309,33 @@ public class S1_1 extends BaseStageScene {
     }
 
     private void swapBlocksWithAnimation(int row1, int col1, int row2, int col2) {
-        swapBlocks(row1, col1, row2, col2);
+        float left1 = puzzleLeft + col1 * blockSize;
+        float top1 = puzzleTop + row1 * blockSize;
+        float left2 = puzzleLeft + col2 * blockSize;
+        float top2 = puzzleTop + row2 * blockSize;
         
+        blocks[row1][col1].startAnimation(left2, top2, false);
+        blocks[row2][col2].startAnimation(left1, top1, false);
+        
+        Block temp = blocks[row1][col1];
+        blocks[row1][col1] = blocks[row2][col2];
+        blocks[row2][col2] = temp;
+
         new Thread(() -> {
             try {
-                Thread.sleep(300); 
+                while (isAnyBlockAnimating()) {
+                    Thread.sleep(50);
+                }
+                
                 if (!checkAndRemoveMatches()) {
-                    swapBlocks(row1, col1, row2, col2);
+                    blocks[row1][col1].startAnimation(left1, top1, false);
+                    blocks[row2][col2].startAnimation(left2, top2, false);
+                    
+                    Block tempBlock = blocks[row1][col1];
+                    blocks[row1][col1] = blocks[row2][col2];
+                    blocks[row2][col2] = tempBlock;
+                } else {
+                    processMatches();
                 }
             } catch (InterruptedException e) {
                 e.printStackTrace();
@@ -256,8 +393,8 @@ public class S1_1 extends BaseStageScene {
     public void draw(Canvas canvas) {
         canvas.drawColor(Color.LTGRAY);
 
-        float puzzleStart = Metrics.height * 0.45f;      
-        float playerInfoStart = Metrics.height * 0.30f;  
+        float puzzleStart = Metrics.height * 0.45f;
+        float playerInfoStart = Metrics.height * 0.30f;
         
         canvas.drawLine(0, puzzleStart, Metrics.width, puzzleStart, linePaint);
         canvas.drawLine(0, playerInfoStart, Metrics.width, playerInfoStart, linePaint);
@@ -266,12 +403,16 @@ public class S1_1 extends BaseStageScene {
         float puzzleSize = Math.min(Metrics.width, puzzleAreaHeight);
         
         puzzleLeft = (Metrics.width - puzzleSize) / 2;
-        puzzleTop = puzzleStart + (puzzleAreaHeight - puzzleSize) / 2;
+        puzzleTop = puzzleStart;
         
         gridRect.set(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
         canvas.drawBitmap(gridBitmap, null, gridRect, null);
 
         blockSize = puzzleSize / GRID_SIZE;
+        
+        canvas.save();
+        canvas.clipRect(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
+        
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
                 if (blocks[row][col] != null) {
@@ -282,6 +423,8 @@ public class S1_1 extends BaseStageScene {
                 }
             }
         }
+        
+        canvas.restore();
 
         Paint textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
