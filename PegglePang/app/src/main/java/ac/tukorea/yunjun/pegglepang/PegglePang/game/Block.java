@@ -23,12 +23,22 @@ public class Block {
     private static final float SLIDE_SPEED = 0.2f;
     private static final float GRAVITY = 1.5f;
     private float velocityY = 0;
+
+    private int row, col;
     
     public Block(int type, Bitmap bitmap) {
         this.type = type;
         this.bitmap = bitmap;
         this.rect = new RectF();
     }
+
+    public void setGridPosition(int row, int col) {
+        this.row = row;
+        this.col = col;
+    }
+
+    public int getRow() { return row; }
+    public int getCol() { return col; }
     
     public void setPosition(float left, float top, float right, float bottom) {
         if (!isAnimating) {
@@ -90,6 +100,10 @@ public class Block {
     public boolean isAnimating() {
         return isAnimating;
     }
+
+    public boolean isFalling() {
+        return isFalling;
+    }
     
     public void draw(Canvas canvas) {
         if (bitmap != null) {
@@ -100,4 +114,9 @@ public class Block {
     public int getType() {
         return type;
     }
+
+    public float getCurrentX() { return currentX; }
+    public float getCurrentY() { return currentY; }
+    public float getTargetX() { return targetX; }
+    public float getTargetY() { return targetY; }
 } 
