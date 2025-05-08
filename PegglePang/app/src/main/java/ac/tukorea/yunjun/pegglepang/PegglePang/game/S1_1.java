@@ -104,40 +104,57 @@ public class S1_1 extends BaseStageScene {
         boolean hasMatches = false;
         
         for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE - 2; col++) {
-                if (blocks[row][col] != null &&
-                    blocks[row][col + 1] != null &&
-                    blocks[row][col + 2] != null &&
-                    blocks[row][col].getType() == blocks[row][col + 1].getType() &&
-                    blocks[row][col].getType() == blocks[row][col + 2].getType()) {
-                    
-                    blocks[row][col] = null;
-                    blocks[row][col + 1] = null;
-                    blocks[row][col + 2] = null;
-                    hasMatches = true;
+            int matchStart = 0;
+            int matchLength = 1;
+            
+            for (int col = 1; col < GRID_SIZE; col++) {
+                if (blocks[row][col] != null && blocks[row][col-1] != null &&
+                    blocks[row][col].getType() == blocks[row][col-1].getType()) {
+                    matchLength++;
+                } else {
+                    if (matchLength >= 3) {
+                        for (int i = 0; i < matchLength; i++) {
+                            blocks[row][matchStart + i] = null;
+                        }
+                        hasMatches = true;
+                    }
+                    matchStart = col;
+                    matchLength = 1;
                 }
+            }
+            if (matchLength >= 3) {
+                for (int i = 0; i < matchLength; i++) {
+                    blocks[row][matchStart + i] = null;
+                }
+                hasMatches = true;
             }
         }
         
         for (int col = 0; col < GRID_SIZE; col++) {
-            for (int row = 0; row < GRID_SIZE - 2; row++) {
-                if (blocks[row][col] != null &&
-                    blocks[row + 1][col] != null &&
-                    blocks[row + 2][col] != null &&
-                    blocks[row][col].getType() == blocks[row + 1][col].getType() &&
-                    blocks[row][col].getType() == blocks[row + 2][col].getType()) {
-                    
-                    // 매치된 블록 제거
-                    blocks[row][col] = null;
-                    blocks[row + 1][col] = null;
-                    blocks[row + 2][col] = null;
-                    hasMatches = true;
+            int matchStart = 0;
+            int matchLength = 1;
+            
+            for (int row = 1; row < GRID_SIZE; row++) {
+                if (blocks[row][col] != null && blocks[row-1][col] != null &&
+                    blocks[row][col].getType() == blocks[row-1][col].getType()) {
+                    matchLength++;
+                } else {
+                    if (matchLength >= 3) {
+                        for (int i = 0; i < matchLength; i++) {
+                            blocks[matchStart + i][col] = null;
+                        }
+                        hasMatches = true;
+                    }
+                    matchStart = row;
+                    matchLength = 1;
                 }
             }
-        }
-        
-        if (hasMatches) {
-            // TODO: 나중에 여기에 블록 떨어지는 로직 추가
+            if (matchLength >= 3) {
+                for (int i = 0; i < matchLength; i++) {
+                    blocks[matchStart + i][col] = null;
+                }
+                hasMatches = true;
+            }
         }
         
         return hasMatches;
