@@ -345,6 +345,10 @@ public class S1_1 extends BaseStageScene {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isAnyBlockAnimating()) {
+            return true;
+        }
+
         float[] touchPoint = Metrics.fromScreen(event.getX(), event.getY());
         float x = touchPoint[0];
         float y = touchPoint[1];
