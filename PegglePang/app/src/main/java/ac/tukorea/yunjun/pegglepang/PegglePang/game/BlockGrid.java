@@ -95,16 +95,14 @@ public class BlockGrid {
     private int getSmartRandomType(int row, int col) {
         ArrayList<Integer> availableTypes = new ArrayList<>(Arrays.asList(0, 1, 2));
         
-        if (row >= 2) {
-            if (blocks[row-1][col] != null && blocks[row-2][col] != null &&
-                blocks[row-1][col].getType() == blocks[row-2][col].getType()) {
+        if (row >= 1) {
+            if (blocks[row-1][col] != null) {
                 availableTypes.remove(Integer.valueOf(blocks[row-1][col].getType()));
             }
         }
         
-        if (col >= 2) {
-            if (blocks[row][col-1] != null && blocks[row][col-2] != null &&
-                blocks[row][col-1].getType() == blocks[row][col-2].getType()) {
+        if (col >= 1) {
+            if (blocks[row][col-1] != null) {
                 availableTypes.remove(Integer.valueOf(blocks[row][col-1].getType()));
             }
         }
