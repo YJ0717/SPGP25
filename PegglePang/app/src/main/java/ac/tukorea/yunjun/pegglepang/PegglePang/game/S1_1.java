@@ -48,6 +48,8 @@ public class S1_1 extends BaseStageScene {
     private Player player; 
     private Stage1Monster slime;
     private Stage1Monster skeleton;
+    private Bitmap battleBg;
+    private Bitmap stateBg;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -76,11 +78,13 @@ public class S1_1 extends BaseStageScene {
         float slimeTop = battleHeight - slimeDrawHeight - (battleHeight * 0.05f);
         slime = new Stage1Monster(context, R.mipmap.slime_idle, 3, slimeLeft, slimeTop, slimeDrawWidth, slimeDrawHeight);
         // skeleton 몬스터 추가 (슬라임 왼쪽에)
-        float skeletonDrawHeight = battleHeight * 0.8f;
+        float skeletonDrawHeight = battleHeight * 0.5f;
         float skeletonDrawWidth = 80f;
         float skeletonLeft = slimeLeft - skeletonDrawWidth - (Metrics.width * 0.03f);
         float skeletonTop = battleHeight - skeletonDrawHeight - (battleHeight * 0.05f);
         skeleton = new Stage1Monster(context, R.mipmap.skeleton_idle, 3, skeletonLeft, skeletonTop, skeletonDrawWidth, skeletonDrawHeight);
+        battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
+        stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
     }
 
     @Override
@@ -152,11 +156,23 @@ public class S1_1 extends BaseStageScene {
 
     @Override
     public void draw(Canvas canvas) {
-        canvas.drawColor(Color.LTGRAY);
-
         float puzzleStart = Metrics.height * 0.45f;
         float playerInfoStart = Metrics.height * 0.30f;
-        
+        // 전투영역 배경 그리기 (상단 30%)
+        if (battleBg != null) {
+            RectF bgRect = new RectF(0, 0, Metrics.width, playerInfoStart);
+            canvas.drawBitmap(battleBg, null, bgRect, null);
+        }
+        // 플레이어 정보 영역 배경 그리기
+        if (stateBg != null) {
+            RectF stateRect = new RectF(0, playerInfoStart, Metrics.width, puzzleStart);
+            canvas.drawBitmap(stateBg, null, stateRect, null);
+        }
+        // 퍼즐 영역(하단 55%) 배경도 state.png로 채우기
+        if (stateBg != null) {
+            RectF puzzleRect = new RectF(0, puzzleStart, Metrics.width, Metrics.height);
+            canvas.drawBitmap(stateBg, null, puzzleRect, null);
+        }
         canvas.drawLine(0, puzzleStart, Metrics.width, puzzleStart, linePaint);
         canvas.drawLine(0, playerInfoStart, Metrics.width, playerInfoStart, linePaint);
 
@@ -184,6 +200,21 @@ public class S1_1 extends BaseStageScene {
 
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
+
+        float rightMargin = Metrics.width - 50;
+        float lineHeight = 45;
+        float startY = playerInfoStart + lineHeight * 1.5f;
+        textPaint.setTextSize(40);
+        textPaint.setAntiAlias(true);
+        textPaint.setTextAlign(Paint.Align.RIGHT);
+        textPaint.setColor(0xFFFFEB3B);
+        canvas.drawText("물리공격력: " + playerStats.getPhysicalAttack(), rightMargin, startY, textPaint);
+        textPaint.setColor(0xFF9C27B0); 
+        canvas.drawText("마법공격력: " + playerStats.getMagicAttack(), rightMargin, startY + lineHeight, textPaint);
+        textPaint.setColor(0xFF4CAF50); 
+        canvas.drawText("힐: " + playerStats.getHealing(), rightMargin, startY + lineHeight * 2, textPaint);
+        textPaint.setColor(0xFFF44336); 
+        canvas.drawText("Time: " + playerStats.getRemainingSeconds() + "초", rightMargin, startY + lineHeight * 3, textPaint);
 
         player.draw(canvas);
         slime.draw(canvas);

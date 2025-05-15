@@ -65,4 +65,16 @@ public class PlayerStats {
         healing = 0;
         gameStartTime = System.currentTimeMillis();
     }
+
+    public int getPhysicalAttack() {
+        return physicalAttack;
+    }
+
+    public int getMagicAttack() {
+        return magicAttack;
+    }
+
+    public int getHealing() {
+        return healing;
+    }
 } 
