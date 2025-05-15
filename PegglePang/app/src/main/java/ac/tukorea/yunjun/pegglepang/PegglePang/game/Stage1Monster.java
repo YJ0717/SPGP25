@@ -11,17 +11,22 @@ import ac.tukorea.yunjun.pegglepang.R;
 public class Stage1Monster {
     private Bitmap idleSheet;
     private int frame = 0;
-    private int frameCount = 3;
+    private int frameCount;
     private float animTimer = 0f;
-    private static final float FRAME_DURATION = 0.25f;
+    private static final float FRAME_DURATION = 0.5f;
     private float x, y, width, height;
+    private boolean isSkeleton = false;
 
-    public Stage1Monster(Context context, float x, float y, float width, float height) {
-        this.idleSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.slime_idle);
+    public Stage1Monster(Context context, int resId, int frameCount, float x, float y, float width, float height) {
+        this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
+        this.frameCount = frameCount;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        if (resId == R.mipmap.skeleton_idle) {
+            isSkeleton = true;
+        }
     }
 
     public void update(float dt) {
@@ -49,13 +54,5 @@ public class Stage1Monster {
         this.y = y;
         this.width = width;
         this.height = height;
-    }
-
-    public int getFrameCount() {
-        return frameCount;
-    }
-
-    public Bitmap getIdleSheet() {
-        return idleSheet;
     }
 } 

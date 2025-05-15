@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage1Monster;
 
 public class S1_1 extends BaseStageScene {
 
@@ -45,7 +46,8 @@ public class S1_1 extends BaseStageScene {
     private float touchStartY;    
 
     private Player player; 
-    private Stage1Monster monster;
+    private Stage1Monster slime;
+    private Stage1Monster skeleton;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -68,11 +70,17 @@ public class S1_1 extends BaseStageScene {
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
         isPuzzleFrozen = false;
-        float monsterDrawHeight = battleHeight * 0.10f;
-        float monsterDrawWidth = monsterDrawHeight * (203f / 46f); 
-        float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
-        float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
-        monster = new Stage1Monster(context, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight);
+        float slimeDrawHeight = battleHeight * 0.10f;
+        float slimeDrawWidth = slimeDrawHeight * (203f / 46f);
+        float slimeLeft = Metrics.width - slimeDrawWidth - (Metrics.width * 0.05f);
+        float slimeTop = battleHeight - slimeDrawHeight - (battleHeight * 0.05f);
+        slime = new Stage1Monster(context, R.mipmap.slime_idle, 3, slimeLeft, slimeTop, slimeDrawWidth, slimeDrawHeight);
+        // skeleton 몬스터 추가 (슬라임 왼쪽에)
+        float skeletonDrawHeight = battleHeight * 0.8f;
+        float skeletonDrawWidth = 80f;
+        float skeletonLeft = slimeLeft - skeletonDrawWidth - (Metrics.width * 0.03f);
+        float skeletonTop = battleHeight - skeletonDrawHeight - (battleHeight * 0.05f);
+        skeleton = new Stage1Monster(context, R.mipmap.skeleton_idle, 3, skeletonLeft, skeletonTop, skeletonDrawWidth, skeletonDrawHeight);
     }
 
     @Override
@@ -84,7 +92,8 @@ public class S1_1 extends BaseStageScene {
         super.update();
         blockGrid.update(0.016f);
         player.update(0.016f);
-        monster.update(0.016f);
+        slime.update(0.016f);
+        skeleton.update(0.016f);
         if (playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
         }
@@ -176,9 +185,9 @@ public class S1_1 extends BaseStageScene {
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
-        // 전투 공간(상단 30%)에 플레이어, 몬스터 그리기
         player.draw(canvas);
-        monster.draw(canvas);
+        slime.draw(canvas);
+        skeleton.draw(canvas);
     }
 
     public void startNewPuzzlePhase() {
