@@ -298,17 +298,26 @@ public class BlockGrid {
                     emptyCount++;
                 }
             }
-            
             if (emptyCount > 0) {
                 for (int i = 0; i < emptyCount; i++) {
                     int targetRow = emptyCount - 1 - i;
-                    int type = getSmartRandomType(targetRow, col);
+                    int type;
+                    do {
+                        type = random.nextInt(3);
+                        if (targetRow < GRID_SIZE - 1 && blocks[targetRow + 1][col] != null &&
+                            blocks[targetRow + 1][col].getType() == type) {
+                            continue;
+                        }
+                        if (col > 0 && blocks[targetRow][col - 1] != null &&
+                            blocks[targetRow][col - 1].getType() == type) {
+                            continue;
+                        }
+                        break;
+                    } while (true);
                     blocks[targetRow][col] = new Block(type, blockBitmaps[type]);
                     blocks[targetRow][col].setGridPosition(targetRow, col);
-                    
                     float startY = puzzleTop - (i + 1) * blockSize;
                     float targetY = puzzleTop + targetRow * blockSize;
-                    
                     blocks[targetRow][col].setPosition(puzzleLeft + col * blockSize, startY, 
                                                      puzzleLeft + col * blockSize + blockSize, startY + blockSize);
                     blocks[targetRow][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
