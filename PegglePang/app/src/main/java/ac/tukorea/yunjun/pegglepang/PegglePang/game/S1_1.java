@@ -44,6 +44,9 @@ public class S1_1 extends BaseStageScene {
     private float touchStartX;    
     private float touchStartY;    
 
+    private Player player; 
+    private Stage1Monster monster;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -54,10 +57,22 @@ public class S1_1 extends BaseStageScene {
         gridBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.grid);
         gridRect = new RectF();
         
-        playerStats = new PlayerStats();
+        float playerInfoStart = Metrics.height * 0.30f;
+        float battleHeight = playerInfoStart;
+        float playerDrawHeight = battleHeight * 0.9f;
+        float playerDrawWidth = playerDrawHeight * 0.5f;
+        float playerLeft = Metrics.width * 0.05f;
+        float playerTop = (battleHeight - playerDrawHeight) / 2;
+        player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight);
+        playerStats = player.getStats();
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
         isPuzzleFrozen = false;
+        float monsterDrawHeight = battleHeight * 0.10f;
+        float monsterDrawWidth = monsterDrawHeight * (203f / 46f); 
+        float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
+        float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
+        monster = new Stage1Monster(context, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight);
     }
 
     @Override
@@ -68,7 +83,8 @@ public class S1_1 extends BaseStageScene {
     public void update() {
         super.update();
         blockGrid.update(0.016f);
-        
+        player.update(0.016f);
+        monster.update(0.016f);
         if (playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
         }
@@ -159,6 +175,10 @@ public class S1_1 extends BaseStageScene {
 
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
+
+        // 전투 공간(상단 30%)에 플레이어, 몬스터 그리기
+        player.draw(canvas);
+        monster.draw(canvas);
     }
 
     public void startNewPuzzlePhase() {
