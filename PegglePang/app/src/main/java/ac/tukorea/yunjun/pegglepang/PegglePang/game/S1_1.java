@@ -51,6 +51,11 @@ public class S1_1 extends BaseStageScene {
     private Bitmap battleBg;
     private Bitmap stateBg;
 
+    private boolean isBattleStarted = false;
+    private boolean isPlayerTurn = true;
+    private static final float TURN_DELAY = 1.0f; // 턴 사이의 딜레이 (초)
+    private float turnTimer = 0f;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -98,8 +103,21 @@ public class S1_1 extends BaseStageScene {
         player.update(0.016f);
         slime.update(0.016f);
         skeleton.update(0.016f);
-        if (playerStats.isGameOver() && !isPuzzleFrozen) {
+
+        // 퍼즐이 끝나고 전투가 시작되지 않았다면
+        if (playerStats.isGameOver() && !isPuzzleFrozen && !isBattleStarted) {
             isPuzzleFrozen = true;
+            isBattleStarted = true;
+            startAutoBattle();
+        }
+
+        // 전투 중일 때 턴 처리
+        if (isBattleStarted) {
+            turnTimer += 0.016f;
+            if (turnTimer >= TURN_DELAY) {
+                turnTimer = 0f;
+                processNextTurn();
+            }
         }
     }
 
@@ -201,21 +219,6 @@ public class S1_1 extends BaseStageScene {
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
-        float rightMargin = Metrics.width - 50;
-        float lineHeight = 45;
-        float startY = playerInfoStart + lineHeight * 1.5f;
-        textPaint.setTextSize(40);
-        textPaint.setAntiAlias(true);
-        textPaint.setTextAlign(Paint.Align.RIGHT);
-        textPaint.setColor(0xFFFFEB3B);
-        canvas.drawText("물리공격력: " + playerStats.getPhysicalAttack(), rightMargin, startY, textPaint);
-        textPaint.setColor(0xFF9C27B0); 
-        canvas.drawText("마법공격력: " + playerStats.getMagicAttack(), rightMargin, startY + lineHeight, textPaint);
-        textPaint.setColor(0xFF4CAF50); 
-        canvas.drawText("힐: " + playerStats.getHealing(), rightMargin, startY + lineHeight * 2, textPaint);
-        textPaint.setColor(0xFFF44336); 
-        canvas.drawText("Time: " + playerStats.getRemainingSeconds() + "초", rightMargin, startY + lineHeight * 3, textPaint);
-
         player.draw(canvas);
         slime.draw(canvas);
         skeleton.draw(canvas);
@@ -225,5 +228,50 @@ public class S1_1 extends BaseStageScene {
         isPuzzleFrozen = false;
         playerStats.reset();
         blockGrid.reset();
+    }
+
+    private void startAutoBattle() {
+        isPlayerTurn = true; 
+        turnTimer = 0f;
+    }
+
+    private void processNextTurn() {
+        if (!isBattleStarted) return;
+
+        if (isPlayerTurn) {
+            int totalDamage = playerStats.getPhysicalAttack() + playerStats.getMagicAttack();
+            slime.takeDamage(totalDamage);
+            skeleton.takeDamage(totalDamage);
+
+            playerStats.heal(playerStats.getHealing());
+
+            isPlayerTurn = false;
+        } else {
+            if (slime.isAlive()) {
+                playerStats.takeDamage(slime.getAttackPower());
+            }
+            if (skeleton.isAlive()) {
+                playerStats.takeDamage(skeleton.getAttackPower());
+            }
+            isPlayerTurn = true;
+        }
+
+        checkBattleEnd();
+    }
+
+    private void checkBattleEnd() {
+        if (!playerStats.isAlive()) {
+            endBattle(false); // 플레이어 패배
+        } else if (!slime.isAlive() && !skeleton.isAlive()) {
+            endBattle(true); // 플레이어 승리
+        }
+    }
+
+    private void endBattle(boolean isVictory) {
+        isBattleStarted = false;
+        if (isVictory) {
+            StageManager.getInstance().unlockStage(1, 2); 
+        } else {
+        }
     }
 }

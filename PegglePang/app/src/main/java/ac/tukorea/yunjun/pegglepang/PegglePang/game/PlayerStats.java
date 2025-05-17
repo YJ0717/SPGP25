@@ -12,10 +12,15 @@ public class PlayerStats {
     private long gameStartTime;
     private static final long GAME_DURATION = 60000;
 
+    private int maxHp = 100;
+    private int currentHp;
+    private boolean isAlive = true;
+
     public PlayerStats() {
         physicalAttack = 0;
         magicAttack = 0;
         healing = 0;
+        currentHp = maxHp;
         
         textPaint = new Paint();
         textPaint.setColor(Color.BLACK);
@@ -26,15 +31,50 @@ public class PlayerStats {
         gameStartTime = System.currentTimeMillis();
     }
 
+    public void takeDamage(int damage) {
+        currentHp = Math.max(0, currentHp - damage);
+        if (currentHp <= 0) {
+            isAlive = false;
+        }
+    }
+
+    public void heal(int amount) {
+        currentHp = Math.min(maxHp, currentHp + amount);
+    }
+
+    public boolean isAlive() {
+        return isAlive;
+    }
+
+    public int getCurrentHp() {
+        return currentHp;
+    }
+
+    public int getMaxHp() {
+        return maxHp;
+    }
+
     public void draw(Canvas canvas, float screenWidth, float top, float bottom) {
-        float rightMargin = screenWidth - 50;
+        // HP는 왼쪽에 표시
+        float leftMargin = 50;
         float centerY = (top + bottom) / 2;
         float lineHeight = 45;
         float startY = centerY - lineHeight * 1.5f;
         
+        textPaint.setColor(0xFFE91E63); 
+        textPaint.setTextAlign(Paint.Align.LEFT);
+        canvas.drawText("HP: " + currentHp + "/" + maxHp, leftMargin, startY, textPaint);
+        
+        float rightMargin = screenWidth - 50;
+        textPaint.setTextAlign(Paint.Align.RIGHT);
+        
+        textPaint.setColor(0xFFFFEB3B); // 노란색
         canvas.drawText("물리공격력: " + physicalAttack, rightMargin, startY, textPaint);
+        textPaint.setColor(0xFF9C27B0); // 보라색
         canvas.drawText("마법공격력: " + magicAttack, rightMargin, startY + lineHeight, textPaint);
+        textPaint.setColor(0xFF4CAF50); // 초록색
         canvas.drawText("힐: " + healing, rightMargin, startY + lineHeight * 2, textPaint);
+        textPaint.setColor(0xFFF44336); // 빨간색
         canvas.drawText("Time: " + getRemainingSeconds() + "초", rightMargin, startY + lineHeight * 3, textPaint);
     }
 
@@ -63,6 +103,8 @@ public class PlayerStats {
         physicalAttack = 0;
         magicAttack = 0;
         healing = 0;
+        currentHp = maxHp;
+        isAlive = true;
         gameStartTime = System.currentTimeMillis();
     }
 
