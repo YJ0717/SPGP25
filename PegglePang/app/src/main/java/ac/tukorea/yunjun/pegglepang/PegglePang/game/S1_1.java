@@ -27,6 +27,7 @@ public class S1_1 extends BaseStageScene {
 
     private static final int GRID_SIZE = 6;              
     private static final float SWIPE_THRESHOLD = 20.0f;   
+    private static final float TURN_DELAY = 1.0f;
     
     private Paint linePaint;      
     private Bitmap gridBitmap;    
@@ -34,6 +35,9 @@ public class S1_1 extends BaseStageScene {
     private BlockGrid blockGrid;
     private PlayerStats playerStats;
     private boolean isPuzzleFrozen;
+    private boolean isBattlePhase = false;
+    private boolean isPlayerTurn = true;
+    private float turnTimer = 0f;
     
     private float blockSize;      
     private float puzzleLeft;     
@@ -50,11 +54,6 @@ public class S1_1 extends BaseStageScene {
     private Stage1Monster skeleton;
     private Bitmap battleBg;
     private Bitmap stateBg;
-
-    private boolean isBattleStarted = false;
-    private boolean isPlayerTurn = true;
-    private static final float TURN_DELAY = 1.0f; // 턴 사이의 딜레이 (초)
-    private float turnTimer = 0f;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -104,19 +103,18 @@ public class S1_1 extends BaseStageScene {
         slime.update(0.016f);
         skeleton.update(0.016f);
 
-        // 퍼즐이 끝나고 전투가 시작되지 않았다면
-        if (playerStats.isGameOver() && !isPuzzleFrozen && !isBattleStarted) {
+        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
-            isBattleStarted = true;
-            startAutoBattle();
+            isBattlePhase = true;
+            isPlayerTurn = true;
+            turnTimer = 0f;
         }
 
-        // 전투 중일 때 턴 처리
-        if (isBattleStarted) {
+        if (isBattlePhase) {
             turnTimer += 0.016f;
             if (turnTimer >= TURN_DELAY) {
                 turnTimer = 0f;
-                processNextTurn();
+                processBattleTurn();
             }
         }
     }
@@ -230,21 +228,12 @@ public class S1_1 extends BaseStageScene {
         blockGrid.reset();
     }
 
-    private void startAutoBattle() {
-        isPlayerTurn = true; 
-        turnTimer = 0f;
-    }
-
-    private void processNextTurn() {
-        if (!isBattleStarted) return;
-
+    private void processBattleTurn() {
         if (isPlayerTurn) {
             int totalDamage = playerStats.getPhysicalAttack() + playerStats.getMagicAttack();
             slime.takeDamage(totalDamage);
             skeleton.takeDamage(totalDamage);
-
             playerStats.heal(playerStats.getHealing());
-
             isPlayerTurn = false;
         } else {
             if (slime.isAlive()) {
@@ -253,25 +242,15 @@ public class S1_1 extends BaseStageScene {
             if (skeleton.isAlive()) {
                 playerStats.takeDamage(skeleton.getAttackPower());
             }
-            isPlayerTurn = true;
-        }
-
-        checkBattleEnd();
-    }
-
-    private void checkBattleEnd() {
-        if (!playerStats.isAlive()) {
-            endBattle(false); // 플레이어 패배
-        } else if (!slime.isAlive() && !skeleton.isAlive()) {
-            endBattle(true); // 플레이어 승리
-        }
-    }
-
-    private void endBattle(boolean isVictory) {
-        isBattleStarted = false;
-        if (isVictory) {
-            StageManager.getInstance().unlockStage(1, 2); 
-        } else {
+            
+            isBattlePhase = false;
+            isPuzzleFrozen = false;
+            playerStats.reset();
+            blockGrid.reset();
+            
+            if (!slime.isAlive() && !skeleton.isAlive()) {
+                StageManager.getInstance().unlockStage(1, 2);
+            }
         }
     }
 }
