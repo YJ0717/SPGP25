@@ -22,6 +22,7 @@ import java.util.Arrays;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage1Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.BattleSystem;
 
 public class S1_1 extends BaseStageScene {
 
@@ -54,6 +55,7 @@ public class S1_1 extends BaseStageScene {
     private Stage1Monster skeleton;
     private Bitmap battleBg;
     private Bitmap stateBg;
+    private BattleSystem battleSystem;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -89,6 +91,30 @@ public class S1_1 extends BaseStageScene {
         skeleton = new Stage1Monster(context, R.mipmap.skeleton_idle, 3, skeletonLeft, skeletonTop, skeletonDrawWidth, skeletonDrawHeight);
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
+
+        battleSystem = new BattleSystem(playerStats, new BattleSystem.BattleCallback() {
+            @Override
+            public void onBattleEnd(boolean isVictory) {
+                if (isVictory) {
+                    StageManager.getInstance().unlockStage(1, 2);
+                }
+                isBattlePhase = false;
+                isPuzzleFrozen = false;
+                playerStats.reset();
+                blockGrid.reset();
+            }
+
+            @Override
+            public void onTurnEnd() {
+                isBattlePhase = false;
+                isPuzzleFrozen = false;
+                playerStats.reset();
+                blockGrid.reset();
+            }
+        });
+
+        battleSystem.addMonster(slime);
+        battleSystem.addMonster(skeleton);
     }
 
     @Override
@@ -106,16 +132,11 @@ public class S1_1 extends BaseStageScene {
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
             isBattlePhase = true;
-            isPlayerTurn = true;
-            turnTimer = 0f;
+            battleSystem.reset();
         }
 
         if (isBattlePhase) {
-            turnTimer += 0.016f;
-            if (turnTimer >= TURN_DELAY) {
-                turnTimer = 0f;
-                processBattleTurn();
-            }
+            battleSystem.update(0.016f);
         }
     }
 
@@ -226,31 +247,5 @@ public class S1_1 extends BaseStageScene {
         isPuzzleFrozen = false;
         playerStats.reset();
         blockGrid.reset();
-    }
-
-    private void processBattleTurn() {
-        if (isPlayerTurn) {
-            int totalDamage = playerStats.getPhysicalAttack() + playerStats.getMagicAttack();
-            slime.takeDamage(totalDamage);
-            skeleton.takeDamage(totalDamage);
-            playerStats.heal(playerStats.getHealing());
-            isPlayerTurn = false;
-        } else {
-            if (slime.isAlive()) {
-                playerStats.takeDamage(slime.getAttackPower());
-            }
-            if (skeleton.isAlive()) {
-                playerStats.takeDamage(skeleton.getAttackPower());
-            }
-            
-            isBattlePhase = false;
-            isPuzzleFrozen = false;
-            playerStats.reset();
-            blockGrid.reset();
-            
-            if (!slime.isAlive() && !skeleton.isAlive()) {
-                StageManager.getInstance().unlockStage(1, 2);
-            }
-        }
     }
 }
