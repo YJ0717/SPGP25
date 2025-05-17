@@ -38,6 +38,8 @@ public class S1_1 extends BaseStageScene {
     private boolean isPuzzleFrozen;
     private boolean isBattlePhase = false;
     private boolean isPlayerTurn = true;
+    private boolean isWaitingForAnim = false;
+    private int lastSword, lastMagic, lastHeal;
     private float turnTimer = 0f;
     
     private float blockSize;      
@@ -132,11 +134,55 @@ public class S1_1 extends BaseStageScene {
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
             isBattlePhase = true;
-            battleSystem.reset();
+            isPlayerTurn = true;
+            isWaitingForAnim = false;
+            lastSword = playerStats.getPhysicalAttack();
+            lastMagic = playerStats.getMagicAttack();
+            lastHeal = playerStats.getHealing();
         }
 
-        if (isBattlePhase) {
-            battleSystem.update(0.016f);
+        if (isBattlePhase && isPlayerTurn && !isWaitingForAnim) {
+            isWaitingForAnim = true;
+            if (lastSword >= lastMagic && lastSword >= lastHeal) {
+                player.playSwordAttack(() -> {
+                    int totalDamage = lastSword + lastMagic;
+                    slime.takeDamage(totalDamage);
+                    skeleton.takeDamage(totalDamage);
+                    playerStats.heal(lastHeal);
+                    isPlayerTurn = false;
+                    isWaitingForAnim = false;
+                });
+            } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
+                player.playMagicAttack(() -> {
+                    int totalDamage = lastSword + lastMagic;
+                    slime.takeDamage(totalDamage);
+                    skeleton.takeDamage(totalDamage);
+                    playerStats.heal(lastHeal);
+                    isPlayerTurn = false;
+                    isWaitingForAnim = false;
+                });
+            } else {
+                player.playHeal(() -> {
+                    int totalDamage = lastSword + lastMagic;
+                    slime.takeDamage(totalDamage);
+                    skeleton.takeDamage(totalDamage);
+                    playerStats.heal(lastHeal);
+                    isPlayerTurn = false;
+                    isWaitingForAnim = false;
+                });
+            }
+        }
+
+        if (isBattlePhase && !isPlayerTurn && !isWaitingForAnim) {
+            if (slime.isAlive()) playerStats.takeDamage(slime.getAttackPower());
+            if (skeleton.isAlive()) playerStats.takeDamage(skeleton.getAttackPower());
+            isBattlePhase = false;
+            isPuzzleFrozen = false;
+            playerStats.reset();
+            blockGrid.reset();
+            if (!slime.isAlive() && !skeleton.isAlive()) {
+                StageManager.getInstance().unlockStage(1, 2);
+            }
         }
     }
 

@@ -10,38 +10,40 @@ import ac.tukorea.yunjun.pegglepang.R;
 
 public class Player {
     private PlayerStats stats;
-    private Bitmap idleSheet;
-    private int frame = 0;
-    private int frameCount = 6;
-    private float animTimer = 0f;
-    private static final float FRAME_DURATION = 0.22f;
-    private float x, y, width, height;
+    private PlayerAnimation animation;
 
     public Player(Context context, float x, float y, float width, float height) {
         this.stats = new PlayerStats();
-        this.idleSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_idle);
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        Bitmap idle = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_idle);
+        Bitmap sword = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_swordattac);
+        Bitmap magic = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_magicattack);
+        Bitmap heal = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_healmotion);
+        this.animation = new PlayerAnimation(idle, sword, magic, heal, x, y, width, height);
     }
 
     public void update(float dt) {
-        animTimer += dt;
-        if (animTimer >= FRAME_DURATION) {
-            animTimer -= FRAME_DURATION;
-            frame = (frame + 1) % frameCount;
-        }
+        animation.update(dt);
     }
 
     public void draw(Canvas canvas) {
-        if (idleSheet != null) {
-            int frameW = idleSheet.getWidth() / frameCount;
-            int frameH = idleSheet.getHeight();
-            Rect src = new Rect(frameW * frame, 0, frameW * (frame + 1), frameH);
-            RectF dest = new RectF(x, y, x + width, y + height);
-            canvas.drawBitmap(idleSheet, src, dest, null);
-        }
+        animation.draw(canvas);
+    }
+
+    public void playSwordAttack(Runnable onEnd) {
+        animation.play(PlayerAnimation.Type.SWORD, onEnd);
+    }
+    public void playMagicAttack(Runnable onEnd) {
+        animation.play(PlayerAnimation.Type.MAGIC, onEnd);
+    }
+    public void playHeal(Runnable onEnd) {
+        animation.play(PlayerAnimation.Type.HEAL, onEnd);
+    }
+    public void playIdle() {
+        animation.play(PlayerAnimation.Type.IDLE, null);
+    }
+
+    public boolean isAnimPlaying() {
+        return animation.isPlaying();
     }
 
     public PlayerStats getStats() {
@@ -49,9 +51,6 @@ public class Player {
     }
 
     public void setPosition(float x, float y, float width, float height) {
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
+        animation.setPosition(x, y, width, height);
     }
 } 
