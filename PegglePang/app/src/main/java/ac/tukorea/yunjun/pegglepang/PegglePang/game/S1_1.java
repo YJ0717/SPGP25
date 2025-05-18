@@ -64,8 +64,10 @@ public class S1_1 extends BaseStageScene {
     //이펙트/피격 상태 관리
     private boolean isMagicEffectPhase = false;
     private boolean isMonsterBlinkPhase = false;
+    private boolean isSwordEffectPhase = false;
     private int pendingMagicDamage = 0;
     private int pendingHeal = 0;
+    private int pendingSwordDamage = 0;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -135,6 +137,12 @@ public class S1_1 extends BaseStageScene {
         float effectX = (playerLeft + playerDrawWidth + slimeLeft) / 2 - effectWidth / 2;
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
+        // sword effect 위치 설정 (플레이어와 몬스터 중간)
+        float swordEffectWidth = Metrics.width * 0.35f;
+        float swordEffectHeight = swordEffectWidth * (139f / 190f); // 190=952/5
+        float swordEffectX = (playerLeft + playerDrawWidth + slimeLeft) / 2 - swordEffectWidth / 2;
+        float swordEffectY = playerTop + playerDrawHeight * 0.3f;
+        player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
     }
 
     @Override
@@ -168,15 +176,24 @@ public class S1_1 extends BaseStageScene {
             lastHeal = playerStats.getHealing();
         }
 
-        // 마법 이펙트/몬스터 피격 중이면 대기
-        if (isMagicEffectPhase || isMonsterBlinkPhase) {
-            // 이펙트가 끝나면 몬스터 피격 시작
+        // 이펙트/몬스터 피격 중이면 대기
+        if (isMagicEffectPhase || isMonsterBlinkPhase || isSwordEffectPhase) {
+            // 마법 이펙트가 끝나면 몬스터 피격 시작
             if (isMagicEffectPhase && !player.isMagicEffectPlaying()) {
                 isMagicEffectPhase = false;
                 isMonsterBlinkPhase = true;
                 if (pendingMagicDamage > 0) {
                     if (slime.isAlive()) slime.startBlinking(pendingMagicDamage);
                     if (skeleton.isAlive()) skeleton.startBlinking(pendingMagicDamage);
+                }
+            }
+            // 물리 이펙트가 끝나면 몬스터 피격 시작
+            if (isSwordEffectPhase && !player.isSwordEffectPlaying()) {
+                isSwordEffectPhase = false;
+                isMonsterBlinkPhase = true;
+                if (pendingSwordDamage > 0) {
+                    if (slime.isAlive()) slime.startBlinking(pendingSwordDamage);
+                    if (skeleton.isAlive()) skeleton.startBlinking(pendingSwordDamage);
                 }
             }
             // 몬스터 피격이 끝나면 실제 데미지 적용 및 턴 종료
@@ -194,14 +211,11 @@ public class S1_1 extends BaseStageScene {
             isWaitingForAnim = true;
             if (lastSword >= lastMagic && lastSword >= lastHeal) {
                 player.playSwordAttack(() -> {
-                    int totalDamage = lastSword + lastMagic;
-                    if (slime.isAlive()) slime.startBlinking(totalDamage);
-                    if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
-                    playerStats.heal(lastHeal);
-                    // 깜빡임 끝나면 턴 종료
-                    isMonsterBlinkPhase = true;
-                    pendingMagicDamage = 0;
+                    // 물리 이펙트 시작
+                    isSwordEffectPhase = true;
+                    pendingSwordDamage = lastSword + lastMagic;
                     pendingHeal = lastHeal;
+                    player.playSwordEffect(null);
                 });
             } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                 player.playMagicAttack(() -> {

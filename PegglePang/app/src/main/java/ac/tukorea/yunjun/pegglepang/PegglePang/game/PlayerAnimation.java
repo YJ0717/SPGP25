@@ -35,6 +35,16 @@ public class PlayerAnimation {
     private float effectX, effectY, effectWidth, effectHeight;
     private Runnable magicEffectOnEnd;
 
+    // Sword effect 관련 필드
+    private Bitmap swordEffectSheet;
+    private int swordEffectFrame = 0;
+    private int swordEffectFrameCount = 5;
+    private float swordEffectAnimTimer = 0f;
+    private float swordEffectFrameDuration = 0.12f;
+    private boolean swordEffectPlaying = false;
+    private float swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight;
+    private Runnable swordEffectOnEnd;
+
     public PlayerAnimation(Bitmap idle, Bitmap sword, Bitmap magic, Bitmap heal,
                           float x, float y, float width, float height) {
         this.idleSheet = idle;
@@ -89,6 +99,17 @@ public class PlayerAnimation {
                 }
             }
         }
+        if (swordEffectPlaying) {
+            swordEffectAnimTimer += dt;
+            if (swordEffectAnimTimer >= swordEffectFrameDuration) {
+                swordEffectAnimTimer -= swordEffectFrameDuration;
+                swordEffectFrame++;
+                if (swordEffectFrame >= swordEffectFrameCount) {
+                    swordEffectPlaying = false;
+                    if (swordEffectOnEnd != null) swordEffectOnEnd.run();
+                }
+            }
+        }
     }
 
     public void draw(Canvas canvas) {
@@ -111,6 +132,14 @@ public class PlayerAnimation {
             Rect src = new Rect(effFrameW * effFrame, 0, effFrameW * (effFrame + 1), effFrameH);
             RectF dest = new RectF(effectX, effectY, effectX + effectWidth, effectY + effectHeight);
             canvas.drawBitmap(magicEffectSheet, src, dest, null);
+        }
+        if (swordEffectPlaying && swordEffectSheet != null) {
+            int effFrameW = 140;
+            int effFrameH = 150;
+            int effFrame = Math.min(swordEffectFrame, swordEffectFrameCount - 1);
+            Rect src = new Rect(effFrameW * effFrame, 0, effFrameW * (effFrame + 1), effFrameH);
+            RectF dest = new RectF(swordEffectX, swordEffectY, swordEffectX + swordEffectWidth, swordEffectY + swordEffectHeight);
+            canvas.drawBitmap(swordEffectSheet, src, dest, null);
         }
     }
 
@@ -180,5 +209,24 @@ public class PlayerAnimation {
     }
     public boolean isMagicEffectPlaying() {
         return magicEffectPlaying;
+    }
+
+    public void setSwordEffectSheet(Bitmap sheet) {
+        this.swordEffectSheet = sheet;
+    }
+    public void setSwordEffectPosition(float x, float y, float w, float h) {
+        this.swordEffectX = x;
+        this.swordEffectY = y;
+        this.swordEffectWidth = w;
+        this.swordEffectHeight = h;
+    }
+    public void playSwordEffect(Runnable onEnd) {
+        this.swordEffectFrame = 0;
+        this.swordEffectAnimTimer = 0f;
+        this.swordEffectPlaying = true;
+        this.swordEffectOnEnd = onEnd;
+    }
+    public boolean isSwordEffectPlaying() {
+        return swordEffectPlaying;
     }
 }

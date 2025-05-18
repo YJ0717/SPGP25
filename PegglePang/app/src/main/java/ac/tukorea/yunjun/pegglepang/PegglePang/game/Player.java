@@ -21,6 +21,8 @@ public class Player {
         this.animation = new PlayerAnimation(idle, sword, magic, heal, x, y, width, height);
         Bitmap magicEffect = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magic_effect);
         this.animation.setMagicEffectSheet(magicEffect);
+        Bitmap swordEffect = BitmapFactory.decodeResource(context.getResources(), R.mipmap.sword_effect);
+        this.animation.setSwordEffectSheet(swordEffect);
     }
 
     public void update(float dt) {
@@ -63,5 +65,15 @@ public class Player {
 
     public void setPosition(float x, float y, float width, float height) {
         animation.setPosition(x, y, width, height);
+    }
+
+    public void playSwordEffect(Runnable onEnd) {
+        animation.playSwordEffect(onEnd);
+    }
+    public void setSwordEffectPosition(float x, float y, float w, float h) {
+        animation.setSwordEffectPosition(x, y, w, h);
+    }
+    public boolean isSwordEffectPlaying() {
+        return animation.isSwordEffectPlaying();
     }
 } 
