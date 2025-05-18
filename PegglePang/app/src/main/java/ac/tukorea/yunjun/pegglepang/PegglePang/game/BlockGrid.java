@@ -191,36 +191,50 @@ public class BlockGrid {
         int healCount = 0;
 
         for (int row = 0; row < GRID_SIZE; row++) {
-            for (int col = 0; col < GRID_SIZE; col++) {
-                if (blocks[row][col] != null) {
+            for (int col = 0; col < GRID_SIZE - 2; col++) {
+                if (blocks[row][col] != null && blocks[row][col + 1] != null && blocks[row][col + 2] != null) {
                     int type = blocks[row][col].getType();
-
-                    if (col <= GRID_SIZE - 3 &&
-                        blocks[row][col + 1] != null && blocks[row][col + 1].getType() == type &&
-                        blocks[row][col + 2] != null && blocks[row][col + 2].getType() == type) {
-                        for (int i = 0; i < 3; i++) {
+                    if (blocks[row][col + 1].getType() == type && blocks[row][col + 2].getType() == type) {
+                        int matchLength = 3;
+                        while (col + matchLength < GRID_SIZE && blocks[row][col + matchLength] != null && 
+                               blocks[row][col + matchLength].getType() == type) {
+                            matchLength++;
+                        }
+                        for (int i = 0; i < matchLength; i++) {
                             toRemove[row][col + i] = true;
-                            switch(type) {
-                                case Block.SWORD: swordCount++; break;
-                                case Block.MAGIC: magicCount++; break;
-                                case Block.HEAL: healCount++; break;
-                            }
+                        }
+                        switch(type) {
+                            case Block.SWORD: swordCount += matchLength; break;
+                            case Block.MAGIC: magicCount += matchLength; break;
+                            case Block.HEAL: healCount += matchLength; break;
                         }
                         hasMatches = true;
+                        col += matchLength - 1;
                     }
+                }
+            }
+        }
 
-                    if (row <= GRID_SIZE - 3 &&
-                        blocks[row + 1][col] != null && blocks[row + 1][col].getType() == type &&
-                        blocks[row + 2][col] != null && blocks[row + 2][col].getType() == type) {
-                        for (int i = 0; i < 3; i++) {
+        for (int col = 0; col < GRID_SIZE; col++) {
+            for (int row = 0; row < GRID_SIZE - 2; row++) {
+                if (blocks[row][col] != null && blocks[row + 1][col] != null && blocks[row + 2][col] != null) {
+                    int type = blocks[row][col].getType();
+                    if (blocks[row + 1][col].getType() == type && blocks[row + 2][col].getType() == type) {
+                        int matchLength = 3;
+                        while (row + matchLength < GRID_SIZE && blocks[row + matchLength][col] != null && 
+                               blocks[row + matchLength][col].getType() == type) {
+                            matchLength++;
+                        }
+                        for (int i = 0; i < matchLength; i++) {
                             toRemove[row + i][col] = true;
-                            switch(type) {
-                                case Block.SWORD: swordCount++; break;
-                                case Block.MAGIC: magicCount++; break;
-                                case Block.HEAL: healCount++; break;
-                            }
+                        }
+                        switch(type) {
+                            case Block.SWORD: swordCount += matchLength; break;
+                            case Block.MAGIC: magicCount += matchLength; break;
+                            case Block.HEAL: healCount += matchLength; break;
                         }
                         hasMatches = true;
+                        row += matchLength - 1;
                     }
                 }
             }
