@@ -10,7 +10,7 @@ public class PlayerStats {
     private int healing;
     private Paint textPaint;
     private long gameStartTime;
-    private static final long GAME_DURATION = 60000;
+    private static final long GAME_DURATION = 5000;
 
     private int maxHp = 100;
     private int currentHp;

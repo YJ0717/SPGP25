@@ -41,6 +41,8 @@ public class S1_1 extends BaseStageScene {
     private boolean isWaitingForAnim = false;
     private int lastSword, lastMagic, lastHeal;
     private float turnTimer = 0f;
+    private float battleDelayTimer = 0f;  
+    private static final float BATTLE_DELAY = 2.0f;  
     
     private float blockSize;      
     private float puzzleLeft;     
@@ -131,8 +133,17 @@ public class S1_1 extends BaseStageScene {
         slime.update(0.016f);
         skeleton.update(0.016f);
 
+        // 퍼즐 시간이 끝났을 때 딜레이 시작
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen) {
             isPuzzleFrozen = true;
+            battleDelayTimer = 0f;  // 타이머 초기화
+        }
+
+        if (isPuzzleFrozen && !isBattlePhase) {
+            battleDelayTimer += 0.016f;
+        }
+
+        if (isPuzzleFrozen && !isBattlePhase && battleDelayTimer >= BATTLE_DELAY) {
             isBattlePhase = true;
             isPlayerTurn = true;
             isWaitingForAnim = false;
@@ -141,6 +152,7 @@ public class S1_1 extends BaseStageScene {
             lastHeal = playerStats.getHealing();
         }
 
+        // 배틀 애니메이션 처리
         if (isBattlePhase && isPlayerTurn && !isWaitingForAnim) {
             isWaitingForAnim = true;
             if (lastSword >= lastMagic && lastSword >= lastHeal) {
@@ -173,6 +185,7 @@ public class S1_1 extends BaseStageScene {
             }
         }
 
+        // 몬스터 턴 처리
         if (isBattlePhase && !isPlayerTurn && !isWaitingForAnim) {
             if (slime.isAlive()) playerStats.takeDamage(slime.getAttackPower());
             if (skeleton.isAlive()) playerStats.takeDamage(skeleton.getAttackPower());
