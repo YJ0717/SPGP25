@@ -19,12 +19,18 @@ public class Stage1Monster {
     private float x, y, width, height;
     private boolean isSkeleton = false;
 
-    // 추가된 필드들
     private int maxHp;
     private int currentHp;
     private int attackPower;
     private boolean isAlive = true;
     private Paint hpPaint;
+
+    private boolean isBlinking = false;
+    private float blinkTimer = 0f;
+    private float blinkDuration = 0.5f;
+    private int blinkCount = 0;
+    private int maxBlinkCount = 4;
+    private int pendingDamage = 0;
 
     public Stage1Monster(Context context, int resId, int frameCount, float x, float y, float width, float height) {
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
@@ -35,17 +41,14 @@ public class Stage1Monster {
         this.height = height;
         if (resId == R.mipmap.skeleton_idle) {
             isSkeleton = true;
-            // 스켈레톤은 더 강한 몬스터로 설정
             this.maxHp = 150;
             this.attackPower = 15;
         } else {
-            // 슬라임은 약한 몬스터로 설정
             this.maxHp = 100;
             this.attackPower = 10;
         }
         this.currentHp = this.maxHp;
 
-        // HP 표시를 위한 Paint 초기화
         hpPaint = new Paint();
         hpPaint.setColor(Color.WHITE);
         hpPaint.setTextSize(30);
@@ -59,6 +62,21 @@ public class Stage1Monster {
             animTimer -= FRAME_DURATION;
             frame = (frame + 1) % frameCount;
         }
+        //피격시 깜빡거림
+        if (isBlinking) {
+            blinkTimer += dt;
+            if (blinkTimer >= blinkDuration / maxBlinkCount) {
+                blinkTimer -= blinkDuration / maxBlinkCount;
+                blinkCount++;
+                if (blinkCount >= maxBlinkCount) {
+                    isBlinking = false;
+                    blinkCount = 0;
+                    if (pendingDamage > 0) {
+                        applyPendingDamage();
+                    }
+                }
+            }
+        }
     }
 
     public void draw(Canvas canvas) {
@@ -69,8 +87,13 @@ public class Stage1Monster {
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
-            canvas.drawBitmap(idleSheet, src, dest, null);
-
+            if (isBlinking && blinkCount % 2 == 0) {
+                Paint blinkPaint = new Paint();
+                blinkPaint.setAlpha(80);
+                canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+            } else {
+                canvas.drawBitmap(idleSheet, src, dest, null);
+            }
             // HP 표시 (몬스터 위에)
             float hpX = x + width / 2;
             float hpY = y - 10; // 몬스터 위 10픽셀 위에 표시
@@ -86,7 +109,6 @@ public class Stage1Monster {
         this.height = height;
     }
 
-    // 추가된 메서드들
     public void takeDamage(int damage) {
         currentHp = Math.max(0, currentHp - damage);
         if (currentHp <= 0) {
@@ -108,5 +130,24 @@ public class Stage1Monster {
 
     public int getAttackPower() {
         return attackPower;
+    }
+
+    public void startBlinking(int damage) {
+        isBlinking = true;
+        blinkTimer = 0f;
+        blinkCount = 0;
+        pendingDamage = damage;
+    }
+
+    private void applyPendingDamage() {
+        currentHp = Math.max(0, currentHp - pendingDamage);
+        if (currentHp <= 0) {
+            isAlive = false;
+        }
+        pendingDamage = 0;
+    }
+
+    public boolean isBlinking() {
+        return isBlinking;
     }
 } 

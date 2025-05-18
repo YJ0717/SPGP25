@@ -19,6 +19,8 @@ public class Player {
         Bitmap magic = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_magicattack);
         Bitmap heal = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_healmotion);
         this.animation = new PlayerAnimation(idle, sword, magic, heal, x, y, width, height);
+        Bitmap magicEffect = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magic_effect);
+        this.animation.setMagicEffectSheet(magicEffect);
     }
 
     public void update(float dt) {
@@ -40,6 +42,15 @@ public class Player {
     }
     public void playIdle() {
         animation.play(PlayerAnimation.Type.IDLE, null);
+    }
+    public void playMagicEffect(Runnable onEnd) {
+        animation.playMagicEffect(onEnd);
+    }
+    public void setMagicEffectPosition(float x, float y, float w, float h) {
+        animation.setMagicEffectPosition(x, y, w, h);
+    }
+    public boolean isMagicEffectPlaying() {
+        return animation.isMagicEffectPlaying();
     }
 
     public boolean isAnimPlaying() {

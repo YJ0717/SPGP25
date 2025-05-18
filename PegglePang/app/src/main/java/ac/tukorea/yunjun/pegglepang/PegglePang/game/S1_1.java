@@ -61,6 +61,12 @@ public class S1_1 extends BaseStageScene {
     private Bitmap stateBg;
     private BattleSystem battleSystem;
 
+    //이펙트/피격 상태 관리
+    private boolean isMagicEffectPhase = false;
+    private boolean isMonsterBlinkPhase = false;
+    private int pendingMagicDamage = 0;
+    private int pendingHeal = 0;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -119,6 +125,16 @@ public class S1_1 extends BaseStageScene {
 
         battleSystem.addMonster(slime);
         battleSystem.addMonster(skeleton);
+
+        // magic effect 위치 설정
+        float effectW = 713f / 3f; // 한 프레임 기준, 실제 크기는 아래에서 조정
+        float effectH = 350f;
+        float effectScale = (slime.getCurrentHp() > 0 ? slime : skeleton).getAttackPower() > 0 ? 0.7f : 0.5f;
+        float effectWidth = Metrics.width * 0.4f;
+        float effectHeight = effectWidth * (350f / (713f / 3f));
+        float effectX = (playerLeft + playerDrawWidth + slimeLeft) / 2 - effectWidth / 2;
+        float effectY = playerTop + playerDrawHeight * 0.2f;
+        player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
     }
 
     @Override
@@ -152,35 +168,58 @@ public class S1_1 extends BaseStageScene {
             lastHeal = playerStats.getHealing();
         }
 
+        // 마법 이펙트/몬스터 피격 중이면 대기
+        if (isMagicEffectPhase || isMonsterBlinkPhase) {
+            // 이펙트가 끝나면 몬스터 피격 시작
+            if (isMagicEffectPhase && !player.isMagicEffectPlaying()) {
+                isMagicEffectPhase = false;
+                isMonsterBlinkPhase = true;
+                if (pendingMagicDamage > 0) {
+                    if (slime.isAlive()) slime.startBlinking(pendingMagicDamage);
+                    if (skeleton.isAlive()) skeleton.startBlinking(pendingMagicDamage);
+                }
+            }
+            // 몬스터 피격이 끝나면 실제 데미지 적용 및 턴 종료
+            if (isMonsterBlinkPhase && !slime.isBlinking() && !skeleton.isBlinking()) {
+                isMonsterBlinkPhase = false;
+                playerStats.heal(pendingHeal);
+                isPlayerTurn = false;
+                isWaitingForAnim = false;
+            }
+            return;
+        }
+
         // 배틀 애니메이션 처리
         if (isBattlePhase && isPlayerTurn && !isWaitingForAnim) {
             isWaitingForAnim = true;
             if (lastSword >= lastMagic && lastSword >= lastHeal) {
                 player.playSwordAttack(() -> {
                     int totalDamage = lastSword + lastMagic;
-                    slime.takeDamage(totalDamage);
-                    skeleton.takeDamage(totalDamage);
+                    if (slime.isAlive()) slime.startBlinking(totalDamage);
+                    if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
                     playerStats.heal(lastHeal);
-                    isPlayerTurn = false;
-                    isWaitingForAnim = false;
+                    // 깜빡임 끝나면 턴 종료
+                    isMonsterBlinkPhase = true;
+                    pendingMagicDamage = 0;
+                    pendingHeal = lastHeal;
                 });
             } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                 player.playMagicAttack(() -> {
-                    int totalDamage = lastSword + lastMagic;
-                    slime.takeDamage(totalDamage);
-                    skeleton.takeDamage(totalDamage);
-                    playerStats.heal(lastHeal);
-                    isPlayerTurn = false;
-                    isWaitingForAnim = false;
+                    // 마법 이펙트 시작
+                    isMagicEffectPhase = true;
+                    pendingMagicDamage = lastSword + lastMagic;
+                    pendingHeal = lastHeal;
+                    player.playMagicEffect(null);
                 });
             } else {
                 player.playHeal(() -> {
                     int totalDamage = lastSword + lastMagic;
-                    slime.takeDamage(totalDamage);
-                    skeleton.takeDamage(totalDamage);
+                    if (slime.isAlive()) slime.startBlinking(totalDamage);
+                    if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
                     playerStats.heal(lastHeal);
-                    isPlayerTurn = false;
-                    isWaitingForAnim = false;
+                    isMonsterBlinkPhase = true;
+                    pendingMagicDamage = 0;
+                    pendingHeal = lastHeal;
                 });
             }
         }

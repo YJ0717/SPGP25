@@ -26,6 +26,15 @@ public class PlayerAnimation {
     private int idleFrameWidth = 105;
     private int idleFrameHeight = 133;
 
+    private Bitmap magicEffectSheet;
+    private int magicEffectFrame = 0;
+    private int magicEffectFrameCount = 3;
+    private float magicEffectAnimTimer = 0f;
+    private float magicEffectFrameDuration = 0.15f;
+    private boolean magicEffectPlaying = false;
+    private float effectX, effectY, effectWidth, effectHeight;
+    private Runnable magicEffectOnEnd;
+
     public PlayerAnimation(Bitmap idle, Bitmap sword, Bitmap magic, Bitmap heal,
                           float x, float y, float width, float height) {
         this.idleSheet = idle;
@@ -68,6 +77,18 @@ public class PlayerAnimation {
                 }
             }
         }
+        // magic effect update
+        if (magicEffectPlaying) {
+            magicEffectAnimTimer += dt;
+            if (magicEffectAnimTimer >= magicEffectFrameDuration) {
+                magicEffectAnimTimer -= magicEffectFrameDuration;
+                magicEffectFrame++;
+                if (magicEffectFrame >= magicEffectFrameCount) {
+                    magicEffectPlaying = false;
+                    if (magicEffectOnEnd != null) magicEffectOnEnd.run();
+                }
+            }
+        }
     }
 
     public void draw(Canvas canvas) {
@@ -82,6 +103,14 @@ public class PlayerAnimation {
             Rect src = new Rect(frameW * drawFrame, 0, frameW * (drawFrame + 1), frameH);
             RectF dest = new RectF(x, y + offsetY, x + width, y + height + offsetY);
             canvas.drawBitmap(sheet, src, dest, null);
+        }
+        if (magicEffectPlaying && magicEffectSheet != null) {
+            int effFrameW = 180;
+            int effFrameH = 350;
+            int effFrame = Math.min(magicEffectFrame, magicEffectFrameCount - 1);
+            Rect src = new Rect(effFrameW * effFrame, 0, effFrameW * (effFrame + 1), effFrameH);
+            RectF dest = new RectF(effectX, effectY, effectX + effectWidth, effectY + effectHeight);
+            canvas.drawBitmap(magicEffectSheet, src, dest, null);
         }
     }
 
@@ -132,5 +161,24 @@ public class PlayerAnimation {
         this.y = y;
         this.width = width;
         this.height = height;
+    }
+
+    public void setMagicEffectSheet(Bitmap sheet) {
+        this.magicEffectSheet = sheet;
+    }
+    public void setMagicEffectPosition(float x, float y, float w, float h) {
+        this.effectX = x;
+        this.effectY = y;
+        this.effectWidth = w;
+        this.effectHeight = h;
+    }
+    public void playMagicEffect(Runnable onEnd) {
+        this.magicEffectFrame = 0;
+        this.magicEffectAnimTimer = 0f;
+        this.magicEffectPlaying = true;
+        this.magicEffectOnEnd = onEnd;
+    }
+    public boolean isMagicEffectPlaying() {
+        return magicEffectPlaying;
     }
 }
