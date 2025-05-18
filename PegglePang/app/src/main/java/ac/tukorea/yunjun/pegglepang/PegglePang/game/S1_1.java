@@ -69,6 +69,41 @@ public class S1_1 extends BaseStageScene {
     private int pendingHeal = 0;
     private int pendingSwordDamage = 0;
 
+    private boolean isMonsterAttackPhase = false;
+    private boolean isPlayerBlinkPhase = false;
+    private float playerBlinkTimer = 0f;
+    private int playerBlinkCount = 0;
+    private static final int MAX_PLAYER_BLINK_COUNT = 4;
+
+    private boolean isGameOver = false;
+    private float monsterAttackTimer = 0f;
+    private float playerAttackTimer = 0f;
+    private float magicEffectTimer = 0f;
+    private float healEffectTimer = 0f;
+    private boolean isMonsterAttacking = false;
+    private boolean isPlayerBlinking = false;
+    private boolean isMagicEffectPlaying = false;
+    private boolean isHealEffectPlaying = false;
+    private float playerAttackValue = 0f;
+    private float playerMagicValue = 0f;
+    private float playerHealValue = 0f;
+
+    private static final float MONSTER_ATTACK_DURATION = 1.0f;
+    private static final float PLAYER_BLINK_DURATION = 0.1f;
+    private static final float MONSTER_BLINK_DURATION = 0.1f;
+    private static final float PLAYER_ATTACK_DURATION = 0.5f;
+    private static final float MAGIC_EFFECT_DURATION = 0.8f;
+    private static final float HEAL_EFFECT_DURATION = 1.0f;
+    private static final float SWORD_EFFECT_DURATION = 0.6f;
+    private boolean isPlayerAttacking = false;
+    private boolean isMonsterTurn = false;
+    private boolean isMonsterBlinking = false;
+    private boolean isSwordEffectPlaying = false;
+    private Stage1Monster monster;
+
+    private float monsterBlinkTimer = 0f;
+    private float swordEffectTimer = 0f;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -120,7 +155,6 @@ public class S1_1 extends BaseStageScene {
             public void onTurnEnd() {
                 isBattlePhase = false;
                 isPuzzleFrozen = false;
-                playerStats.reset();
                 blockGrid.reset();
             }
         });
@@ -206,54 +240,225 @@ public class S1_1 extends BaseStageScene {
             return;
         }
 
-        // 배틀 애니메이션 처리
-        if (isBattlePhase && isPlayerTurn && !isWaitingForAnim) {
-            isWaitingForAnim = true;
-            if (lastSword >= lastMagic && lastSword >= lastHeal) {
-                player.playSwordAttack(() -> {
-                    // 물리 이펙트 시작
-                    isSwordEffectPhase = true;
-                    pendingSwordDamage = lastSword + lastMagic;
-                    pendingHeal = lastHeal;
-                    player.playSwordEffect(null);
-                });
-            } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
-                player.playMagicAttack(() -> {
-                    // 마법 이펙트 시작
-                    isMagicEffectPhase = true;
-                    pendingMagicDamage = lastSword + lastMagic;
-                    pendingHeal = lastHeal;
-                    player.playMagicEffect(null);
-                });
+        if (isBattlePhase) {
+            if (isPlayerTurn) {
+                if (!isWaitingForAnim) {
+                    isWaitingForAnim = true;
+                    if (lastSword >= lastMagic && lastSword >= lastHeal) {
+                        player.playSwordAttack(() -> {
+                            // 물리 이펙트 시작
+                            isSwordEffectPhase = true;
+                            pendingSwordDamage = lastSword + lastMagic;
+                            pendingHeal = lastHeal;
+                            player.playSwordEffect(() -> {
+                                if (slime.isAlive()) slime.startBlinking(pendingSwordDamage);
+                                if (skeleton.isAlive()) skeleton.startBlinking(pendingSwordDamage);
+                                isMonsterBlinkPhase = true;
+                                pendingSwordDamage = 0;
+                                pendingHeal = lastHeal;
+                            });
+                        });
+                    } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
+                        player.playMagicAttack(() -> {
+                            // 마법 이펙트 시작
+                            isMagicEffectPhase = true;
+                            pendingMagicDamage = lastSword + lastMagic;
+                            pendingHeal = lastHeal;
+                            player.playMagicEffect(() -> {
+                                if (slime.isAlive()) slime.startBlinking(pendingMagicDamage);
+                                if (skeleton.isAlive()) skeleton.startBlinking(pendingMagicDamage);
+                                isMonsterBlinkPhase = true;
+                                pendingMagicDamage = 0;
+                                pendingHeal = lastHeal;
+                            });
+                        });
+                    } else {
+                        player.playHeal(() -> {
+                            int totalDamage = lastSword + lastMagic;
+                            if (slime.isAlive()) slime.startBlinking(totalDamage);
+                            if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
+                            playerStats.heal(lastHeal);
+                            isMonsterBlinkPhase = true;
+                            pendingMagicDamage = 0;
+                            pendingHeal = lastHeal;
+                        });
+                    }
+                }
             } else {
-                player.playHeal(() -> {
-                    int totalDamage = lastSword + lastMagic;
-                    if (slime.isAlive()) slime.startBlinking(totalDamage);
-                    if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
-                    playerStats.heal(lastHeal);
-                    isMonsterBlinkPhase = true;
-                    pendingMagicDamage = 0;
-                    pendingHeal = lastHeal;
-                });
+                if (!isWaitingForAnim) {
+                    isWaitingForAnim = true;
+                    isMonsterAttackPhase = true;
+                    
+                    // 스켈레톤이 살아있으면 스켈레톤이 먼저 공격
+                    if (skeleton.isAlive()) {
+                        skeleton.startAttack(() -> {
+                            // 스켈레톤 공격이 끝나면 플레이어가 깜빡거리면서 데미지를 받음
+                            player.takeDamage(skeleton.getAttackPower());
+                            if (!player.isAlive()) {
+                                player.die();
+                                isGameOver = true;
+                                GameOverScene.getInstance().show();
+                                return;
+                            }
+                            isPlayerBlinkPhase = true;
+                            playerBlinkTimer = 0f;
+                            playerBlinkCount = 0;
+                            
+                            // 슬라임이 살아있으면 슬라임이 공격
+                            if (slime.isAlive()) {
+                                slime.startAttack(() -> {
+                                    player.takeDamage(slime.getAttackPower());
+                                    if (!player.isAlive()) {
+                                        player.die();
+                                        isGameOver = true;
+                                        GameOverScene.getInstance().show();
+                                        return;
+                                    }
+                                    isPlayerBlinkPhase = true;
+                                    playerBlinkTimer = 0f;
+                                    playerBlinkCount = 0;
+                                    
+                                    // 모든 몬스터의 공격이 끝나면 턴 종료
+                                    isBattlePhase = false;
+                                    isPuzzleFrozen = false;
+                                    playerStats.reset();
+                                    blockGrid.reset();
+                                    isWaitingForAnim = false;
+                                    
+                                    if (!slime.isAlive() && !skeleton.isAlive()) {
+                                        StageManager.getInstance().unlockStage(1, 2);
+                                    }
+                                });
+                            } else {
+                                // 슬라임이 죽어있으면 바로 턴 종료
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                blockGrid.reset();
+                                isWaitingForAnim = false;
+                                
+                                if (!skeleton.isAlive()) {
+                                    StageManager.getInstance().unlockStage(1, 2);
+                                }
+                            }
+                        });
+                    } else if (slime.isAlive()) {
+                        // 스켈레톤이 죽어있고 슬라임만 살아있으면 슬라임이 공격
+                        slime.startAttack(() -> {
+                            player.takeDamage(slime.getAttackPower());
+                            if (!player.isAlive()) {
+                                player.die();
+                                isGameOver = true;
+                                GameOverScene.getInstance().show();
+                                return;
+                            }
+                            isPlayerBlinkPhase = true;
+                            playerBlinkTimer = 0f;
+                            playerBlinkCount = 0;
+                            
+                            // 슬라임 공격이 끝나면 턴 종료
+                            isBattlePhase = false;
+                            isPuzzleFrozen = false;
+                            playerStats.reset();
+                            blockGrid.reset();
+                            isWaitingForAnim = false;
+                            
+                            if (!slime.isAlive()) {
+                                StageManager.getInstance().unlockStage(1, 2);
+                            }
+                        });
+                    }
+                }
             }
         }
 
-        // 몬스터 턴 처리
-        if (isBattlePhase && !isPlayerTurn && !isWaitingForAnim) {
-            if (slime.isAlive()) playerStats.takeDamage(slime.getAttackPower());
-            if (skeleton.isAlive()) playerStats.takeDamage(skeleton.getAttackPower());
-            isBattlePhase = false;
-            isPuzzleFrozen = false;
-            playerStats.reset();
-            blockGrid.reset();
-            if (!slime.isAlive() && !skeleton.isAlive()) {
-                StageManager.getInstance().unlockStage(1, 2);
+        // 플레이어 깜빡임 처리
+        if (isPlayerBlinkPhase) {
+            playerBlinkTimer += 0.016f;
+            if (playerBlinkTimer >= 0.1f) {
+                playerBlinkTimer -= 0.1f;
+                playerBlinkCount++;
+                if (playerBlinkCount >= MAX_PLAYER_BLINK_COUNT) {
+                    isPlayerBlinkPhase = false;
+                }
             }
         }
+
+        if (isGameOver) {
+            return;
+        }
+
+        if (isPuzzleFrozen) {
+            if (battleDelayTimer < BATTLE_DELAY) {
+                battleDelayTimer += 0.016f;
+                return;
+            }
+            isBattlePhase = true;
+            isPuzzleFrozen = false;
+            isPlayerTurn = true;
+            playerAttackValue = player.getPhysicalAttack();
+            playerMagicValue = player.getMagicAttack();
+            playerHealValue = player.getHealing();
+        }
+
+        if (isBattlePhase) {
+            if (isPlayerTurn) {
+                if (playerAttackValue > playerMagicValue && playerAttackValue > playerHealValue) {
+                    if (!isPlayerAttacking) {
+                        isPlayerAttacking = true;
+                        playerAttackTimer = 0f;
+                        player.setAnimationType(PlayerAnimation.Type.SWORD);
+                    }
+                    handlePlayerAttack();
+                } else if (playerMagicValue > playerAttackValue && playerMagicValue > playerHealValue) {
+                    if (!isMagicEffectPlaying) {
+                        isMagicEffectPlaying = true;
+                        magicEffectTimer = 0f;
+                        player.setAnimationType(PlayerAnimation.Type.MAGIC);
+                    }
+                    handleMagicEffect();
+                } else if (playerHealValue > playerAttackValue && playerHealValue > playerMagicValue) {
+                    if (!isHealEffectPlaying) {
+                        isHealEffectPlaying = true;
+                        healEffectTimer = 0f;
+                        player.setAnimationType(PlayerAnimation.Type.HEAL);
+                    }
+                    handleHealEffect();
+                }
+            } else if (isMonsterTurn) {
+                if (!isMonsterAttacking) {
+                    isMonsterAttacking = true;
+                    monsterAttackTimer = 0f;
+                    monster.setAnimationType(MonsterAnimation.Type.ATTACK);
+                }
+                handleMonsterAttack();
+            }
+        }
+
+        if (isPlayerBlinking) {
+            handlePlayerBlink();
+        }
+
+        if (isMonsterBlinking) {
+            handleMonsterBlink();
+        }
+
+        if (isSwordEffectPlaying) {
+            handleSwordEffect();
+        }
+
+        player.update(0.016f);
+        slime.update(0.016f);
+        skeleton.update(0.016f);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        // 게임 오버 상태일 때는 GameOverScene의 터치 이벤트 처리
+        if (isGameOver) {
+            return GameOverScene.getInstance().onTouchEvent(event);
+        }
+
         if (blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
             return true;
         }
@@ -350,14 +555,109 @@ public class S1_1 extends BaseStageScene {
         canvas.drawText("전투 공간", Metrics.width/2, playerInfoStart/2, textPaint);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
+        if (isPlayerBlinkPhase && playerBlinkCount % 2 == 0) {
+            player.setAlpha(80);
+        } else {
+            player.setAlpha(255);
+        }
         player.draw(canvas);
+        
         slime.draw(canvas);
         skeleton.draw(canvas);
+
+        // 게임 오버 화면 표시
+        if (isGameOver) {
+            GameOverScene.getInstance().draw(canvas);
+        }
     }
 
     public void startNewPuzzlePhase() {
         isPuzzleFrozen = false;
         playerStats.reset();
         blockGrid.reset();
+    }
+
+    private void handleMonsterAttack() {
+        if (monsterAttackTimer >= MONSTER_ATTACK_DURATION) {
+            monsterAttackTimer = 0f;
+            isMonsterAttacking = false;
+            isPlayerBlinking = true;
+            playerBlinkTimer = 0f;
+            player.takeDamage((int)monster.getAttackPower());
+            
+            if (!player.isAlive()) {
+                player.die();
+                isGameOver = true;
+                GameOverScene.getInstance().show();
+                return;
+            }
+            
+            isPlayerTurn = true;
+            isMonsterTurn = false;
+            player.reset();
+        }
+    }
+
+    private void handlePlayerBlink() {
+        if (playerBlinkTimer >= PLAYER_BLINK_DURATION) {
+            playerBlinkTimer = 0f;
+            isPlayerBlinking = false;
+        }
+    }
+
+    private void handlePlayerAttack() {
+        if (playerAttackTimer >= PLAYER_ATTACK_DURATION) {
+            playerAttackTimer = 0f;
+            isPlayerAttacking = false;
+            isMonsterBlinking = true;
+            monsterBlinkTimer = 0f;
+            if (slime.isAlive()) slime.takeDamage((int)playerAttackValue);
+            if (skeleton.isAlive()) skeleton.takeDamage((int)playerAttackValue);
+            isPlayerTurn = false;
+            isMonsterTurn = true;
+        }
+    }
+
+    private void handleMagicEffect() {
+        if (magicEffectTimer >= MAGIC_EFFECT_DURATION) {
+            magicEffectTimer = 0f;
+            isMagicEffectPlaying = false;
+            isMonsterBlinking = true;
+            monsterBlinkTimer = 0f;
+            if (slime.isAlive()) slime.takeDamage((int)playerMagicValue);
+            if (skeleton.isAlive()) skeleton.takeDamage((int)playerMagicValue);
+            isPlayerTurn = false;
+            isMonsterTurn = true;
+        }
+    }
+
+    private void handleHealEffect() {
+        if (healEffectTimer >= HEAL_EFFECT_DURATION) {
+            healEffectTimer = 0f;
+            isHealEffectPlaying = false;
+            playerStats.heal((int)playerHealValue);
+            isPlayerTurn = false;
+            isMonsterTurn = true;
+        }
+    }
+
+    private void handleSwordEffect() {
+        if (swordEffectTimer >= SWORD_EFFECT_DURATION) {
+            swordEffectTimer = 0f;
+            isSwordEffectPlaying = false;
+            isMonsterBlinking = true;
+            monsterBlinkTimer = 0f;
+            if (slime.isAlive()) slime.takeDamage((int)playerAttackValue);
+            if (skeleton.isAlive()) skeleton.takeDamage((int)playerAttackValue);
+            isPlayerTurn = false;
+            isMonsterTurn = true;
+        }
+    }
+
+    private void handleMonsterBlink() {
+        if (monsterBlinkTimer >= MONSTER_BLINK_DURATION) {
+            monsterBlinkTimer = 0f;
+            isMonsterBlinking = false;
+        }
     }
 }

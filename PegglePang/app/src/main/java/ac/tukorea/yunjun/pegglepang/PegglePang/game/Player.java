@@ -11,6 +11,12 @@ import ac.tukorea.yunjun.pegglepang.R;
 public class Player {
     private PlayerStats stats;
     private PlayerAnimation animation;
+    private boolean isBlinking = false;
+    private float blinkTimer = 0f;
+    private boolean isDead = false;
+    private boolean isAttacking = false;
+    private float x, y;
+    private static final float BLINK_DURATION = 500f;
 
     public Player(Context context, float x, float y, float width, float height) {
         this.stats = new PlayerStats();
@@ -18,19 +24,53 @@ public class Player {
         Bitmap sword = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_swordattac);
         Bitmap magic = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_magicattack);
         Bitmap heal = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_healmotion);
+        Bitmap dead = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_dead);
         this.animation = new PlayerAnimation(idle, sword, magic, heal, x, y, width, height);
+        this.animation.setDeadSheet(dead);
         Bitmap magicEffect = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magic_effect);
         this.animation.setMagicEffectSheet(magicEffect);
         Bitmap swordEffect = BitmapFactory.decodeResource(context.getResources(), R.mipmap.sword_effect);
         this.animation.setSwordEffectSheet(swordEffect);
+        this.x = x;
+        this.y = y;
     }
 
-    public void update(float dt) {
-        animation.update(dt);
+    public void update(float frameTime) {
+        if (isBlinking) {
+            blinkTimer += frameTime;
+            if (blinkTimer >= BLINK_DURATION) {
+                isBlinking = false;
+                blinkTimer = 0f;
+            }
+        }
+
+        if (isDead) {
+            animation.update(frameTime);
+            return;
+        }
+
+        if (isAttacking) {
+            animation.update(frameTime);
+            if (animation.isFinished()) {
+                isAttacking = false;
+                animation.setType(PlayerAnimation.Type.IDLE);
+            }
+        } else {
+            animation.update(frameTime);
+        }
     }
 
     public void draw(Canvas canvas) {
-        animation.draw(canvas);
+        if (isDead) {
+            animation.draw(canvas, x, y);
+            return;
+        }
+
+        if (isBlinking) {
+            animation.draw(canvas, x, y, 128);
+        } else {
+            animation.draw(canvas, x, y);
+        }
     }
 
     public void playSwordAttack(Runnable onEnd) {
@@ -75,5 +115,47 @@ public class Player {
     }
     public boolean isSwordEffectPlaying() {
         return animation.isSwordEffectPlaying();
+    }
+
+    public void setAlpha(int alpha) {
+        animation.setAlpha(alpha);
+    }
+
+    public void die() {
+        isDead = true;
+        animation.setType(PlayerAnimation.Type.DEAD);
+        animation.play();
+    }
+
+    public boolean isDead() {
+        return isDead;
+    }
+
+    public void setAnimationType(PlayerAnimation.Type type) {
+        animation.setType(type);
+    }
+
+    public int getPhysicalAttack() {
+        return stats.getPhysicalAttack();
+    }
+
+    public int getMagicAttack() {
+        return stats.getMagicAttack();
+    }
+
+    public int getHealing() {
+        return stats.getHealing();
+    }
+
+    public void takeDamage(float damage) {
+        stats.takeDamage(damage);
+    }
+
+    public boolean isAlive() {
+        return stats.isAlive();
+    }
+
+    public void reset() {
+        stats.reset();
     }
 } 

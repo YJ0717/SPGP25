@@ -12,7 +12,7 @@ public class PlayerStats {
     private long gameStartTime;
     private static final long GAME_DURATION = 5000;
 
-    private int maxHp = 100;
+    private int maxHp = 10;
     private int currentHp;
     private boolean isAlive = true;
 
@@ -31,9 +31,10 @@ public class PlayerStats {
         gameStartTime = System.currentTimeMillis();
     }
 
-    public void takeDamage(int damage) {
-        currentHp = Math.max(0, currentHp - damage);
-        if (currentHp <= 0) {
+    public void takeDamage(float damage) {
+        currentHp -= damage;
+        if (currentHp < 0) {
+            currentHp = 0;
             isAlive = false;
         }
     }
@@ -103,9 +104,8 @@ public class PlayerStats {
         physicalAttack = 0;
         magicAttack = 0;
         healing = 0;
-        currentHp = maxHp;
-        isAlive = true;
         gameStartTime = System.currentTimeMillis();
+        // HP는 리셋하지 않음
     }
 
     public int getPhysicalAttack() {

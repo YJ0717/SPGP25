@@ -12,6 +12,8 @@ import ac.tukorea.yunjun.pegglepang.R;
 
 public class Stage1Monster {
     private Bitmap idleSheet;
+    private Bitmap attackSheet;
+    private MonsterAnimation animation;
     private int frame = 0;
     private int frameCount;
     private float animTimer = 0f;
@@ -21,7 +23,7 @@ public class Stage1Monster {
 
     private int maxHp;
     private int currentHp;
-    private int attackPower;
+    private float attackPower = 10f;  // 기본 공격력
     private boolean isAlive = true;
     private Paint hpPaint;
 
@@ -32,20 +34,30 @@ public class Stage1Monster {
     private int maxBlinkCount = 4;
     private int pendingDamage = 0;
 
+    private boolean isAttacking = false;
+    private float attackTimer = 0f;
+    private static final float ATTACK_DURATION = 1.0f;
+    private AttackCallback attackCallback;
+
+    public interface AttackCallback {
+        void onAttackComplete();
+    }
+
     public Stage1Monster(Context context, int resId, int frameCount, float x, float y, float width, float height) {
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
+        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), 
+            resId == R.mipmap.skeleton_idle ? R.mipmap.skeleton_attack : R.mipmap.slime_attack);
         this.frameCount = frameCount;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
+        this.animation = new MonsterAnimation(idleSheet, attackSheet, null, x, y, width, height);
         if (resId == R.mipmap.skeleton_idle) {
             isSkeleton = true;
             this.maxHp = 150;
-            this.attackPower = 15;
         } else {
             this.maxHp = 100;
-            this.attackPower = 10;
         }
         this.currentHp = this.maxHp;
 
@@ -57,10 +69,21 @@ public class Stage1Monster {
     }
 
     public void update(float dt) {
-        animTimer += dt;
-        if (animTimer >= FRAME_DURATION) {
-            animTimer -= FRAME_DURATION;
-            frame = (frame + 1) % frameCount;
+        if (isAttacking) {
+            attackTimer += dt;
+            if (attackTimer >= ATTACK_DURATION) {
+                isAttacking = false;
+                attackTimer = 0f;
+                if (attackCallback != null) {
+                    attackCallback.onAttackComplete();
+                }
+            }
+        } else {
+            animTimer += dt;
+            if (animTimer >= FRAME_DURATION) {
+                animTimer -= FRAME_DURATION;
+                frame = (frame + 1) % frameCount;
+            }
         }
         //피격시 깜빡거림
         if (isBlinking) {
@@ -80,7 +103,15 @@ public class Stage1Monster {
     }
 
     public void draw(Canvas canvas) {
-        if (idleSheet != null) {
+        if (isAttacking && attackSheet != null) {
+            int frameW = attackSheet.getWidth() / frameCount;
+            int frameH = attackSheet.getHeight();
+            int left = frameW * frame;
+            int right = left + frameW;
+            Rect src = new Rect(left, 0, right, frameH);
+            RectF dest = new RectF(x, y, x + width, y + height);
+            canvas.drawBitmap(attackSheet, src, dest, null);
+        } else if (idleSheet != null) {
             int frameW = idleSheet.getWidth() / frameCount;
             int frameH = idleSheet.getHeight();
             int left = frameW * frame;
@@ -94,12 +125,12 @@ public class Stage1Monster {
             } else {
                 canvas.drawBitmap(idleSheet, src, dest, null);
             }
-            // HP 표시 (몬스터 위에)
-            float hpX = x + width / 2;
-            float hpY = y - 10; // 몬스터 위 10픽셀 위에 표시
-            hpPaint.setColor(Color.WHITE);
-            canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
         }
+        // HP 표시 (몬스터 위에)
+        float hpX = x + width / 2;
+        float hpY = y - 10; // 몬스터 위 10픽셀 위에 표시
+        hpPaint.setColor(Color.WHITE);
+        canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
     }
 
     public void setPosition(float x, float y, float width, float height) {
@@ -109,9 +140,10 @@ public class Stage1Monster {
         this.height = height;
     }
 
-    public void takeDamage(int damage) {
-        currentHp = Math.max(0, currentHp - damage);
+    public void takeDamage(float damage) {
+        currentHp -= damage;
         if (currentHp <= 0) {
+            currentHp = 0;
             isAlive = false;
         }
     }
@@ -128,7 +160,7 @@ public class Stage1Monster {
         return maxHp;
     }
 
-    public int getAttackPower() {
+    public float getAttackPower() {
         return attackPower;
     }
 
@@ -149,5 +181,22 @@ public class Stage1Monster {
 
     public boolean isBlinking() {
         return isBlinking;
+    }
+
+    public void startAttack(AttackCallback callback) {
+        if (!isAttacking && isAlive) {
+            isAttacking = true;
+            attackTimer = 0f;
+            frame = 0;
+            this.attackCallback = callback;
+        }
+    }
+
+    public boolean isAttacking() {
+        return isAttacking;
+    }
+
+    public void setAnimationType(MonsterAnimation.Type type) {
+        animation.setType(type);
     }
 } 
