@@ -12,9 +12,10 @@ public class PlayerStats {
     private long gameStartTime;
     private static final long GAME_DURATION = 5000;
 
-    private int maxHp = 10;
+    private int maxHp = 100;
     private int currentHp;
     private boolean isAlive = true;
+    private boolean isGameOver = false;
 
     public PlayerStats() {
         physicalAttack = 0;
@@ -92,7 +93,12 @@ public class PlayerStats {
     }
 
     public boolean isGameOver() {
-        return System.currentTimeMillis() - gameStartTime >= GAME_DURATION;
+        if (isGameOver) return true;
+        if (System.currentTimeMillis() - gameStartTime >= GAME_DURATION) {
+            isGameOver = true;
+            return true;
+        }
+        return false;
     }
 
     public int getRemainingSeconds() {
@@ -105,7 +111,7 @@ public class PlayerStats {
         magicAttack = 0;
         healing = 0;
         gameStartTime = System.currentTimeMillis();
-        // HP는 리셋하지 않음
+        isGameOver = false;
     }
 
     public int getPhysicalAttack() {

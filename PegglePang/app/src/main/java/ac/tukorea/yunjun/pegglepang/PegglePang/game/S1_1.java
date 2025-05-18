@@ -192,7 +192,7 @@ public class S1_1 extends BaseStageScene {
         skeleton.update(0.016f);
 
         // 퍼즐 시간이 끝났을 때 딜레이 시작
-        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen) {
+        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating()) {
             isPuzzleFrozen = true;
             battleDelayTimer = 0f;  // 타이머 초기화
         }
