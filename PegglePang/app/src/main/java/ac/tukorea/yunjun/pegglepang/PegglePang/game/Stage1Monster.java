@@ -13,6 +13,7 @@ import ac.tukorea.yunjun.pegglepang.R;
 public class Stage1Monster {
     private Bitmap idleSheet;
     private Bitmap attackSheet;
+    private Bitmap deathSheet;
     private MonsterAnimation animation;
     private int frame = 0;
     private int frameCount;
@@ -20,6 +21,8 @@ public class Stage1Monster {
     private static final float FRAME_DURATION = 0.5f;
     private float x, y, width, height;
     private boolean isSkeleton = false;
+    private int idleResource;
+    private Context context;
 
     private int maxHp;
     private int currentHp;
@@ -39,25 +42,33 @@ public class Stage1Monster {
     private static final float ATTACK_DURATION = 1.0f;
     private AttackCallback attackCallback;
 
+    private boolean isDying = false;
+    private float deathTimer = 0f;
+    private static final float DEATH_DURATION = 0.9f;  
+
     public interface AttackCallback {
         void onAttackComplete();
     }
 
     public Stage1Monster(Context context, int resId, int frameCount, float x, float y, float width, float height) {
+        this.context = context;
+        this.idleResource = resId;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
         this.attackSheet = BitmapFactory.decodeResource(context.getResources(), 
             resId == R.mipmap.skeleton_idle ? R.mipmap.skeleton_attack : R.mipmap.slime_attack);
+        this.deathSheet = BitmapFactory.decodeResource(context.getResources(),
+            resId == R.mipmap.skeleton_idle ? R.mipmap.skeleton_death : R.mipmap.slime_death);
         this.frameCount = frameCount;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.animation = new MonsterAnimation(idleSheet, attackSheet, null, x, y, width, height);
+        this.animation = new MonsterAnimation(idleSheet, attackSheet, deathSheet, x, y, width, height);
         if (resId == R.mipmap.skeleton_idle) {
             isSkeleton = true;
-            this.maxHp = 150;
+            this.maxHp = 10;
         } else {
-            this.maxHp = 100;
+            this.maxHp = 10;
         }
         this.currentHp = this.maxHp;
 
@@ -69,6 +80,15 @@ public class Stage1Monster {
     }
 
     public void update(float dt) {
+        if (isDying) {
+            deathTimer += dt;
+            if (deathTimer >= DEATH_DURATION) {
+                isDying = false;
+                isAlive = false;
+            }
+            return;
+        }
+
         if (isAttacking) {
             attackTimer += dt;
             if (attackTimer >= ATTACK_DURATION) {
@@ -85,7 +105,7 @@ public class Stage1Monster {
                 frame = (frame + 1) % frameCount;
             }
         }
-        //피격시 깜빡거림
+
         if (isBlinking) {
             blinkTimer += dt;
             if (blinkTimer >= blinkDuration / maxBlinkCount) {
@@ -103,7 +123,18 @@ public class Stage1Monster {
     }
 
     public void draw(Canvas canvas) {
-        if (isAttacking && attackSheet != null) {
+        if (!isAlive && !isDying) return;
+        
+        if (isDying) {
+            int frameW = deathSheet.getWidth() / 3;  // 3프레임
+            int frameH = deathSheet.getHeight();
+            int currentDeathFrame = (int)(deathTimer / (DEATH_DURATION / 3));
+            if (currentDeathFrame >= 3) currentDeathFrame = 2;
+            
+            Rect src = new Rect(frameW * currentDeathFrame, 0, frameW * (currentDeathFrame + 1), frameH);
+            RectF dest = new RectF(x, y, x + width, y + height);
+            canvas.drawBitmap(deathSheet, src, dest, null);
+        } else if (isAttacking && attackSheet != null) {
             int frameW = attackSheet.getWidth() / frameCount;
             int frameH = attackSheet.getHeight();
             int left = frameW * frame;
@@ -126,6 +157,7 @@ public class Stage1Monster {
                 canvas.drawBitmap(idleSheet, src, dest, null);
             }
         }
+
         // HP 표시 (몬스터 위에)
         float hpX = x + width / 2;
         float hpY = y - 10; // 몬스터 위 10픽셀 위에 표시
@@ -144,7 +176,7 @@ public class Stage1Monster {
         currentHp -= damage;
         if (currentHp <= 0) {
             currentHp = 0;
-            isAlive = false;
+            die();
         }
     }
 
@@ -174,7 +206,7 @@ public class Stage1Monster {
     private void applyPendingDamage() {
         currentHp = Math.max(0, currentHp - pendingDamage);
         if (currentHp <= 0) {
-            isAlive = false;
+            die();
         }
         pendingDamage = 0;
     }
@@ -183,13 +215,12 @@ public class Stage1Monster {
         return isBlinking;
     }
 
-    public void startAttack(AttackCallback callback) {
-        if (!isAttacking && isAlive) {
-            isAttacking = true;
-            attackTimer = 0f;
-            frame = 0;
-            this.attackCallback = callback;
-        }
+    public void attack(AttackCallback callback) {
+        if (!isAlive || isDying) return;  
+        
+        isAttacking = true;
+        attackTimer = 0f;
+        this.attackCallback = callback;
     }
 
     public boolean isAttacking() {
@@ -198,5 +229,10 @@ public class Stage1Monster {
 
     public void setAnimationType(MonsterAnimation.Type type) {
         animation.setType(type);
+    }
+
+    public void die() {
+        isDying = true;
+        deathTimer = 0f;
     }
 } 

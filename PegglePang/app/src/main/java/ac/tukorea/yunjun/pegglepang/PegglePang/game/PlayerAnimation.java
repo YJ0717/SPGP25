@@ -18,7 +18,7 @@ public class PlayerAnimation {
 
     private int frame = 0;
     private float animTimer = 0f;
-    private float frameDuration = 0.2f;
+    private float frameDuration = 0.5f;
     private Type currentType = Type.IDLE;
     private boolean playing = false;
     private Runnable onAnimEnd;

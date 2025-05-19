@@ -291,8 +291,7 @@ public class S1_1 extends BaseStageScene {
                     
                     // 스켈레톤이 살아있으면 스켈레톤이 먼저 공격
                     if (skeleton.isAlive()) {
-                        skeleton.startAttack(() -> {
-                            // 스켈레톤 공격이 끝나면 플레이어가 깜빡거리면서 데미지를 받음
+                        skeleton.attack(() -> {
                             player.takeDamage(skeleton.getAttackPower());
                             if (!player.isAlive()) {
                                 player.die();
@@ -306,7 +305,7 @@ public class S1_1 extends BaseStageScene {
                             
                             // 슬라임이 살아있으면 슬라임이 공격
                             if (slime.isAlive()) {
-                                slime.startAttack(() -> {
+                                slime.attack(() -> {
                                     player.takeDamage(slime.getAttackPower());
                                     if (!player.isAlive()) {
                                         player.die();
@@ -342,7 +341,7 @@ public class S1_1 extends BaseStageScene {
                         });
                     } else if (slime.isAlive()) {
                         // 스켈레톤이 죽어있고 슬라임만 살아있으면 슬라임이 공격
-                        slime.startAttack(() -> {
+                        slime.attack(() -> {
                             player.takeDamage(slime.getAttackPower());
                             if (!player.isAlive()) {
                                 player.die();
@@ -609,8 +608,18 @@ public class S1_1 extends BaseStageScene {
             isPlayerAttacking = false;
             isMonsterBlinking = true;
             monsterBlinkTimer = 0f;
-            if (slime.isAlive()) slime.takeDamage((int)playerAttackValue);
-            if (skeleton.isAlive()) skeleton.takeDamage((int)playerAttackValue);
+            if (slime.isAlive()) {
+                slime.takeDamage((int)playerAttackValue);
+                if (!slime.isAlive()) {
+                    slime.die();
+                }
+            }
+            if (skeleton.isAlive()) {
+                skeleton.takeDamage((int)playerAttackValue);
+                if (!skeleton.isAlive()) {
+                    skeleton.die();
+                }
+            }
             isPlayerTurn = false;
             isMonsterTurn = true;
         }
@@ -622,8 +631,18 @@ public class S1_1 extends BaseStageScene {
             isMagicEffectPlaying = false;
             isMonsterBlinking = true;
             monsterBlinkTimer = 0f;
-            if (slime.isAlive()) slime.takeDamage((int)playerMagicValue);
-            if (skeleton.isAlive()) skeleton.takeDamage((int)playerMagicValue);
+            if (slime.isAlive()) {
+                slime.takeDamage((int)playerMagicValue);
+                if (!slime.isAlive()) {
+                    slime.die();
+                }
+            }
+            if (skeleton.isAlive()) {
+                skeleton.takeDamage((int)playerMagicValue);
+                if (!skeleton.isAlive()) {
+                    skeleton.die();
+                }
+            }
             isPlayerTurn = false;
             isMonsterTurn = true;
         }
