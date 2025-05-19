@@ -192,7 +192,7 @@ public class S1_1 extends BaseStageScene {
         skeleton.update(0.016f);
 
         // 퍼즐 시간이 끝났을 때 딜레이 시작
-        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating()) {
+        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling()) {
             isPuzzleFrozen = true;
             battleDelayTimer = 0f;  // 타이머 초기화
         }
@@ -322,7 +322,6 @@ public class S1_1 extends BaseStageScene {
                                     isBattlePhase = false;
                                     isPuzzleFrozen = false;
                                     playerStats.reset();
-                                    blockGrid.reset();
                                     isWaitingForAnim = false;
                                     
                                     if (!slime.isAlive() && !skeleton.isAlive()) {
@@ -334,7 +333,6 @@ public class S1_1 extends BaseStageScene {
                                 isBattlePhase = false;
                                 isPuzzleFrozen = false;
                                 playerStats.reset();
-                                blockGrid.reset();
                                 isWaitingForAnim = false;
                                 
                                 if (!skeleton.isAlive()) {
@@ -360,7 +358,6 @@ public class S1_1 extends BaseStageScene {
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
                             playerStats.reset();
-                            blockGrid.reset();
                             isWaitingForAnim = false;
                             
                             if (!slime.isAlive()) {
@@ -459,7 +456,8 @@ public class S1_1 extends BaseStageScene {
             return GameOverScene.getInstance().onTouchEvent(event);
         }
 
-        if (blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
+        // 시간이 끝났거나 블록이 애니메이션 중이면 터치 이벤트 무시
+        if (playerStats.isGameOver() || blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
             return true;
         }
 

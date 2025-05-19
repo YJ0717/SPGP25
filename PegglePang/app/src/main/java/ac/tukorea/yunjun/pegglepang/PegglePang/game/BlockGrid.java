@@ -97,6 +97,17 @@ public class BlockGrid {
         return false;
     }
 
+    public boolean isAnyBlockFalling() {
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                if (blocks[row][col] != null && blocks[row][col].isFalling()) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     private int getSmartRandomType(int row, int col) {
         ArrayList<Integer> availableTypes = new ArrayList<>(Arrays.asList(0, 1, 2));
         
@@ -258,7 +269,7 @@ public class BlockGrid {
 
             new Thread(() -> {
                 try {
-                    while (isAnyBlockAnimating()) {
+                    while (isAnyBlockAnimating() || isAnyBlockFalling()) {
                         Thread.sleep(50);
                     }
                     boolean hasMoreMatches = false;
