@@ -104,6 +104,8 @@ public class S1_1 extends BaseStageScene {
     private float monsterBlinkTimer = 0f;
     private float swordEffectTimer = 0f;
 
+    private boolean isStageClearShown = false;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -446,6 +448,11 @@ public class S1_1 extends BaseStageScene {
         player.update(0.016f);
         slime.update(0.016f);
         skeleton.update(0.016f);
+
+        if (!isStageClearShown && !slime.isAlive() && !skeleton.isAlive() && !slime.isDying() && !skeleton.isDying()) {
+            StageClearScene.getInstance(context).show();
+            isStageClearShown = true;
+        }
     }
 
     @Override
@@ -453,6 +460,11 @@ public class S1_1 extends BaseStageScene {
         // 게임 오버 상태일 때는 GameOverScene의 터치 이벤트 처리
         if (isGameOver) {
             return GameOverScene.getInstance().onTouchEvent(event);
+        }
+
+        // 스테이지 클리어창이 떠 있으면 그쪽으로 터치 이벤트 전달
+        if (StageClearScene.getInstance(context).onTouchEvent(event)) {
+            return true;
         }
 
         // 시간이 끝났거나 블록이 애니메이션 중이면 터치 이벤트 무시
@@ -566,6 +578,9 @@ public class S1_1 extends BaseStageScene {
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }
+
+        // 스테이지 클리어 화면 표시
+        StageClearScene.getInstance(context).draw(canvas);
     }
 
     public void startNewPuzzlePhase() {
@@ -620,6 +635,10 @@ public class S1_1 extends BaseStageScene {
                     skeleton.die();
                 }
             }
+            // 몬스터가 모두 죽었으면 스테이지 클리어 창 표시
+            if (!slime.isAlive() && !skeleton.isAlive()) {
+                StageClearScene.getInstance(context).show();
+            }
             isPlayerTurn = false;
             isMonsterTurn = true;
         }
@@ -642,6 +661,10 @@ public class S1_1 extends BaseStageScene {
                 if (!skeleton.isAlive()) {
                     skeleton.die();
                 }
+            }
+            // 몬스터가 모두 죽었으면 스테이지 클리어 창 표시
+            if (!slime.isAlive() && !skeleton.isAlive()) {
+                StageClearScene.getInstance(context).show();
             }
             isPlayerTurn = false;
             isMonsterTurn = true;

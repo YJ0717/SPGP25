@@ -120,6 +120,10 @@ public class Stage1Monster {
                 }
             }
         }
+
+        if (!isAlive && !isDying) {
+            StageClearScene.getInstance(context).show();
+        }
     }
 
     public void draw(Canvas canvas) {
@@ -234,5 +238,9 @@ public class Stage1Monster {
     public void die() {
         isDying = true;
         deathTimer = 0f;
+    }
+
+    public boolean isDying() {
+        return isDying;
     }
 } 

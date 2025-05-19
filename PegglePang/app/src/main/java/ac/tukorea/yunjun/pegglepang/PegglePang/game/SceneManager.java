@@ -10,7 +10,9 @@ public class SceneManager {
 
     public enum SceneType {
         MAIN,
-        S1_1
+        S1_1,
+        STAGE_SELECT,
+        S1_2
     }
 
     private SceneManager() {
@@ -35,6 +37,12 @@ public class SceneManager {
                 break;
             case S1_1:
                 gameView.changeScene(new S1_1(context));
+                break;
+            case STAGE_SELECT:
+                gameView.changeScene(new Stage1_Scene(context));
+                break;
+            case S1_2:
+                gameView.changeScene(StageFactory.createStage(context, 1, 2));
                 break;
         }
     }
