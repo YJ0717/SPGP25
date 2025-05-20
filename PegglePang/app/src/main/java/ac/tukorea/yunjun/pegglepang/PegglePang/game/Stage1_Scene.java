@@ -34,7 +34,10 @@ public class Stage1_Scene extends Scene {
                 backText.setOnClickListener(null);
                 backText.setOnClickListener(v -> {
                     if (context instanceof PegglePangActivity) {
-                        Scene.pop();
+                        PegglePangActivity gameActivity = (PegglePangActivity) context;
+                        gameActivity.setContentView(R.layout.world_select);
+                        Scene worldScene = new worldSelectScene(context);
+                        gameActivity.getGameView().pushScene(worldScene);
                     }
                 });
             }
