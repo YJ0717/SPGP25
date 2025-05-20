@@ -47,13 +47,41 @@ public class StageManager {
         }
     }
 
+    public boolean isStageCleared(int stage, int subStage) {
+        String key = stage + "-" + subStage;
+        return stageDataMap.containsKey(key) && stageDataMap.get(key).isCleared();
+    }
+
+    public void setStageCleared(int stage, int subStage) {
+        String key = stage + "-" + subStage;
+        if (stageDataMap.containsKey(key)) {
+            stageDataMap.get(key).setCleared(true);
+        }
+    }
+
+    public boolean areMonstersDefeated(int stage, int subStage) {
+        String key = stage + "-" + subStage;
+        return stageDataMap.containsKey(key) && stageDataMap.get(key).areMonstersDefeated();
+    }
+
+    public void setMonstersDefeated(int stage, int subStage, boolean defeated) {
+        String key = stage + "-" + subStage;
+        if (stageDataMap.containsKey(key)) {
+            stageDataMap.get(key).setMonstersDefeated(defeated);
+        }
+    }
+
     private static class StageData {
         private boolean unlocked;
         private int highScore;
+        private boolean cleared;  // 스테이지 클리어 여부
+        private boolean monstersDefeated;  // 몬스터들이 모두 처치되었는지 여부
 
         public StageData(boolean unlocked) {
             this.unlocked = unlocked;
             this.highScore = 0;
+            this.cleared = false;
+            this.monstersDefeated = false;
         }
 
         public boolean isUnlocked() {
@@ -70,6 +98,22 @@ public class StageManager {
 
         public void setHighScore(int highScore) {
             this.highScore = highScore;
+        }
+
+        public boolean isCleared() {
+            return cleared;
+        }
+
+        public void setCleared(boolean cleared) {
+            this.cleared = cleared;
+        }
+
+        public boolean areMonstersDefeated() {
+            return monstersDefeated;
+        }
+
+        public void setMonstersDefeated(boolean defeated) {
+            this.monstersDefeated = defeated;
         }
     }
 } 

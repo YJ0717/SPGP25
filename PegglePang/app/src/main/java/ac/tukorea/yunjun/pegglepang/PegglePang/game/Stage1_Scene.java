@@ -47,9 +47,19 @@ public class Stage1_Scene extends Scene {
             
             Button stage1_1Button = activity.findViewById(R.id.stage1_1_button);
             if (stage1_1Button != null) {
-                stage1_1Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 1));
+                boolean isUnlocked = StageManager.getInstance().isStageUnlocked(1, 1);
+                stage1_1Button.setEnabled(isUnlocked);
                 stage1_1Button.setOnClickListener(v -> {
                     Scene stage = StageFactory.createStage(context, 1, 1);
+                    activity.getGameView().pushScene(stage);
+                });
+            }
+
+            Button stage1_2Button = activity.findViewById(R.id.stage1_2_button);
+            if (stage1_2Button != null) {
+                stage1_2Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 2));
+                stage1_2Button.setOnClickListener(v -> {
+                    Scene stage = StageFactory.createStage(context, 1, 2);
                     activity.getGameView().pushScene(stage);
                 });
             }

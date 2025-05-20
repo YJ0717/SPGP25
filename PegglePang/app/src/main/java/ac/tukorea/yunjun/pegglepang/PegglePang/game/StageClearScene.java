@@ -10,6 +10,8 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
+import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
 public class StageClearScene {
     private static StageClearScene instance;
@@ -19,8 +21,10 @@ public class StageClearScene {
     private RectF selectButtonRect;
     private RectF nextStageButtonRect;
     private Paint buttonPaint;
+    private Context context;
 
     private StageClearScene(Context context) {
+        this.context = context;
         clearBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage_clear);
         float imgWidth = 500f;
         float imgHeight = 500f;
@@ -56,6 +60,12 @@ public class StageClearScene {
 
     public void show() {
         isVisible = true;
+        // 스테이지 1-1 클리어 시 스테이지 1-2 해금
+        StageManager.getInstance().unlockStage(1, 2);
+        // 스테이지 1-1 클리어 표시
+        StageManager.getInstance().setStageCleared(1, 1);
+        // 몬스터들이 처치된 상태로 표시
+        StageManager.getInstance().setMonstersDefeated(1, 1, true);
     }
 
     public void hide() {
@@ -81,10 +91,17 @@ public class StageClearScene {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             if (selectButtonRect.contains(x, y)) {
                 hide();
-                SceneManager.getInstance().changeScene(SceneManager.SceneType.STAGE_SELECT);
+                if (context instanceof PegglePangActivity) {
+                    PegglePangActivity activity = (PegglePangActivity) context;
+                    activity.setContentView(R.layout.stage1_select);
+                    Scene stage1Scene = new Stage1_Scene(context);
+                    activity.getGameView().pushScene(stage1Scene);
+                }
                 return true;
             } else if (nextStageButtonRect.contains(x, y)) {
                 hide();
+                // 스테이지 1-2 해금
+                StageManager.getInstance().unlockStage(1, 2);
                 SceneManager.getInstance().changeScene(SceneManager.SceneType.S1_2);
                 return true;
             }

@@ -72,6 +72,13 @@ public class Stage1Monster {
         }
         this.currentHp = this.maxHp;
 
+        // 스테이지가 이미 클리어된 상태라면 몬스터를 즉시 처치 상태로 만듦
+        if (StageManager.getInstance().areMonstersDefeated(1, 1)) {
+            this.currentHp = 0;
+            this.isAlive = false;
+            this.isDying = false;
+        }
+
         hpPaint = new Paint();
         hpPaint.setColor(Color.WHITE);
         hpPaint.setTextSize(30);
