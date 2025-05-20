@@ -26,7 +26,7 @@ public class StageClearScene {
     private StageClearScene(Context context) {
         this.context = context;
         clearBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage_clear);
-        float imgWidth = 500f;
+        float imgWidth = 470f;
         float imgHeight = 500f;
         float centerX = Metrics.width / 2f;
         float centerY = Metrics.height / 2f;
@@ -99,10 +99,16 @@ public class StageClearScene {
                 }
                 return true;
             } else if (nextStageButtonRect.contains(x, y)) {
-                hide();
-                // 스테이지 1-2 해금
-                StageManager.getInstance().unlockStage(1, 2);
-                SceneManager.getInstance().changeScene(SceneManager.SceneType.S1_2);
+                if (context instanceof PegglePangActivity) {
+                    PegglePangActivity activity = (PegglePangActivity) context;
+                    // 먼저 현재 씬을 제거
+                    activity.getGameView().popScene();
+                    // 클리어 창을 숨김
+                    hide();
+                    // 스테이지 1-2로 이동
+                    Scene stage = StageFactory.createStage(context, 1, 2);
+                    activity.getGameView().pushScene(stage);
+                }
                 return true;
             }
         }
