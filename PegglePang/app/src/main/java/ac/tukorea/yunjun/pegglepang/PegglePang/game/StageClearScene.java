@@ -58,14 +58,12 @@ public class StageClearScene {
         return instance;
     }
 
-    public void show() {
+    public void show(int stage, int subStage) {
+        if (isVisible) return; // 이미 떠 있으면 무시
         isVisible = true;
-        // 스테이지 1-1 클리어 시 스테이지 1-2 해금
-        StageManager.getInstance().unlockStage(1, 2);
-        // 스테이지 1-1 클리어 표시
-        StageManager.getInstance().setStageCleared(1, 1);
-        // 몬스터들이 처치된 상태로 표시
-        StageManager.getInstance().setMonstersDefeated(1, 1, true);
+        StageManager.getInstance().setStageCleared(stage, subStage);
+        StageManager.getInstance().setMonstersDefeated(stage, subStage, true);
+        StageManager.getInstance().unlockStage(stage, subStage + 1);
     }
 
     public void hide() {

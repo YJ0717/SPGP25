@@ -450,7 +450,7 @@ public class S1_1 extends BaseStageScene {
         skeleton.update(0.016f);
 
         if (!isStageClearShown && !slime.isAlive() && !skeleton.isAlive() && !slime.isDying() && !skeleton.isDying()) {
-            StageClearScene.getInstance(context).show();
+            StageClearScene.getInstance(context).show(1, 1);
             isStageClearShown = true;
         }
     }
@@ -637,7 +637,7 @@ public class S1_1 extends BaseStageScene {
             }
             // 몬스터가 모두 죽었으면 스테이지 클리어 창 표시
             if (!slime.isAlive() && !skeleton.isAlive()) {
-                StageClearScene.getInstance(context).show();
+                StageClearScene.getInstance(context).show(1, 1);
             }
             isPlayerTurn = false;
             isMonsterTurn = true;
@@ -664,7 +664,7 @@ public class S1_1 extends BaseStageScene {
             }
             // 몬스터가 모두 죽었으면 스테이지 클리어 창 표시
             if (!slime.isAlive() && !skeleton.isAlive()) {
-                StageClearScene.getInstance(context).show();
+                StageClearScene.getInstance(context).show(1, 1);
             }
             isPlayerTurn = false;
             isMonsterTurn = true;

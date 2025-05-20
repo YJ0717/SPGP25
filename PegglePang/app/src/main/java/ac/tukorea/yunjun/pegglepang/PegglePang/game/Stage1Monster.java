@@ -129,7 +129,7 @@ public class Stage1Monster {
         }
 
         if (!isAlive && !isDying) {
-            StageClearScene.getInstance(context).show();
+            // StageClearScene.getInstance(context).show(1, 1); // 중복 호출 방지 위해 제거
         }
     }
 
