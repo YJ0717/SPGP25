@@ -114,6 +114,11 @@ public class PlayerStats {
         isGameOver = false;
     }
 
+    public void resetTimerOnly() {
+        gameStartTime = System.currentTimeMillis();
+        isGameOver = false;
+    }
+
     public int getPhysicalAttack() {
         return physicalAttack;
     }
@@ -124,5 +129,13 @@ public class PlayerStats {
 
     public int getHealing() {
         return healing;
+    }
+
+    public void resetStatsAndTimer() {
+        physicalAttack = 0;
+        magicAttack = 0;
+        healing = 0;
+        gameStartTime = System.currentTimeMillis();
+        isGameOver = false;
     }
 } 

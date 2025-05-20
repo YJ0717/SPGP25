@@ -23,6 +23,7 @@ import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage1Monster;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.BattleSystem;
+import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 
 public class S1_1 extends BaseStageScene {
 
@@ -179,6 +180,10 @@ public class S1_1 extends BaseStageScene {
         float swordEffectX = (playerLeft + playerDrawWidth + slimeLeft) / 2 - swordEffectWidth / 2;
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
+
+        player.getAnimation().setFrameDuration(0.3f);
+
+        playerStats.resetStatsAndTimer();
     }
 
     @Override
@@ -188,10 +193,11 @@ public class S1_1 extends BaseStageScene {
     @Override
     public void update() {
         super.update();
-        blockGrid.update(0.016f);
-        player.update(0.016f);
-        slime.update(0.016f);
-        skeleton.update(0.016f);
+        float dt = GameView.frameTime;
+        blockGrid.update(dt);
+        player.update(dt);
+        slime.update(dt);
+        skeleton.update(dt);
 
         // 퍼즐 시간이 끝났을 때 딜레이 시작
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling()) {
@@ -200,7 +206,7 @@ public class S1_1 extends BaseStageScene {
         }
 
         if (isPuzzleFrozen && !isBattlePhase) {
-            battleDelayTimer += 0.016f;
+            battleDelayTimer += dt;
         }
 
         if (isPuzzleFrozen && !isBattlePhase && battleDelayTimer >= BATTLE_DELAY) {
@@ -372,7 +378,7 @@ public class S1_1 extends BaseStageScene {
 
         // 플레이어 깜빡임 처리
         if (isPlayerBlinkPhase) {
-            playerBlinkTimer += 0.016f;
+            playerBlinkTimer += dt;
             if (playerBlinkTimer >= 0.1f) {
                 playerBlinkTimer -= 0.1f;
                 playerBlinkCount++;
@@ -388,7 +394,7 @@ public class S1_1 extends BaseStageScene {
 
         if (isPuzzleFrozen) {
             if (battleDelayTimer < BATTLE_DELAY) {
-                battleDelayTimer += 0.016f;
+                battleDelayTimer += dt;
                 return;
             }
             isBattlePhase = true;
@@ -445,13 +451,17 @@ public class S1_1 extends BaseStageScene {
             handleSwordEffect();
         }
 
-        player.update(0.016f);
-        slime.update(0.016f);
-        skeleton.update(0.016f);
+        player.update(dt);
+        slime.update(dt);
+        skeleton.update(dt);
 
         if (!isStageClearShown && !slime.isAlive() && !skeleton.isAlive() && !slime.isDying() && !skeleton.isDying()) {
             StageClearScene.getInstance(context).show(1, 1);
             isStageClearShown = true;
+        }
+
+        if (!isGameOver && player.isDead()) {
+            isGameOver = true;
         }
     }
 

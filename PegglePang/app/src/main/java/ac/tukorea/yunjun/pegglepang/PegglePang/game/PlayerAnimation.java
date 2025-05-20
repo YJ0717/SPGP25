@@ -80,9 +80,14 @@ public class PlayerAnimation {
                 animTimer -= frameDuration;
                 frame++;
                 if (frame >= maxFrame) {
-                    playing = false;
-                    if (onAnimEnd != null) onAnimEnd.run();
-                    play(Type.IDLE, null);
+                    if (currentType == Type.DEAD) {
+                        frame = maxFrame - 1;
+                        playing = false;
+                    } else {
+                        playing = false;
+                        if (onAnimEnd != null) onAnimEnd.run();
+                        play(Type.IDLE, null);
+                    }
                 }
             }
         } else {
@@ -276,5 +281,9 @@ public class PlayerAnimation {
         paint.setAlpha(alpha);
         draw(canvas);
         paint.setAlpha(oldAlpha);
+    }
+
+    public void setFrameDuration(float duration) {
+        this.frameDuration = duration;
     }
 }

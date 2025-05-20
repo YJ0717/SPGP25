@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage2Monster;
+import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 
 public class S1_2 extends BaseStageScene {
     private static final int GRID_SIZE = 6;              
@@ -43,7 +44,6 @@ public class S1_2 extends BaseStageScene {
 
     private Player player; 
     private Stage2Monster monster1;
-    private Stage2Monster monster2;
     private Bitmap battleBg;
     private Bitmap stateBg;
 
@@ -72,22 +72,18 @@ public class S1_2 extends BaseStageScene {
         blockGrid.setPlayerStats(playerStats);
         isPuzzleFrozen = false;
 
-        // 몬스터1 (magic_man)
+        // 몬스터1 (magicman_idle)
         float monster1DrawHeight = battleHeight * 0.5f;
         float monster1DrawWidth = 80f;
         float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
         float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
-        monster1 = new Stage2Monster(context, R.mipmap.magic_man, 3, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight);
-
-        // 몬스터2 (magic_man)
-        float monster2DrawHeight = battleHeight * 0.10f;
-        float monster2DrawWidth = monster2DrawHeight * (203f / 46f); // 비율은 임시
-        float monster2Left = monster1Left - monster2DrawWidth - (Metrics.width * 0.03f);
-        float monster2Top = battleHeight - monster2DrawHeight - (battleHeight * 0.05f);
-        monster2 = new Stage2Monster(context, R.mipmap.magic_man, 3, monster2Left, monster2Top, monster2DrawWidth, monster2DrawHeight);
+        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 3, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
+
+        player.getAnimation().setFrameDuration(0.15f);
+        playerStats.resetStatsAndTimer();
     }
 
     @Override
@@ -97,10 +93,10 @@ public class S1_2 extends BaseStageScene {
     @Override
     public void update() {
         super.update();
-        blockGrid.update(0.016f);
-        player.update(0.016f);
-        monster1.update(0.016f);
-        monster2.update(0.016f);
+        float dt = GameView.frameTime;
+        blockGrid.update(dt);
+        player.update(dt);
+        monster1.update(dt);
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling()) {
             isPuzzleFrozen = true;
@@ -108,7 +104,7 @@ public class S1_2 extends BaseStageScene {
         }
 
         if (isPuzzleFrozen && !isBattlePhase) {
-            battleDelayTimer += 0.016f;
+            battleDelayTimer += dt;
         }
 
         if (isPuzzleFrozen && !isBattlePhase && battleDelayTimer >= BATTLE_DELAY) {
@@ -127,7 +123,6 @@ public class S1_2 extends BaseStageScene {
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         player.playSwordAttack(() -> {
                             if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                            if (monster2.isAlive()) monster2.startBlinking(lastSword + lastMagic);
                             playerStats.heal(lastHeal);
                             isPlayerTurn = false;
                             isWaitingForAnim = false;
@@ -135,7 +130,6 @@ public class S1_2 extends BaseStageScene {
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         player.playMagicAttack(() -> {
                             if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                            if (monster2.isAlive()) monster2.startBlinking(lastSword + lastMagic);
                             playerStats.heal(lastHeal);
                             isPlayerTurn = false;
                             isWaitingForAnim = false;
@@ -160,54 +154,11 @@ public class S1_2 extends BaseStageScene {
                                 GameOverScene.getInstance().show();
                                 return;
                             }
-                            if (monster2.isAlive()) {
-                                monster2.attack(() -> {
-                                    player.takeDamage(monster2.getAttackPower());
-                                    if (!player.isAlive()) {
-                                        player.die();
-                                        isGameOver = true;
-                                        GameOverScene.getInstance().show();
-                                        return;
-                                    }
-                                    isBattlePhase = false;
-                                    isPuzzleFrozen = false;
-                                    playerStats.reset();
-                                    isWaitingForAnim = false;
-                                    
-                                    if (!monster1.isAlive() && !monster2.isAlive()) {
-                                        StageManager.getInstance().setStageCleared(1, 2);
-                                        StageManager.getInstance().setMonstersDefeated(1, 2, true);
-                                        StageManager.getInstance().unlockStage(1, 3);
-                                    }
-                                });
-                            } else {
-                                isBattlePhase = false;
-                                isPuzzleFrozen = false;
-                                playerStats.reset();
-                                isWaitingForAnim = false;
-                                
-                                if (!monster1.isAlive()) {
-                                    StageManager.getInstance().setStageCleared(1, 2);
-                                    StageManager.getInstance().setMonstersDefeated(1, 2, true);
-                                    StageManager.getInstance().unlockStage(1, 3);
-                                }
-                            }
-                        });
-                    } else if (monster2.isAlive()) {
-                        monster2.attack(() -> {
-                            player.takeDamage(monster2.getAttackPower());
-                            if (!player.isAlive()) {
-                                player.die();
-                                isGameOver = true;
-                                GameOverScene.getInstance().show();
-                                return;
-                            }
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
                             playerStats.reset();
                             isWaitingForAnim = false;
-                            
-                            if (!monster2.isAlive()) {
+                            if (!monster1.isAlive()) {
                                 StageManager.getInstance().setStageCleared(1, 2);
                                 StageManager.getInstance().setMonstersDefeated(1, 2, true);
                                 StageManager.getInstance().unlockStage(1, 3);
@@ -223,9 +174,13 @@ public class S1_2 extends BaseStageScene {
         }
 
         // 몬스터가 모두 죽었을 때만 스테이지 클리어 창 표시
-        if (!isStageClearShown && !monster1.isAlive() && !monster2.isAlive()) {
+        if (!isStageClearShown && !monster1.isAlive()) {
             StageClearScene.getInstance(context).show(1, 2);
             isStageClearShown = true;
+        }
+
+        if (!isGameOver && player.isDead()) {
+            isGameOver = true;
         }
     }
 
@@ -338,7 +293,6 @@ public class S1_2 extends BaseStageScene {
 
         player.draw(canvas);
         monster1.draw(canvas);
-        monster2.draw(canvas);
 
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);

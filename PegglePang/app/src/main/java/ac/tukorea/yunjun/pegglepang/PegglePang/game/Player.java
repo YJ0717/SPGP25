@@ -125,6 +125,7 @@ public class Player {
         isDead = true;
         animation.setType(PlayerAnimation.Type.DEAD);
         animation.play();
+        GameOverScene.getInstance().show();
     }
 
     public boolean isDead() {
@@ -149,6 +150,9 @@ public class Player {
 
     public void takeDamage(float damage) {
         stats.takeDamage(damage);
+        if (stats.getCurrentHp() <= 0 && !isDead) {
+            die();
+        }
     }
 
     public boolean isAlive() {
@@ -157,5 +161,9 @@ public class Player {
 
     public void reset() {
         stats.reset();
+    }
+
+    public PlayerAnimation getAnimation() {
+        return animation;
     }
 } 
