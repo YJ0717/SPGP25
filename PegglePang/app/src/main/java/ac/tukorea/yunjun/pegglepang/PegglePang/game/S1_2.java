@@ -66,8 +66,8 @@ public class S1_2 extends BaseStageScene {
         float playerDrawWidth = playerDrawHeight * 0.5f;
         float playerLeft = Metrics.width * 0.05f;
         float playerTop = (battleHeight - playerDrawHeight) / 2;
-        player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight);
-        playerStats = player.getStats();
+        playerStats = StageManager.getPlayerStats();
+        player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight, playerStats);
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
         isPuzzleFrozen = false;

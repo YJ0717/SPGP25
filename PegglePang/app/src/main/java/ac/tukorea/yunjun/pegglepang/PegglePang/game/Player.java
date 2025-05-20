@@ -18,8 +18,8 @@ public class Player {
     private float x, y;
     private static final float BLINK_DURATION = 500f;
 
-    public Player(Context context, float x, float y, float width, float height) {
-        this.stats = new PlayerStats();
+    public Player(Context context, float x, float y, float width, float height, PlayerStats stats) {
+        this.stats = stats;
         Bitmap idle = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_idle);
         Bitmap sword = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_swordattac);
         Bitmap magic = BitmapFactory.decodeResource(context.getResources(), R.mipmap.player_magicattack);

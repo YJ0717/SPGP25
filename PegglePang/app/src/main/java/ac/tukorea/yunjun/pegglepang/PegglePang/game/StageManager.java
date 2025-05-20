@@ -8,6 +8,7 @@ import java.util.Map;
 public class StageManager {
     private static StageManager instance;
     private Map<String, StageData> stageDataMap;
+    private static PlayerStats playerStats = new PlayerStats();
 
     private StageManager() {
         stageDataMap = new HashMap<>();
@@ -69,6 +70,10 @@ public class StageManager {
         if (stageDataMap.containsKey(key)) {
             stageDataMap.get(key).setMonstersDefeated(defeated);
         }
+    }
+
+    public static PlayerStats getPlayerStats() {
+        return playerStats;
     }
 
     private static class StageData {
