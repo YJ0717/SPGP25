@@ -35,14 +35,14 @@ public class StageClearScene {
         clearRect = new RectF(left, top, left + imgWidth, top + imgHeight);
 
         // 버튼 위치: 이미지 내 상대좌표 → 실제 화면 좌표로 변환
-        float selectBtnX = left + 139f;
+        float selectBtnX = left + 120f;
         float selectBtnY = top + 391f;
         float selectBtnW = 140f;
         float selectBtnH = 60f;
         selectButtonRect = new RectF(selectBtnX, selectBtnY, selectBtnX + selectBtnW, selectBtnY + selectBtnH);
 
-        float nextBtnX = left + 368f;
-        float nextBtnY = top + 401f;
+        float nextBtnX = left + 270f;
+        float nextBtnY = top + 380f;
         float nextBtnW = 140f;
         float nextBtnH = 60f;
         nextStageButtonRect = new RectF(nextBtnX, nextBtnY, nextBtnX + nextBtnW, nextBtnY + nextBtnH);
