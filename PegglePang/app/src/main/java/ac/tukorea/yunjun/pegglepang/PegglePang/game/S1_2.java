@@ -77,7 +77,7 @@ public class S1_2 extends BaseStageScene {
         float monster1DrawWidth = 80f;
         float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
         float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
-        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 3, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight);
+        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
