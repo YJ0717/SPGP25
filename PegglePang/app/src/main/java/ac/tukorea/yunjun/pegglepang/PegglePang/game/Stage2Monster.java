@@ -15,6 +15,7 @@ public class Stage2Monster {
     private Bitmap attackSheet;
     private int frame = 0;
     private int frameCount;
+    private int attackFrameCount = 4;
     private float animTimer = 0f;
     private static final float FRAME_DURATION = 0.3f;
     private float x, y, width, height;
@@ -98,7 +99,7 @@ public class Stage2Monster {
         if (!isAlive) return;
 
         if (isAttacking && attackSheet != null) {
-            int frameW = attackSheet.getWidth() / 4;
+            int frameW = attackSheet.getWidth() / attackFrameCount;
             int frameH = attackSheet.getHeight();
             int left = frameW * frame;
             int right = left + frameW;

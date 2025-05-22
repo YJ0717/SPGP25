@@ -44,10 +44,11 @@ public class BlockGrid {
     private void updateBlockPositions() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE; col++) {
-                if (blocks[row][col] != null) {
+                Block block = blocks[row][col];
+                if (block != null) {
                     float left = puzzleLeft + col * blockSize;
                     float top = puzzleTop + row * blockSize;
-                    blocks[row][col].setPosition(left, top, left + blockSize, top + blockSize);
+                    block.setPosition(left, top, left + blockSize, top + blockSize);
                 }
             }
         }
