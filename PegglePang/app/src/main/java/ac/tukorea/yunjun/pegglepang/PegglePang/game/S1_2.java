@@ -17,7 +17,6 @@ import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 public class S1_2 extends BaseStageScene {
     private static final int GRID_SIZE = 6;              
     private static final float SWIPE_THRESHOLD = 20.0f;   
-    private static final float TURN_DELAY = 1.0f;
     
     private Paint linePaint;      
     private Bitmap gridBitmap;    
@@ -29,9 +28,6 @@ public class S1_2 extends BaseStageScene {
     private boolean isPlayerTurn = true;
     private boolean isWaitingForAnim = false;
     private int lastSword, lastMagic, lastHeal;
-    private float turnTimer = 0f;
-    private float battleDelayTimer = 0f;  
-    private static final float BATTLE_DELAY = 2.0f;  
     
     private float blockSize;      
     private float puzzleLeft;     
@@ -50,6 +46,9 @@ public class S1_2 extends BaseStageScene {
 
     private boolean isGameOver = false;
     private boolean isStageClearShown = false;
+    private boolean isMonsterBlinkPhase = false;
+
+    private float puzzleTransitionTimer = 0f;
 
     public S1_2(Context context) {
         super(context, 1, 2);
@@ -116,16 +115,11 @@ public class S1_2 extends BaseStageScene {
         player.update(dt);
         monster1.update(dt);
 
-        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling()) {
+        // 퍼즐 시간이 끝났을 때 바로 전투로 전환
+        if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
+            !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
+            !blockGrid.hasChainMatches()) {  // 연속 매칭이 없을 때만 전투로 넘어감
             isPuzzleFrozen = true;
-            battleDelayTimer = 0f;
-        }
-
-        if (isPuzzleFrozen && !isBattlePhase) {
-            battleDelayTimer += dt;
-        }
-
-        if (isPuzzleFrozen && !isBattlePhase && battleDelayTimer >= BATTLE_DELAY) {
             isBattlePhase = true;
             isPlayerTurn = true;
             isWaitingForAnim = false;
@@ -144,17 +138,9 @@ public class S1_2 extends BaseStageScene {
                             player.playSwordEffect(() -> {
                                 if (monster1.isAlive()) {
                                     monster1.startBlinking(lastSword + lastMagic);
-                                    // 몬스터 깜빡임이 끝난 후에 턴 전환
-                                    new Handler().postDelayed(() -> {
-                                        playerStats.heal(lastHeal);
-                                        isPlayerTurn = false;
-                                        isWaitingForAnim = false;
-                                    }, 500); // 깜빡임 시간만큼 대기
-                                } else {
-                                    playerStats.heal(lastHeal);
-                                    isPlayerTurn = false;
-                                    isWaitingForAnim = false;
+                                    isMonsterBlinkPhase = true;
                                 }
+                                playerStats.heal(lastHeal);
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
@@ -163,33 +149,18 @@ public class S1_2 extends BaseStageScene {
                             player.playMagicEffect(() -> {
                                 if (monster1.isAlive()) {
                                     monster1.startBlinking(lastSword + lastMagic);
-                                    // 몬스터 깜빡임이 끝난 후에 턴 전환
-                                    new Handler().postDelayed(() -> {
-                                        playerStats.heal(lastHeal);
-                                        isPlayerTurn = false;
-                                        isWaitingForAnim = false;
-                                    }, 500); // 깜빡임 시간만큼 대기
-                                } else {
-                                    playerStats.heal(lastHeal);
-                                    isPlayerTurn = false;
-                                    isWaitingForAnim = false;
+                                    isMonsterBlinkPhase = true;
                                 }
+                                playerStats.heal(lastHeal);
                             });
                         });
                     } else {
                         player.playHeal(() -> {
                             if (monster1.isAlive()) {
-                                monster1.startBlinking(0);  // 힐링 시에도 깜빡임
-                                new Handler().postDelayed(() -> {
-                                    playerStats.heal(lastHeal);
-                                    isPlayerTurn = false;
-                                    isWaitingForAnim = false;
-                                }, 500);
-                            } else {
-                                playerStats.heal(lastHeal);
-                                isPlayerTurn = false;
-                                isWaitingForAnim = false;
+                                monster1.startBlinking(lastSword + lastMagic);
+                                isMonsterBlinkPhase = true;
                             }
+                            playerStats.heal(lastHeal);
                         });
                     }
                 }
@@ -209,15 +180,26 @@ public class S1_2 extends BaseStageScene {
                             isPuzzleFrozen = false;
                             playerStats.reset();
                             isWaitingForAnim = false;
-                            if (!monster1.isAlive()) {
-                                StageManager.getInstance().setStageCleared(1, 2);
-                                StageManager.getInstance().setMonstersDefeated(1, 2, true);
-                                StageManager.getInstance().unlockStage(1, 3);
-                            }
                         });
+                    } else {
+                        isBattlePhase = false;
+                        isPuzzleFrozen = false;
+                        playerStats.reset();
+                        isWaitingForAnim = false;
+                        if (!isStageClearShown) {
+                            StageClearScene.getInstance(context).show(1, 2);
+                            isStageClearShown = true;
+                        }
                     }
                 }
             }
+        }
+
+        // 몬스터 깜빡임 페이즈 처리
+        if (isMonsterBlinkPhase && !monster1.isBlinking()) {
+            isMonsterBlinkPhase = false;
+            isPlayerTurn = false;
+            isWaitingForAnim = false;
         }
 
         if (isGameOver) {
@@ -225,7 +207,7 @@ public class S1_2 extends BaseStageScene {
         }
 
         // 몬스터가 모두 죽었을 때만 스테이지 클리어 창 표시
-        if (!isStageClearShown && !monster1.isAlive()) {
+        if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
             StageClearScene.getInstance(context).show(1, 2);
             isStageClearShown = true;
         }
@@ -350,5 +332,21 @@ public class S1_2 extends BaseStageScene {
         }
 
         StageClearScene.getInstance(context).draw(canvas);
+    }
+
+    protected void startPuzzleTransition() {
+        puzzleTransitionTimer = 0f;
+    }
+
+    protected boolean updatePuzzleTransition(float dt) {
+        if (puzzleTransitionTimer < 0f) {
+            return false;  // 딜레이가 시작되지 않음
+        }
+        puzzleTransitionTimer += dt;
+        if (puzzleTransitionTimer >= 1.0f) {  // 1초 딜레이
+            puzzleTransitionTimer = -1f;  // 딜레이 종료
+            return true;
+        }
+        return false;
     }
 } 

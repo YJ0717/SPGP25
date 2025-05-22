@@ -7,6 +7,7 @@ import android.graphics.Canvas;
 import java.util.Random;
 import java.util.ArrayList;
 import java.util.Arrays;
+import android.os.Handler;
 
 import ac.tukorea.yunjun.pegglepang.R;
 
@@ -17,6 +18,8 @@ public class BlockGrid {
     private Random random;
     private float puzzleLeft, puzzleTop, blockSize;
     private PlayerStats playerStats;
+    private boolean isProcessingMatches = false;
+    private Handler mainHandler;
 
     public void setPlayerStats(PlayerStats stats) {
         this.playerStats = stats;
@@ -25,6 +28,7 @@ public class BlockGrid {
     public BlockGrid(Context context) {
         blocks = new Block[GRID_SIZE][GRID_SIZE];
         random = new Random();
+        mainHandler = new Handler(context.getMainLooper());
         
         blockBitmaps = new Bitmap[3];
         blockBitmaps[Block.HEAL] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.heal_block);
@@ -103,6 +107,31 @@ public class BlockGrid {
             for (int col = 0; col < GRID_SIZE; col++) {
                 if (blocks[row][col] != null && blocks[row][col].isFalling()) {
                     return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public boolean hasChainMatches() {
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE - 2; col++) {
+                if (blocks[row][col] != null && blocks[row][col + 1] != null && blocks[row][col + 2] != null) {
+                    int type = blocks[row][col].getType();
+                    if (blocks[row][col + 1].getType() == type && blocks[row][col + 2].getType() == type) {
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        for (int col = 0; col < GRID_SIZE; col++) {
+            for (int row = 0; row < GRID_SIZE - 2; row++) {
+                if (blocks[row][col] != null && blocks[row + 1][col] != null && blocks[row + 2][col] != null) {
+                    int type = blocks[row][col].getType();
+                    if (blocks[row + 1][col].getType() == type && blocks[row + 2][col].getType() == type) {
+                        return true;
+                    }
                 }
             }
         }

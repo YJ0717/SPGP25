@@ -13,11 +13,24 @@ import ac.tukorea.yunjun.pegglepang.R;
 public class Stage2Monster {
     private Bitmap idleSheet;
     private Bitmap attackSheet;
+    private Bitmap iceBallSheet;
+    private Bitmap dieSheet;
     private int frame = 0;
     private int frameCount;
     private int attackFrameCount = 4;
+    private int dieFrameCount = 6;
+    private int attackFrame = 0;
+    private int dieFrame = 0;
+    private int iceBallFrame = 0;
     private float animTimer = 0f;
+    private float attackAnimTimer = 0f;
+    private float dieAnimTimer = 0f;
+    private float iceBallAnimTimer = 0f;
     private static final float FRAME_DURATION = 0.3f;
+    private static final float ATTACK_FRAME_DURATION = 0.15f;
+    private static final float DIE_FRAME_DURATION = 0.2f;
+    private static final float ICE_BALL_FRAME_DURATION = 0.2f;
+    private static final float ICE_BALL_SPEED = 2000f;
     private float x, y, width, height;
     private Context context;
 
@@ -25,19 +38,29 @@ public class Stage2Monster {
     private int currentHp;
     private float attackPower = 15f;
     private boolean isAlive = true;
+    private boolean isDying = false;
     private Paint hpPaint;
 
     private boolean isBlinking = false;
     private float blinkTimer = 0f;
-    private float blinkDuration = 0.5f;
     private int blinkCount = 0;
-    private int maxBlinkCount = 4;
+    private static final float blinkDuration = 0.5f;
+    private static final int maxBlinkCount = 5;
     private int pendingDamage = 0;
 
     private boolean isAttacking = false;
     private float attackTimer = 0f;
-    private static final float ATTACK_DURATION = 1.0f;
+    private static final float ATTACK_DURATION = 0.6f;
     private AttackCallback attackCallback;
+    private boolean shouldShootIceBall = false;
+
+    private boolean isShootingIceBall = false;
+    private float iceBallX, iceBallY;
+    private float iceBallWidth = 57f;
+    private float iceBallHeight = 54f;
+    private float targetX, targetY;
+    private float iceBallAngle;
+    private boolean isIceBallActive = false;
 
     public interface AttackCallback {
         void onAttackComplete();
@@ -47,6 +70,8 @@ public class Stage2Monster {
         this.context = context;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
         this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+        this.iceBallSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ice_ball);
+        this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
         this.frameCount = frameCount;
         this.x = x;
         this.y = y;
@@ -61,12 +86,48 @@ public class Stage2Monster {
         hpPaint.setTextAlign(Paint.Align.CENTER);
     }
 
+    public void setTargetPosition(float x, float y) {
+        this.targetX = x;
+        this.targetY = y;
+    }
+
     public void update(float dt) {
+        if (isDying) {
+            dieAnimTimer += dt;
+            if (dieAnimTimer >= DIE_FRAME_DURATION) {
+                dieAnimTimer -= DIE_FRAME_DURATION;
+                dieFrame++;
+                if (dieFrame >= dieFrameCount) {
+                    isDying = false;
+                    isAlive = false;
+                }
+            }
+            return;
+        }
+
         if (isAttacking) {
             attackTimer += dt;
+            attackAnimTimer += dt;
+            if (attackAnimTimer >= ATTACK_FRAME_DURATION) {
+                attackAnimTimer -= ATTACK_FRAME_DURATION;
+                attackFrame = (attackFrame + 1) % attackFrameCount;
+                
+                if (attackFrame == 2 && !isShootingIceBall) {
+                    shouldShootIceBall = true;
+                }
+            }
             if (attackTimer >= ATTACK_DURATION) {
                 isAttacking = false;
                 attackTimer = 0f;
+                attackFrame = 0;
+                if (shouldShootIceBall) {
+                    isShootingIceBall = true;
+                    isIceBallActive = true;
+                    iceBallX = x;
+                    iceBallY = y + height/2-30f;
+                    iceBallAngle = 180f;
+                    shouldShootIceBall = false;
+                }
                 if (attackCallback != null) {
                     attackCallback.onAttackComplete();
                 }
@@ -79,29 +140,52 @@ public class Stage2Monster {
             }
         }
 
+        if (isIceBallActive) {
+            iceBallAnimTimer += dt;
+            if (iceBallAnimTimer >= ICE_BALL_FRAME_DURATION) {
+                iceBallAnimTimer -= ICE_BALL_FRAME_DURATION;
+                iceBallFrame = (iceBallFrame + 1) % 2;
+            }
+
+            // 왼쪽으로 이동
+            iceBallX -= ICE_BALL_SPEED * dt;
+            // y 위치는 고정
+
+            // 화면 왼쪽 끝을 벗어나면 비활성화
+            if (iceBallX < -iceBallWidth) {
+                isIceBallActive = false;
+                isShootingIceBall = false;
+            }
+        }
+
         if (isBlinking) {
             blinkTimer += dt;
-            if (blinkTimer >= blinkDuration / maxBlinkCount) {
-                blinkTimer -= blinkDuration / maxBlinkCount;
+            if (blinkTimer >= 0.1f) {  // 0.1초마다 깜빡임
+                blinkTimer = 0f;
                 blinkCount++;
                 if (blinkCount >= maxBlinkCount) {
                     isBlinking = false;
                     blinkCount = 0;
-                    if (pendingDamage > 0) {
-                        applyPendingDamage();
-                    }
                 }
             }
         }
     }
 
     public void draw(Canvas canvas) {
-        if (!isAlive) return;
+        if (!isAlive && !isDying) return;
 
-        if (isAttacking && attackSheet != null) {
+        if (isDying && dieSheet != null) {
+            int frameW = dieSheet.getWidth() / dieFrameCount;
+            int frameH = dieSheet.getHeight();
+            int left = frameW * dieFrame;
+            int right = left + frameW;
+            Rect src = new Rect(left, 0, right, frameH);
+            RectF dest = new RectF(x, y, x + width, y + height);
+            canvas.drawBitmap(dieSheet, src, dest, null);
+        } else if (isAttacking && attackSheet != null) {
             int frameW = attackSheet.getWidth() / attackFrameCount;
             int frameH = attackSheet.getHeight();
-            int left = frameW * frame;
+            int left = frameW * attackFrame;
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
@@ -115,25 +199,39 @@ public class Stage2Monster {
             RectF dest = new RectF(x, y, x + width, y + height);
             if (isBlinking) {
                 Paint blinkPaint = new Paint();
-                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);
+                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
                 canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
             } else {
                 canvas.drawBitmap(idleSheet, src, dest, null);
             }
         }
 
-        // HP 표시 (몬스터 위에)
-        float hpX = x + width / 2;
-        float hpY = y - 10;
-        hpPaint.setColor(Color.WHITE);
-        canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
+        if (isIceBallActive && iceBallSheet != null) {
+            int frameW = iceBallSheet.getWidth() / 2;
+            int frameH = iceBallSheet.getHeight();
+            int left = frameW * iceBallFrame;
+            int right = left + frameW;
+            Rect src = new Rect(left, 0, right, frameH);
+            RectF dest = new RectF(iceBallX, iceBallY, iceBallX + iceBallWidth, iceBallY + iceBallHeight);
+            canvas.drawBitmap(iceBallSheet, src, dest, null);
+        }
+
+        if (!isDying) {  // 죽는 애니메이션 중에는 HP를 표시하지 않음
+            float hpX = x + width / 2;
+            float hpY = y - 10;
+            hpPaint.setColor(Color.WHITE);
+            canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
+        }
     }
 
     public void takeDamage(float damage) {
+        if (isDying) return;
         currentHp -= damage;
         if (currentHp <= 0) {
             currentHp = 0;
-            isAlive = false;
+            isDying = true;
+            dieFrame = 0;
+            dieAnimTimer = 0f;
         }
     }
 
@@ -155,15 +253,22 @@ public class Stage2Monster {
 
     public void startBlinking(int damage) {
         isBlinking = true;
-        blinkTimer = 0f;
         blinkCount = 0;
         pendingDamage = damage;
+        takeDamage(damage);
+    }
+
+    public boolean isBlinking() {
+        return isBlinking;
     }
 
     private void applyPendingDamage() {
-        currentHp = Math.max(0, currentHp - pendingDamage);
+        if (isDying) return;
         if (currentHp <= 0) {
-            isAlive = false;
+            currentHp = 0;
+            isDying = true;
+            dieFrame = 0;
+            dieAnimTimer = 0f;
         }
         pendingDamage = 0;
     }
@@ -173,5 +278,22 @@ public class Stage2Monster {
         isAttacking = true;
         attackTimer = 0f;
         this.attackCallback = callback;
+    }
+
+    public boolean isIceBallActive() {
+        return isIceBallActive;
+    }
+
+    public RectF getIceBallRect() {
+        return new RectF(iceBallX, iceBallY, iceBallX + iceBallWidth, iceBallY + iceBallHeight);
+    }
+
+    public void deactivateIceBall() {
+        isIceBallActive = false;
+        isShootingIceBall = false;
+    }
+
+    public boolean isDying() {
+        return isDying;
     }
 } 
