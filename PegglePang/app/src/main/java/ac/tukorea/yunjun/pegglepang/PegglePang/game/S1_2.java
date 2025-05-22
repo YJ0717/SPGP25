@@ -84,6 +84,23 @@ public class S1_2 extends BaseStageScene {
 
         player.getAnimation().setFrameDuration(0.15f);
         playerStats.resetStatsAndTimer();
+
+        // magic effect 위치 설정
+        float effectW = 713f / 3f; // 한 프레임 기준, 실제 크기는 아래에서 조정
+        float effectH = 350f;
+        float effectScale = 0.7f;
+        float effectWidth = Metrics.width * 0.4f;
+        float effectHeight = effectWidth * (350f / (713f / 3f));
+        float effectX = (playerLeft + playerDrawWidth + monster1Left) / 2 - effectWidth / 2;
+        float effectY = playerTop + playerDrawHeight * 0.2f;
+        player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
+
+        // sword effect 위치 설정 (플레이어와 몬스터 중간)
+        float swordEffectWidth = Metrics.width * 0.35f;
+        float swordEffectHeight = swordEffectWidth * (139f / 190f);
+        float swordEffectX = (playerLeft + playerDrawWidth + monster1Left) / 2 - swordEffectWidth / 2;
+        float swordEffectY = playerTop + playerDrawHeight * 0.3f;
+        player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
     }
 
     @Override
@@ -122,17 +139,23 @@ public class S1_2 extends BaseStageScene {
                     isWaitingForAnim = true;
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         player.playSwordAttack(() -> {
-                            if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                            playerStats.heal(lastHeal);
-                            isPlayerTurn = false;
-                            isWaitingForAnim = false;
+                            // 물리 이펙트 시작
+                            player.playSwordEffect(() -> {
+                                if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
+                                playerStats.heal(lastHeal);
+                                isPlayerTurn = false;
+                                isWaitingForAnim = false;
+                            });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         player.playMagicAttack(() -> {
-                            if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                            playerStats.heal(lastHeal);
-                            isPlayerTurn = false;
-                            isWaitingForAnim = false;
+                            // 마법 이펙트 시작
+                            player.playMagicEffect(() -> {
+                                if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
+                                playerStats.heal(lastHeal);
+                                isPlayerTurn = false;
+                                isWaitingForAnim = false;
+                            });
                         });
                     } else {
                         player.playHeal(() -> {

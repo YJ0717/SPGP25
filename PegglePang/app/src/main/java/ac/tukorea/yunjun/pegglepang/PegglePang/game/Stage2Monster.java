@@ -98,7 +98,7 @@ public class Stage2Monster {
         if (!isAlive) return;
 
         if (isAttacking && attackSheet != null) {
-            int frameW = attackSheet.getWidth() / 4;  // 공격 스프라이트는 4프레임
+            int frameW = attackSheet.getWidth() / 4;
             int frameH = attackSheet.getHeight();
             int left = frameW * frame;
             int right = left + frameW;
@@ -112,9 +112,9 @@ public class Stage2Monster {
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
-            if (isBlinking && blinkCount % 2 == 0) {
+            if (isBlinking) {
                 Paint blinkPaint = new Paint();
-                blinkPaint.setAlpha(80);
+                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);
                 canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
             } else {
                 canvas.drawBitmap(idleSheet, src, dest, null);
