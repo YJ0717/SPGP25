@@ -8,6 +8,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
+import android.os.Handler;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage2Monster;
@@ -141,27 +142,54 @@ public class S1_2 extends BaseStageScene {
                         player.playSwordAttack(() -> {
                             // 물리 이펙트 시작
                             player.playSwordEffect(() -> {
-                                if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                                playerStats.heal(lastHeal);
-                                isPlayerTurn = false;
-                                isWaitingForAnim = false;
+                                if (monster1.isAlive()) {
+                                    monster1.startBlinking(lastSword + lastMagic);
+                                    // 몬스터 깜빡임이 끝난 후에 턴 전환
+                                    new Handler().postDelayed(() -> {
+                                        playerStats.heal(lastHeal);
+                                        isPlayerTurn = false;
+                                        isWaitingForAnim = false;
+                                    }, 500); // 깜빡임 시간만큼 대기
+                                } else {
+                                    playerStats.heal(lastHeal);
+                                    isPlayerTurn = false;
+                                    isWaitingForAnim = false;
+                                }
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         player.playMagicAttack(() -> {
                             // 마법 이펙트 시작
                             player.playMagicEffect(() -> {
-                                if (monster1.isAlive()) monster1.startBlinking(lastSword + lastMagic);
-                                playerStats.heal(lastHeal);
-                                isPlayerTurn = false;
-                                isWaitingForAnim = false;
+                                if (monster1.isAlive()) {
+                                    monster1.startBlinking(lastSword + lastMagic);
+                                    // 몬스터 깜빡임이 끝난 후에 턴 전환
+                                    new Handler().postDelayed(() -> {
+                                        playerStats.heal(lastHeal);
+                                        isPlayerTurn = false;
+                                        isWaitingForAnim = false;
+                                    }, 500); // 깜빡임 시간만큼 대기
+                                } else {
+                                    playerStats.heal(lastHeal);
+                                    isPlayerTurn = false;
+                                    isWaitingForAnim = false;
+                                }
                             });
                         });
                     } else {
                         player.playHeal(() -> {
-                            playerStats.heal(lastHeal);
-                            isPlayerTurn = false;
-                            isWaitingForAnim = false;
+                            if (monster1.isAlive()) {
+                                monster1.startBlinking(0);  // 힐링 시에도 깜빡임
+                                new Handler().postDelayed(() -> {
+                                    playerStats.heal(lastHeal);
+                                    isPlayerTurn = false;
+                                    isWaitingForAnim = false;
+                                }, 500);
+                            } else {
+                                playerStats.heal(lastHeal);
+                                isPlayerTurn = false;
+                                isWaitingForAnim = false;
+                            }
                         });
                     }
                 }

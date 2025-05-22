@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import ac.tukorea.yunjun.pegglepang.R;
@@ -13,10 +14,13 @@ public class Player {
     private PlayerAnimation animation;
     private boolean isBlinking = false;
     private float blinkTimer = 0f;
+    private static final float BLINK_DURATION = 0.5f;
+    private int blinkCount = 0;
+    private int maxBlinkCount = 4;
+    private int pendingDamage = 0;
     private boolean isDead = false;
     private boolean isAttacking = false;
     private float x, y;
-    private static final float BLINK_DURATION = 500f;
 
     public Player(Context context, float x, float y, float width, float height, PlayerStats stats) {
         this.stats = stats;
@@ -149,6 +153,8 @@ public class Player {
     }
 
     public void takeDamage(float damage) {
+        isBlinking = true;
+        blinkTimer = 0f;
         stats.takeDamage(damage);
         if (stats.getCurrentHp() <= 0 && !isDead) {
             die();
@@ -165,5 +171,20 @@ public class Player {
 
     public PlayerAnimation getAnimation() {
         return animation;
+    }
+
+    public void startBlinking(int damage) {
+        isBlinking = true;
+        blinkTimer = 0f;
+        blinkCount = 0;
+        pendingDamage = damage;
+    }
+
+    private void applyPendingDamage() {
+        stats.takeDamage(pendingDamage);
+        if (stats.getCurrentHp() <= 0 && !isDead) {
+            die();
+        }
+        pendingDamage = 0;
     }
 } 
