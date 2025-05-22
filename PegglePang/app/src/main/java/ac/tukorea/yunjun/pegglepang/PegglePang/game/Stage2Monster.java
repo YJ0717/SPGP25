@@ -254,8 +254,9 @@ public class Stage2Monster {
     public void startBlinking(int damage) {
         isBlinking = true;
         blinkCount = 0;
+        blinkTimer = 0f;
         pendingDamage = damage;
-        takeDamage(damage);
+        takeDamage(damage);  // 데미지를 즉시 적용
     }
 
     public boolean isBlinking() {
