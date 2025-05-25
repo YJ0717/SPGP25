@@ -75,7 +75,7 @@ public class S1_3 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 몬스터 (redman_idle)
-        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 3, playerInfoStart, 15f);
+        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 30, playerInfoStart, 15f);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -172,7 +172,7 @@ public class S1_3 extends BaseStageScene {
                             isPuzzleFrozen = false;
                             playerStats.reset();
                             isWaitingForAnim = false;
-                        });
+                        }, lastMagic >= lastSword && lastMagic >= lastHeal);
                     } else {
                         isBattlePhase = false;
                         isPuzzleFrozen = false;

@@ -13,19 +13,23 @@ import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 
 public class Stage3Monster {
     private static final int IDLE_FRAME_COUNT = 5;
-    private static final int ATTACK_FRAME_COUNT = 4;
+    private static final int ATTACK1_FRAME_COUNT = 4;
+    private static final int ATTACK2_FRAME_COUNT = 3;
     private static final int DIE_FRAME_COUNT = 6;
     private static final float FRAME_DURATION = 0.15f;
     private static final float DIE_FRAME_DURATION = 0.2f;
     private static final int IDLE_MONSTER_WIDTH = 284;
     private static final int IDLE_MONSTER_HEIGHT = 68;
-    private static final int ATTACK_MONSTER_WIDTH = 272;
-    private static final int ATTACK_MONSTER_HEIGHT = 81;
-    private static final int DIE_MONSTER_WIDTH = 120;  // 죽는 애니메이션 가로 크기
-    private static final int DIE_MONSTER_HEIGHT = 68;  // 죽는 애니메이션 세로 크기
+    private static final int ATTACK1_MONSTER_WIDTH = 272;
+    private static final int ATTACK1_MONSTER_HEIGHT = 81;
+    private static final int ATTACK2_MONSTER_WIDTH = 284;
+    private static final int ATTACK2_MONSTER_HEIGHT = 68;
+    private static final int DIE_MONSTER_WIDTH = 120;
+    private static final int DIE_MONSTER_HEIGHT = 68;
 
     private Bitmap idleSheet;
-    private Bitmap attackSheet;
+    private Bitmap attack1Sheet;
+    private Bitmap attack2Sheet;
     private Bitmap dieSheet;
     private int frame = 0;
     private int attackFrame = 0;
@@ -36,7 +40,7 @@ public class Stage3Monster {
     private float x, y, width, height;
     private Context context;
 
-    private int maxHp = 1;
+    private int maxHp = 30;
     private int currentHp;
     private float attackPower = 15f;
     private boolean isAlive = true;
@@ -54,6 +58,7 @@ public class Stage3Monster {
     private float attackTimer = 0f;
     private static final float ATTACK_DURATION = 0.6f;
     private AttackCallback attackCallback;
+    private boolean isMagicAttack = false;
 
     public interface AttackCallback {
         void onAttackComplete();
@@ -71,7 +76,8 @@ public class Stage3Monster {
         float[] dimensions = calculateMonsterDimensions(battleHeight);
         this.context = context;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
-        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.redman_attack1);
+        this.attack1Sheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.redman_attack1);
+        this.attack2Sheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.redman_attack2);
         this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.redman_die);
         this.x = dimensions[0];
         this.y = dimensions[1];
@@ -107,7 +113,11 @@ public class Stage3Monster {
             attackAnimTimer += dt;
             if (attackAnimTimer >= FRAME_DURATION) {
                 attackAnimTimer -= FRAME_DURATION;
-                attackFrame = (attackFrame + 1) % ATTACK_FRAME_COUNT;
+                if (isMagicAttack) {
+                    attackFrame = (attackFrame + 1) % ATTACK1_FRAME_COUNT;
+                } else {
+                    attackFrame = (attackFrame + 1) % ATTACK2_FRAME_COUNT;
+                }
             }
             if (attackTimer >= ATTACK_DURATION) {
                 isAttacking = false;
@@ -147,19 +157,32 @@ public class Stage3Monster {
             int left = frameW * dieFrame;
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
-            // 죽는 애니메이션 크기 조절
             float dieWidth = width * (DIE_MONSTER_WIDTH / (float)IDLE_MONSTER_WIDTH);
             float dieHeight = height * (DIE_MONSTER_HEIGHT / (float)IDLE_MONSTER_HEIGHT);
             RectF dest = new RectF(x, y, x + dieWidth, y + dieHeight);
             canvas.drawBitmap(dieSheet, src, dest, null);
-        } else if (isAttacking && attackSheet != null) {
-            int frameW = attackSheet.getWidth() / ATTACK_FRAME_COUNT;
-            int frameH = attackSheet.getHeight();
-            int left = frameW * attackFrame;
-            int right = left + frameW;
-            Rect src = new Rect(left, 0, right, frameH);
-            RectF dest = new RectF(x, y, x + width, y + height);
-            canvas.drawBitmap(attackSheet, src, dest, null);
+        } else if (isAttacking) {
+            if (isMagicAttack && attack1Sheet != null) {
+                int frameW = attack1Sheet.getWidth() / ATTACK1_FRAME_COUNT;
+                int frameH = attack1Sheet.getHeight();
+                int left = frameW * attackFrame;
+                int right = left + frameW;
+                Rect src = new Rect(left, 0, right, frameH);
+                float attackWidth = width * (ATTACK1_MONSTER_WIDTH / (float)IDLE_MONSTER_WIDTH);
+                float attackHeight = height * (ATTACK1_MONSTER_HEIGHT / (float)IDLE_MONSTER_HEIGHT);
+                RectF dest = new RectF(x, y, x + attackWidth, y + attackHeight);
+                canvas.drawBitmap(attack1Sheet, src, dest, null);
+            } else if (!isMagicAttack && attack2Sheet != null) {
+                int frameW = attack2Sheet.getWidth() / ATTACK2_FRAME_COUNT;
+                int frameH = attack2Sheet.getHeight();
+                int left = frameW * attackFrame;
+                int right = left + frameW;
+                Rect src = new Rect(left, 0, right, frameH);
+                float attackWidth = width * (ATTACK2_MONSTER_WIDTH / (float)IDLE_MONSTER_WIDTH);
+                float attackHeight = height * (ATTACK2_MONSTER_HEIGHT / (float)IDLE_MONSTER_HEIGHT);
+                RectF dest = new RectF(x, y, x + attackWidth, y + attackHeight);
+                canvas.drawBitmap(attack2Sheet, src, dest, null);
+            }
         } else if (idleSheet != null) {
             int frameW = idleSheet.getWidth() / IDLE_FRAME_COUNT;
             int frameH = idleSheet.getHeight();
@@ -217,10 +240,11 @@ public class Stage3Monster {
         return isBlinking;
     }
 
-    public void attack(AttackCallback callback) {
+    public void attack(AttackCallback callback, boolean isMagicAttack) {
         if (!isAlive) return;
         isAttacking = true;
         attackTimer = 0f;
+        this.isMagicAttack = isMagicAttack;
         this.attackCallback = callback;
     }
 
