@@ -24,6 +24,8 @@ import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage1Monster;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.BattleSystem;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
+import android.widget.TextView;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
 public class S1_1 extends BaseStageScene {
 
@@ -710,6 +712,40 @@ public class S1_1 extends BaseStageScene {
         if (monsterBlinkTimer >= MONSTER_BLINK_DURATION) {
             monsterBlinkTimer = 0f;
             isMonsterBlinking = false;
+        }
+    }
+
+    @Override
+    public void onEnter() {
+        super.onEnter();
+        if (StageManager.getInstance().isStageUnlocked(1, 2)) {
+            // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
+            StageClearScene.getInstance(context).show(1, 1);
+            isStageClearShown = true;
+            
+            // Back 버튼 비활성화
+            if (context instanceof PegglePangActivity) {
+                PegglePangActivity activity = (PegglePangActivity) context;
+                TextView backText = activity.findViewById(R.id.back_text);
+                if (backText != null) {
+                    backText.setEnabled(false);
+                    backText.setAlpha(0.5f); // 반투명하게 표시
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onExit() {
+        super.onExit();
+        // Back 버튼 다시 활성화
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            TextView backText = activity.findViewById(R.id.back_text);
+            if (backText != null) {
+                backText.setEnabled(true);
+                backText.setAlpha(1.0f);
+            }
         }
     }
 }
