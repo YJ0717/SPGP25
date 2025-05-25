@@ -66,9 +66,9 @@ public class Stage1Monster {
         this.animation = new MonsterAnimation(idleSheet, attackSheet, deathSheet, x, y, width, height);
         if (resId == R.mipmap.skeleton_idle) {
             isSkeleton = true;
-            this.maxHp = 10;
+            this.maxHp = 1;
         } else {
-            this.maxHp = 10;
+            this.maxHp = 1;
         }
         this.currentHp = this.maxHp;
 

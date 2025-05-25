@@ -34,7 +34,7 @@ public class Stage2Monster {
     private float x, y, width, height;
     private Context context;
 
-    private int maxHp = 15;
+    private int maxHp = 1;
     private int currentHp;
     private float attackPower = 15f;
     private boolean isAlive = true;
