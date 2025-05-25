@@ -140,7 +140,7 @@ public class S1_3 extends BaseStageScene {
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
                                 if (monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword);
+                                    monster1.startBlinking(lastMagic);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
