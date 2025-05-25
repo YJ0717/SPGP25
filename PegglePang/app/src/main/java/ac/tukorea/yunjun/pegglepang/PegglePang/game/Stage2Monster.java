@@ -62,11 +62,13 @@ public class Stage2Monster {
     private float iceBallAngle;
     private boolean isIceBallActive = false;
 
+    private float magicDamageThreshold;  // 마법 공격력 기준값
+
     public interface AttackCallback {
         void onAttackComplete();
     }
 
-    public Stage2Monster(Context context, int resId, int frameCount, float x, float y, float width, float height) {
+    public Stage2Monster(Context context, int resId, int frameCount, float x, float y, float width, float height, float magicDamageThreshold) {
         this.context = context;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
         this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
@@ -78,6 +80,7 @@ public class Stage2Monster {
         this.width = width;
         this.height = height;
         this.currentHp = this.maxHp;
+        this.magicDamageThreshold = magicDamageThreshold;
 
         hpPaint = new Paint();
         hpPaint.setColor(Color.WHITE);
@@ -216,7 +219,7 @@ public class Stage2Monster {
             canvas.drawBitmap(iceBallSheet, src, dest, null);
         }
 
-        if (!isDying) {  // 죽는 애니메이션 중에는 HP를 표시하지 않음
+        if (!isDying) { 
             float hpX = x + width / 2;
             float hpY = y - 10;
             hpPaint.setColor(Color.WHITE);
@@ -226,7 +229,9 @@ public class Stage2Monster {
 
     public void takeDamage(float damage) {
         if (isDying) return;
+        
         currentHp -= damage;
+        
         if (currentHp <= 0) {
             currentHp = 0;
             isDying = true;

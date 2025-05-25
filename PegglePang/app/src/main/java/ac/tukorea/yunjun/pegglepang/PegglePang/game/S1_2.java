@@ -77,7 +77,7 @@ public class S1_2 extends BaseStageScene {
         float monster1DrawWidth = 80f;
         float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
         float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
-        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight);
+        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 10f);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -137,7 +137,7 @@ public class S1_2 extends BaseStageScene {
                             // 물리 이펙트 시작
                             player.playSwordEffect(() -> {
                                 if (monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword + lastMagic);
+                                    monster1.startBlinking(lastSword);  // 물리 공격력만 전달
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -148,7 +148,7 @@ public class S1_2 extends BaseStageScene {
                             // 마법 이펙트 시작
                             player.playMagicEffect(() -> {
                                 if (monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword + lastMagic);
+                                    monster1.startBlinking(lastSword);  // 마법은 무시하고 물리 공격력만 전달
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -157,7 +157,7 @@ public class S1_2 extends BaseStageScene {
                     } else {
                         player.playHeal(() -> {
                             if (monster1.isAlive()) {
-                                monster1.startBlinking(lastSword + lastMagic);
+                                monster1.startBlinking(lastSword);  // 물리 공격력만 전달
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);
