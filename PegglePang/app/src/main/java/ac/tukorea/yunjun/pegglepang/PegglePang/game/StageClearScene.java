@@ -63,7 +63,11 @@ public class StageClearScene {
         isVisible = true;
         StageManager.getInstance().setStageCleared(stage, subStage);
         StageManager.getInstance().setMonstersDefeated(stage, subStage, true);
-        StageManager.getInstance().unlockStage(stage, subStage + 1);
+        if (stage == 1 && subStage == 2) {
+            StageManager.getInstance().unlockStage(1, 3);
+        } else {
+            StageManager.getInstance().unlockStage(stage, subStage + 1);
+        }
     }
 
     public void hide() {
@@ -103,8 +107,15 @@ public class StageClearScene {
                     activity.getGameView().popScene();
                     // 클리어 창을 숨김
                     hide();
-                    // 스테이지 1-2로 이동
-                    Scene stage = StageFactory.createStage(context, 1, 2);
+                    // 현재 스테이지에 따라 다음 스테이지로 이동
+                    Scene stage;
+                    if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+                        // Stage 2에서 Stage 3로 이동
+                        stage = StageFactory.createStage(context, 1, 3);
+                    } else {
+                        // Stage 1에서 Stage 2로 이동
+                        stage = StageFactory.createStage(context, 1, 2);
+                    }
                     activity.getGameView().pushScene(stage);
                 }
                 return true;

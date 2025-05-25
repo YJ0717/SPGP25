@@ -189,7 +189,7 @@ public class S1_2 extends BaseStageScene {
                         if (!isStageClearShown) {
                             StageClearScene.getInstance(context).show(1, 2);
                             isStageClearShown = true;
-                            StageManager.getInstance().unlockStage(1, 3);  // Stage3 해금
+                            StageManager.getInstance().unlockStage(1, 3);  
                         }
                     }
                 }
@@ -211,7 +211,7 @@ public class S1_2 extends BaseStageScene {
         if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
             StageClearScene.getInstance(context).show(1, 2);
             isStageClearShown = true;
-            StageManager.getInstance().unlockStage(1, 3);  // Stage3 해금
+            StageManager.getInstance().unlockStage(1, 3);  
         }
 
         if (!isGameOver && player.isDead()) {
@@ -350,5 +350,15 @@ public class S1_2 extends BaseStageScene {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onEnter() {
+        super.onEnter();
+        if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+            // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
+            StageClearScene.getInstance(context).show(1, 2);
+            isStageClearShown = true;
+        }
     }
 } 
