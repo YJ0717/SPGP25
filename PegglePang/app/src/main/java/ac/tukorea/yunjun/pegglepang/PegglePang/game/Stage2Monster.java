@@ -302,4 +302,16 @@ public class Stage2Monster {
     public boolean isDying() {
         return isDying;
     }
+
+    public void setAttackImage(int resId) {
+        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), resId);
+    }
+
+    protected void setAttackSheet(int resId) {
+        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), resId);
+    }
+
+    public float getX() {
+        return x;
+    }
 } 

@@ -75,11 +75,7 @@ public class S1_3 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 몬스터 (redman_idle)
-        float monsterDrawHeight = battleHeight * 0.6f;
-        float monsterDrawWidth = monsterDrawHeight * (56.8f / 68f); 
-        float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
-        float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
-        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 3, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 15f);
+        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 3, playerInfoStart, 15f);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -88,19 +84,16 @@ public class S1_3 extends BaseStageScene {
         playerStats.resetStatsAndTimer();
 
         // magic effect 위치 설정
-        float effectW = 713f / 3f;
-        float effectH = 350f;
-        float effectScale = 0.7f;
         float effectWidth = Metrics.width * 0.4f;
         float effectHeight = effectWidth * (350f / (713f / 3f));
-        float effectX = (playerLeft + playerDrawWidth + monsterLeft) / 2 - effectWidth / 2;
+        float effectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - effectWidth / 2;
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
 
         // sword effect 위치 설정
         float swordEffectWidth = Metrics.width * 0.35f;
         float swordEffectHeight = swordEffectWidth * (139f / 190f);
-        float swordEffectX = (playerLeft + playerDrawWidth + monsterLeft) / 2 - swordEffectWidth / 2;
+        float swordEffectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - swordEffectWidth / 2;
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
     }
