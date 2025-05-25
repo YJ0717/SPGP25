@@ -12,7 +12,8 @@ public class SceneManager {
         MAIN,
         S1_1,
         STAGE_SELECT,
-        S1_2
+        S1_2,
+        S1_3
     }
 
     private SceneManager() {
@@ -43,6 +44,9 @@ public class SceneManager {
                 break;
             case S1_2:
                 gameView.changeScene(StageFactory.createStage(context, 1, 2));
+                break;
+            case S1_3:
+                gameView.changeScene(StageFactory.createStage(context, 1, 3));
                 break;
         }
     }

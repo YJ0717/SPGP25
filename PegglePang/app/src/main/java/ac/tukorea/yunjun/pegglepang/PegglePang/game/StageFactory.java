@@ -23,8 +23,8 @@ public class StageFactory {
                 return new S1_1(context);
             case 2:
                 return new S1_2(context);
-            // case 3:
-            //     return new Stage1_3(context);
+            case 3:
+                return new S1_3(context);
             default:
                 return null;
         }

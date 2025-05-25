@@ -66,6 +66,15 @@ public class Stage1_Scene extends Scene {
                     activity.getGameView().pushScene(stage);
                 });
             }
+
+            Button stage1_3Button = activity.findViewById(R.id.stage1_3_button);
+            if (stage1_3Button != null) {
+                stage1_3Button.setEnabled(StageManager.getInstance().isStageUnlocked(1, 3));
+                stage1_3Button.setOnClickListener(v -> {
+                    Scene stage = StageFactory.createStage(context, 1, 3);
+                    activity.getGameView().pushScene(stage);
+                });
+            }
         }
     }
 
