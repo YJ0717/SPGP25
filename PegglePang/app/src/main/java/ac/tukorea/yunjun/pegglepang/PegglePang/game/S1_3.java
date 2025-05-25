@@ -11,7 +11,7 @@ import android.view.MotionEvent;
 import android.os.Handler;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage2Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage3Monster;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 import android.widget.TextView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
@@ -42,8 +42,7 @@ public class S1_3 extends BaseStageScene {
     private float touchStartY;    
 
     private Player player; 
-    private Stage2Monster monster1;
-    private Stage2Monster monster2;
+    private Stage3Monster monster1;
     private Bitmap battleBg;
     private Bitmap stateBg;
 
@@ -75,19 +74,12 @@ public class S1_3 extends BaseStageScene {
         blockGrid.setPlayerStats(playerStats);
         isPuzzleFrozen = false;
 
-        // 몬스터1 (magicman_idle)
-        float monster1DrawHeight = battleHeight * 0.5f;
-        float monster1DrawWidth = 80f;
-        float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
-        float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
-        monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 10f);
-
-        // 몬스터2 (magicman_idle) - 첫 번째 몬스터 왼쪽에 배치
-        float monster2DrawHeight = battleHeight * 0.5f;
-        float monster2DrawWidth = 80f;
-        float monster2Left = monster1Left - monster2DrawWidth - (Metrics.width * 0.03f);
-        float monster2Top = battleHeight - monster2DrawHeight - (battleHeight * 0.05f);
-        monster2 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster2Left, monster2Top, monster2DrawWidth, monster2DrawHeight, 10f);
+        // 몬스터 (redman_idle)
+        float monsterDrawHeight = battleHeight * 0.6f;
+        float monsterDrawWidth = monsterDrawHeight * (56.8f / 68f); 
+        float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
+        float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
+        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 3, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 15f);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -101,14 +93,14 @@ public class S1_3 extends BaseStageScene {
         float effectScale = 0.7f;
         float effectWidth = Metrics.width * 0.4f;
         float effectHeight = effectWidth * (350f / (713f / 3f));
-        float effectX = (playerLeft + playerDrawWidth + monster1Left) / 2 - effectWidth / 2;
+        float effectX = (playerLeft + playerDrawWidth + monsterLeft) / 2 - effectWidth / 2;
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
 
         // sword effect 위치 설정
         float swordEffectWidth = Metrics.width * 0.35f;
         float swordEffectHeight = swordEffectWidth * (139f / 190f);
-        float swordEffectX = (playerLeft + playerDrawWidth + monster1Left) / 2 - swordEffectWidth / 2;
+        float swordEffectX = (playerLeft + playerDrawWidth + monsterLeft) / 2 - swordEffectWidth / 2;
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
     }
@@ -124,7 +116,6 @@ public class S1_3 extends BaseStageScene {
         blockGrid.update(dt);
         player.update(dt);
         monster1.update(dt);
-        monster2.update(dt);
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
             !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
@@ -149,10 +140,6 @@ public class S1_3 extends BaseStageScene {
                                     monster1.startBlinking(lastSword);
                                     isMonsterBlinkPhase = true;
                                 }
-                                if (monster2.isAlive()) {
-                                    monster2.startBlinking(lastSword);
-                                    isMonsterBlinkPhase = true;
-                                }
                                 playerStats.heal(lastHeal);
                             });
                         });
@@ -161,10 +148,6 @@ public class S1_3 extends BaseStageScene {
                             player.playMagicEffect(() -> {
                                 if (monster1.isAlive()) {
                                     monster1.startBlinking(lastSword);
-                                    isMonsterBlinkPhase = true;
-                                }
-                                if (monster2.isAlive()) {
-                                    monster2.startBlinking(lastSword);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -176,10 +159,6 @@ public class S1_3 extends BaseStageScene {
                                 monster1.startBlinking(lastSword);
                                 isMonsterBlinkPhase = true;
                             }
-                            if (monster2.isAlive()) {
-                                monster2.startBlinking(lastSword);
-                                isMonsterBlinkPhase = true;
-                            }
                             playerStats.heal(lastHeal);
                         });
                     }
@@ -187,53 +166,35 @@ public class S1_3 extends BaseStageScene {
             } else {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
-                    boolean anyMonsterAlive = monster1.isAlive() || monster2.isAlive();
-                    
-                    if (anyMonsterAlive) {
-                        if (monster1.isAlive()) {
-                            monster1.attack(() -> {
-                                player.takeDamage(monster1.getAttackPower());
-                                if (!player.isAlive()) {
-                                    player.die();
-                                    isGameOver = true;
-                                    GameOverScene.getInstance().show();
-                                    return;
-                                }
-                                if (monster2.isAlive()) {
-                                    monster2.attack(() -> {
-                                        player.takeDamage(monster2.getAttackPower());
-                                        if (!player.isAlive()) {
-                                            player.die();
-                                            isGameOver = true;
-                                            GameOverScene.getInstance().show();
-                                            return;
-                                        }
-                                        endTurn();
-                                    });
-                                } else {
-                                    endTurn();
-                                }
-                            });
-                        } else if (monster2.isAlive()) {
-                            monster2.attack(() -> {
-                                player.takeDamage(monster2.getAttackPower());
-                                if (!player.isAlive()) {
-                                    player.die();
-                                    isGameOver = true;
-                                    GameOverScene.getInstance().show();
-                                    return;
-                                }
-                                endTurn();
-                            });
-                        }
+                    if (monster1.isAlive()) {
+                        monster1.attack(() -> {
+                            player.takeDamage(monster1.getAttackPower());
+                            if (!player.isAlive()) {
+                                player.die();
+                                isGameOver = true;
+                                GameOverScene.getInstance().show();
+                                return;
+                            }
+                            isBattlePhase = false;
+                            isPuzzleFrozen = false;
+                            playerStats.reset();
+                            isWaitingForAnim = false;
+                        });
                     } else {
-                        endTurn();
+                        isBattlePhase = false;
+                        isPuzzleFrozen = false;
+                        playerStats.reset();
+                        isWaitingForAnim = false;
+                        if (!isStageClearShown) {
+                            StageClearScene.getInstance(context).show(1, 3);
+                            isStageClearShown = true;
+                        }
                     }
                 }
             }
         }
 
-        if (isMonsterBlinkPhase && !monster1.isBlinking() && !monster2.isBlinking()) {
+        if (isMonsterBlinkPhase && !monster1.isBlinking()) {
             isMonsterBlinkPhase = false;
             isPlayerTurn = false;
             isWaitingForAnim = false;
@@ -243,8 +204,7 @@ public class S1_3 extends BaseStageScene {
             return;
         }
 
-        if (!isStageClearShown && !monster1.isAlive() && !monster2.isAlive() && 
-            !monster1.isDying() && !monster2.isDying()) {
+        if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
             StageClearScene.getInstance(context).show(1, 3);
             isStageClearShown = true;
         }
@@ -252,13 +212,6 @@ public class S1_3 extends BaseStageScene {
         if (!isGameOver && player.isDead()) {
             isGameOver = true;
         }
-    }
-
-    private void endTurn() {
-        isBattlePhase = false;
-        isPuzzleFrozen = false;
-        playerStats.reset();
-        isWaitingForAnim = false;
     }
 
     @Override
@@ -370,7 +323,6 @@ public class S1_3 extends BaseStageScene {
 
         player.draw(canvas);
         monster1.draw(canvas);
-        monster2.draw(canvas);
 
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
