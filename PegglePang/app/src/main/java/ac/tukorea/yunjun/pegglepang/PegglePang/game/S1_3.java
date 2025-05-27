@@ -49,6 +49,7 @@ public class S1_3 extends BaseStageScene {
     private boolean isGameOver = false;
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
+    private boolean isRoguelikeChoiceShown = false;
 
     private float puzzleTransitionTimer = 0f;
 
@@ -179,8 +180,29 @@ public class S1_3 extends BaseStageScene {
                         playerStats.reset();
                         isWaitingForAnim = false;
                         if (!isStageClearShown) {
-                            StageClearScene.getInstance(context).show(1, 3);
-                            isStageClearShown = true;
+                            if (!isRoguelikeChoiceShown) {
+                                isRoguelikeChoiceShown = true;
+                                GameView gameView = null;
+                                if (context instanceof PegglePangActivity) {
+                                    gameView = ((PegglePangActivity)context).getGameView();
+                                }
+                                if (gameView != null) {
+                                    gameView.pushScene(new RoguelikeChoiceScene(context, new RoguelikeChoiceScene.OnChoiceListener() {
+                                        @Override
+                                        public void onAttackRogue() {
+                                            // TODO: 전투 로그라이크 효과 적용 (추후)
+                                            StageClearScene.getInstance(context).show(1, 3);
+                                            isStageClearShown = true;
+                                        }
+                                        @Override
+                                        public void onPuzzleRogue() {
+                                            // TODO: 퍼즐 로그라이크 효과 적용 (추후)
+                                            StageClearScene.getInstance(context).show(1, 3);
+                                            isStageClearShown = true;
+                                        }
+                                    }));
+                                }
+                            }
                         }
                     }
                 }
@@ -198,8 +220,29 @@ public class S1_3 extends BaseStageScene {
         }
 
         if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
-            StageClearScene.getInstance(context).show(1, 3);
-            isStageClearShown = true;
+            if (!isRoguelikeChoiceShown) {
+                isRoguelikeChoiceShown = true;
+                GameView gameView = null;
+                if (context instanceof PegglePangActivity) {
+                    gameView = ((PegglePangActivity)context).getGameView();
+                }
+                if (gameView != null) {
+                    gameView.pushScene(new RoguelikeChoiceScene(context, new RoguelikeChoiceScene.OnChoiceListener() {
+                        @Override
+                        public void onAttackRogue() {
+                            // TODO: 전투 로그라이크 효과 적용 (추후)
+                            StageClearScene.getInstance(context).show(1, 3);
+                            isStageClearShown = true;
+                        }
+                        @Override
+                        public void onPuzzleRogue() {
+                            // TODO: 퍼즐 로그라이크 효과 적용 (추후)
+                            StageClearScene.getInstance(context).show(1, 3);
+                            isStageClearShown = true;
+                        }
+                    }));
+                }
+            }
         }
 
         if (!isGameOver && player.isDead()) {
