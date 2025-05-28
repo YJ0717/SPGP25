@@ -9,74 +9,112 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
-import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.R;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
-public class RoguelikeChoiceScene extends Scene {
-    public interface OnChoiceListener {
-        void onAttackRogue();
-        void onPuzzleRogue();
-    }
-
+public class RoguelikeChoiceScene {
+    private static RoguelikeChoiceScene instance;
+    private boolean isVisible = false;
     private Bitmap attackBitmap;
     private Bitmap puzzleBitmap;
-    private RectF attackRect;
-    private RectF puzzleRect;
+    private RectF cardRect;
     private Paint borderPaint;
-    private OnChoiceListener listener;
+    private OnRoguelikeDoneListener listener;
     private Context context;
+    private Step step = Step.ATTACK;
 
-    public RoguelikeChoiceScene(Context context, OnChoiceListener listener) {
+    private enum Step { ATTACK, PUZZLE, DONE }
+
+    public interface OnRoguelikeDoneListener {
+        void onRoguelikeDone();
+    }
+
+    private RoguelikeChoiceScene(Context context) {
         this.context = context;
-        this.listener = listener;
         attackBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.attack_rogue);
         puzzleBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue);
         float centerX = Metrics.width / 2f;
         float centerY = Metrics.height / 2f;
-        float imgW = 220f;
-        float imgH = 220f;
-        float gap = 60f;
-        attackRect = new RectF(centerX - imgW - gap/2, centerY - imgH/2, centerX - gap/2, centerY + imgH/2);
-        puzzleRect = new RectF(centerX + gap/2, centerY - imgH/2, centerX + imgW + gap/2, centerY + imgH/2);
+        float cardW = 420f;
+        float cardH = 500f;
+        cardRect = new RectF(centerX - cardW/2, centerY - cardH/2, centerX + cardW/2, centerY + cardH/2);
         borderPaint = new Paint();
         borderPaint.setColor(Color.YELLOW);
         borderPaint.setStyle(Paint.Style.STROKE);
         borderPaint.setStrokeWidth(8f);
     }
 
-    @Override
-    public void draw(Canvas canvas) {
-        // 반투명 배경
-        canvas.drawColor(Color.argb(180, 0, 0, 0));
-        // 타이틀
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextSize(60);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        canvas.drawText("로그라이크 특성 선택", Metrics.width/2, Metrics.height/2 - 180, textPaint);
-        // 이미지
-        canvas.drawBitmap(attackBitmap, null, attackRect, null);
-        canvas.drawBitmap(puzzleBitmap, null, puzzleRect, null);
-        // 테두리
-        canvas.drawRect(attackRect, borderPaint);
-        canvas.drawRect(puzzleRect, borderPaint);
-        // 설명
-        textPaint.setTextSize(40);
-        canvas.drawText("전투 로그라이크", attackRect.centerX(), attackRect.bottom + 50, textPaint);
-        canvas.drawText("퍼즐 로그라이크", puzzleRect.centerX(), puzzleRect.bottom + 50, textPaint);
+    public static RoguelikeChoiceScene getInstance(Context context) {
+        if (instance == null) {
+            instance = new RoguelikeChoiceScene(context);
+        }
+        return instance;
     }
 
-    @Override
+    public void show(OnRoguelikeDoneListener listener) {
+        if (isVisible) return;
+        isVisible = true;
+        this.listener = listener;
+        step = Step.ATTACK;
+    }
+
+    public void hide() {
+        isVisible = false;
+    }
+
+    public void draw(Canvas canvas) {
+        if (!isVisible) return;
+        // 반투명 검은색 배경
+        canvas.drawColor(Color.argb(180, 0, 0, 0));
+        
+        // 중앙에만 반투명 카드(패널) 그리기
+        Paint cardPaint = new Paint();
+        cardPaint.setColor(Color.argb(200, 40, 40, 40)); // 반투명 다크 그레이
+        canvas.drawRoundRect(cardRect, 40, 40, cardPaint);
+        canvas.drawRoundRect(cardRect, 40, 40, borderPaint);
+
+        // 카드 중앙에 이미지
+        float imgW = 180f, imgH = 180f;
+        float imgX = Metrics.width / 2f - imgW / 2;
+        float imgY = cardRect.top + 40;
+        if (step == Step.ATTACK) {
+            canvas.drawBitmap(attackBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
+        } else if (step == Step.PUZZLE) {
+            canvas.drawBitmap(puzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
+        }
+
+        // 텍스트
+        Paint textPaint = new Paint();
+        textPaint.setColor(Color.WHITE);
+        textPaint.setTextAlign(Paint.Align.CENTER);
+        textPaint.setAntiAlias(true);
+        textPaint.setTextSize(54);
+        String title = (step == Step.ATTACK) ? "전투 로그라이크" : "퍼즐 로그라이크";
+        canvas.drawText(title, Metrics.width/2, imgY + imgH + 60, textPaint);
+        textPaint.setTextSize(36);
+        String desc = (step == Step.ATTACK) ? "전투 특성 효과를 획득합니다!" : "퍼즐 특성 효과를 획득합니다!";
+        canvas.drawText(desc, Metrics.width/2, imgY + imgH + 120, textPaint);
+        textPaint.setTextSize(28);
+        canvas.drawText("(카드를 터치하세요)", Metrics.width/2, imgY + imgH + 170, textPaint);
+    }
+
     public boolean onTouchEvent(MotionEvent event) {
+        if (!isVisible) return false;
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             float[] pt = Metrics.fromScreen(event.getX(), event.getY());
             float x = pt[0], y = pt[1];
-            if (attackRect.contains(x, y)) {
-                if (listener != null) listener.onAttackRogue();
-                return true;
-            } else if (puzzleRect.contains(x, y)) {
-                if (listener != null) listener.onPuzzleRogue();
-                return true;
+            if (cardRect.contains(x, y)) {
+                if (step == Step.ATTACK) {
+                    // TODO: 전투 로그라이크 효과 적용
+                    step = Step.PUZZLE;
+                    return true;
+                } else if (step == Step.PUZZLE) {
+                    // TODO: 퍼즐 로그라이크 효과 적용
+                    step = Step.DONE;
+                    hide();
+                    if (listener != null) listener.onRoguelikeDone();
+                    return true;
+                }
             }
         }
         return false;

@@ -76,7 +76,7 @@ public class S1_3 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 몬스터 (redman_idle)
-        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 30, playerInfoStart, 15f);
+        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -182,26 +182,14 @@ public class S1_3 extends BaseStageScene {
                         if (!isStageClearShown) {
                             if (!isRoguelikeChoiceShown) {
                                 isRoguelikeChoiceShown = true;
-                                GameView gameView = null;
-                                if (context instanceof PegglePangActivity) {
-                                    gameView = ((PegglePangActivity)context).getGameView();
-                                }
-                                if (gameView != null) {
-                                    gameView.pushScene(new RoguelikeChoiceScene(context, new RoguelikeChoiceScene.OnChoiceListener() {
-                                        @Override
-                                        public void onAttackRogue() {
-                                            // TODO: 전투 로그라이크 효과 적용 (추후)
-                                            StageClearScene.getInstance(context).show(1, 3);
-                                            isStageClearShown = true;
-                                        }
-                                        @Override
-                                        public void onPuzzleRogue() {
-                                            // TODO: 퍼즐 로그라이크 효과 적용 (추후)
-                                            StageClearScene.getInstance(context).show(1, 3);
-                                            isStageClearShown = true;
-                                        }
-                                    }));
-                                }
+                                RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
+                                    @Override
+                                    public void onRoguelikeDone() {
+                                        // TODO: 로그라이크 효과 적용 (전투/퍼즐)
+                                        StageClearScene.getInstance(context).show(1, 3);
+                                        isStageClearShown = true;
+                                    }
+                                });
                             }
                         }
                     }
@@ -222,26 +210,14 @@ public class S1_3 extends BaseStageScene {
         if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
             if (!isRoguelikeChoiceShown) {
                 isRoguelikeChoiceShown = true;
-                GameView gameView = null;
-                if (context instanceof PegglePangActivity) {
-                    gameView = ((PegglePangActivity)context).getGameView();
-                }
-                if (gameView != null) {
-                    gameView.pushScene(new RoguelikeChoiceScene(context, new RoguelikeChoiceScene.OnChoiceListener() {
-                        @Override
-                        public void onAttackRogue() {
-                            // TODO: 전투 로그라이크 효과 적용 (추후)
-                            StageClearScene.getInstance(context).show(1, 3);
-                            isStageClearShown = true;
-                        }
-                        @Override
-                        public void onPuzzleRogue() {
-                            // TODO: 퍼즐 로그라이크 효과 적용 (추후)
-                            StageClearScene.getInstance(context).show(1, 3);
-                            isStageClearShown = true;
-                        }
-                    }));
-                }
+                RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
+                    @Override
+                    public void onRoguelikeDone() {
+                        // TODO: 로그라이크 효과 적용 (전투/퍼즐)
+                        StageClearScene.getInstance(context).show(1, 3);
+                        isStageClearShown = true;
+                    }
+                });
             }
         }
 
@@ -261,6 +237,10 @@ public class S1_3 extends BaseStageScene {
         }
 
         if (playerStats.isGameOver() || blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
+            return true;
+        }
+
+        if (RoguelikeChoiceScene.getInstance(context).onTouchEvent(event)) {
             return true;
         }
 
@@ -365,6 +345,7 @@ public class S1_3 extends BaseStageScene {
         }
 
         StageClearScene.getInstance(context).draw(canvas);
+        RoguelikeChoiceScene.getInstance(context).draw(canvas);
     }
 
     @Override
