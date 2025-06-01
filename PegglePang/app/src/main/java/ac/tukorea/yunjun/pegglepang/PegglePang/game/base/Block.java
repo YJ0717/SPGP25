@@ -1,7 +1,7 @@
 // 퍼즐 게임의 개별 블록을 관리하는 클래스
 // 각 블록은 타입,위치, 이미지 슬라이드 처리
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.base;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

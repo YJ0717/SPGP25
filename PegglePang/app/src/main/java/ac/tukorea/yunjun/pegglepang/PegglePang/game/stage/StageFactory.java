@@ -1,6 +1,6 @@
 // 스테이지 생성을 담당하는 팩토리 클래스. 스테이지 번호에 따라 적절한 스테이지 씬 객체를 생성하고 반환
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.content.Context;
 

@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.base;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import android.os.Handler;
 
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 import ac.tukorea.yunjun.pegglepang.R;
 
 public class BlockGrid {

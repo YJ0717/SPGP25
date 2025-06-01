@@ -1,7 +1,10 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.battle;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage1Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 
 public class BattleSystem {
     private PlayerStats playerStats;

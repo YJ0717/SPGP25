@@ -1,12 +1,11 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.player;
 
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.RectF;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
 import ac.tukorea.yunjun.pegglepang.R;
 
 public class Player {

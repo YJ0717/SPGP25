@@ -6,7 +6,7 @@
 // - 하단 55%: 퍼즐 영역 (6x6 매치-3 퍼즐)
 // [0][0] 부터 [5][5]까지 블록 위치 설정
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,13 +16,20 @@ import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
-import java.util.Random;
-import java.util.ArrayList;
-import java.util.Arrays;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BattleSystem;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.MonsterAnimation;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage1Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerAnimation;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage1Monster;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.BattleSystem;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 import android.widget.TextView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
@@ -51,13 +58,13 @@ public class S1_1 extends BaseStageScene {
     private float puzzleLeft;     
     private float puzzleTop;      
     
-    private Block selectedBlock;  
+    private Block selectedBlock;
     private int selectedRow = -1; 
     private int selectedCol = -1; 
     private float touchStartX;    
     private float touchStartY;    
 
-    private Player player; 
+    private Player player;
     private Stage1Monster slime;
     private Stage1Monster skeleton;
     private Bitmap battleBg;

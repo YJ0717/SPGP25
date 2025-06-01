@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,10 +8,18 @@ import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
-import android.os.Handler;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.RoguelikeChoiceScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage3Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.Stage3Monster;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 import android.widget.TextView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
@@ -35,13 +43,13 @@ public class S1_3 extends BaseStageScene {
     private float puzzleLeft;     
     private float puzzleTop;      
     
-    private Block selectedBlock;  
+    private Block selectedBlock;
     private int selectedRow = -1; 
     private int selectedCol = -1; 
     private float touchStartX;    
     private float touchStartY;    
 
-    private Player player; 
+    private Player player;
     private Stage3Monster monster1;
     private Bitmap battleBg;
     private Bitmap stateBg;

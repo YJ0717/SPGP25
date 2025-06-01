@@ -1,10 +1,12 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.main;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.SceneManager;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 
 public class GameOverScene {

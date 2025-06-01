@@ -2,7 +2,7 @@
 // 스테이지 1의 서브스테이지(1-1, 1-2, 1-3)로의 진입을 관리
 // 스테이지 잠금해제 시스템과 연동됨
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +12,7 @@ import android.view.MotionEvent;
 import android.widget.Button;
 import android.widget.TextView;
 
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.world.worldSelectScene;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;

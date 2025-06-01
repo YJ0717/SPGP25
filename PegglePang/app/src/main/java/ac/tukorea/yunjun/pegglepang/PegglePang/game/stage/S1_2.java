@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -8,16 +8,25 @@ import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
-import android.widget.TextView;
-import android.widget.Button;
 
-import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
-import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage2Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
+import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
+import android.widget.TextView;
+import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
-public class S2_1 extends BaseStageScene {
+public class S1_2 extends BaseStageScene {
+    private static final int GRID_SIZE = 6;              
+    private static final float SWIPE_THRESHOLD = 20.0f;   
+    
     private Paint linePaint;      
     private Bitmap gridBitmap;    
     private RectF gridRect;       
@@ -33,13 +42,13 @@ public class S2_1 extends BaseStageScene {
     private float puzzleLeft;     
     private float puzzleTop;      
     
-    private Block selectedBlock;  
+    private Block selectedBlock;
     private int selectedRow = -1; 
     private int selectedCol = -1; 
     private float touchStartX;    
     private float touchStartY;    
 
-    private Player player; 
+    private Player player;
     private Stage2Monster monster1;
     private Bitmap battleBg;
     private Bitmap stateBg;
@@ -48,8 +57,10 @@ public class S2_1 extends BaseStageScene {
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
 
-    public S2_1(Context context) {
-        super(context, 2, 1);
+    private float puzzleTransitionTimer = 0f;
+
+    public S1_2(Context context) {
+        super(context, 1, 2);
         
         linePaint = new Paint();
         linePaint.setColor(Color.BLACK);
@@ -71,13 +82,15 @@ public class S2_1 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
-        if (!StageManager.getInstance().isStageUnlocked(2, 2)) {
+        if (!StageManager.getInstance().isStageUnlocked(1, 3)) {
+            // 몬스터1 (magicman_idle)
             float monster1DrawHeight = battleHeight * 0.5f;
             float monster1DrawWidth = 80f;
             float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
             float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
             monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 10f);
         } else {
+            // 이미 클리어된 상태라면 몬스터를 null로 설정
             monster1 = null;
         }
 
@@ -188,9 +201,9 @@ public class S2_1 extends BaseStageScene {
                         playerStats.reset();
                         isWaitingForAnim = false;
                         if (!isStageClearShown) {
-                            StageClearScene.getInstance(context).show(2, 1);
+                            StageClearScene.getInstance(context).show(1, 2);
                             isStageClearShown = true;
-                            StageManager.getInstance().unlockStage(2, 2);
+                            StageManager.getInstance().unlockStage(1, 3);
                         }
                     }
                 }
@@ -208,9 +221,9 @@ public class S2_1 extends BaseStageScene {
         }
 
         if (!isStageClearShown && (monster1 == null || (!monster1.isAlive() && !monster1.isDying()))) {
-            StageClearScene.getInstance(context).show(2, 1);
+            StageClearScene.getInstance(context).show(1, 2);
             isStageClearShown = true;
-            StageManager.getInstance().unlockStage(2, 2);
+            StageManager.getInstance().unlockStage(1, 3);
         }
 
         if (!isGameOver && player.isDead()) {
@@ -254,7 +267,7 @@ public class S2_1 extends BaseStageScene {
                         float dx = x - touchStartX;
                         float dy = y - touchStartY;
                         
-                        if (Math.abs(dx) > 20.0f || Math.abs(dy) > 20.0f) {
+                        if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(dy) > SWIPE_THRESHOLD) {
                             int newRow = selectedRow;
                             int newCol = selectedCol;
                             if (Math.abs(dx) > Math.abs(dy)) {
@@ -337,19 +350,37 @@ public class S2_1 extends BaseStageScene {
         StageClearScene.getInstance(context).draw(canvas);
     }
 
+    protected void startPuzzleTransition() {
+        puzzleTransitionTimer = 0f;
+    }
+
+    protected boolean updatePuzzleTransition(float dt) {
+        if (puzzleTransitionTimer < 0f) {
+            return false;  // 딜레이가 시작되지 않음
+        }
+        puzzleTransitionTimer += dt;
+        if (puzzleTransitionTimer >= 1.0f) {  // 1초 딜레이
+            puzzleTransitionTimer = -1f;  // 딜레이 종료
+            return true;
+        }
+        return false;
+    }
+
     @Override
     public void onEnter() {
         super.onEnter();
-        if (StageManager.getInstance().isStageUnlocked(2, 2)) {
-            StageClearScene.getInstance(context).show(2, 1);
+        if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+            // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
+            StageClearScene.getInstance(context).show(1, 2);
             isStageClearShown = true;
             
+            // Back 버튼 비활성화
             if (context instanceof PegglePangActivity) {
                 PegglePangActivity activity = (PegglePangActivity) context;
                 TextView backText = activity.findViewById(R.id.back_text);
                 if (backText != null) {
                     backText.setEnabled(false);
-                    backText.setAlpha(0.5f);
+                    backText.setAlpha(0.5f); // 반투명하게 표시
                 }
             }
         }
@@ -358,6 +389,7 @@ public class S2_1 extends BaseStageScene {
     @Override
     public void onExit() {
         super.onExit();
+        // Back 버튼 다시 활성화
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             TextView backText = activity.findViewById(R.id.back_text);

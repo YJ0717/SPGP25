@@ -1,9 +1,11 @@
 //  스테이지 해금 시스템의 핵심 로직을 담당
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
 
 public class StageManager {
     private static StageManager instance;

@@ -1,6 +1,8 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.stage;
 
 import android.content.Context;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.MainScene;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 
 public class SceneManager {

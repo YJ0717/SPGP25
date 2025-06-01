@@ -1,7 +1,7 @@
 // 게임의 월드 선택 화면을 관리하는 씬
 // 각 월드로의 진입점 역할을 하며, 메인 화면으로의 복귀도 담당
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.world;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -14,16 +14,15 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.content.Intent;
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.RectF;
 import android.widget.ImageView;
 
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.MainActivity;
-import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 
 public class worldSelectScene extends Scene {
     private Paint paint; 

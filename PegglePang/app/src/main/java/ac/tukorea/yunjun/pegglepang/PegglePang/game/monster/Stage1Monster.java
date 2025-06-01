@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.monster;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,6 +8,8 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.RectF;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 import ac.tukorea.yunjun.pegglepang.R;
 
 public class Stage1Monster {

@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.main;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,6 +8,12 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.view.MotionEvent;
+
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_1;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageFactory;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.world.worldSelectScene;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;

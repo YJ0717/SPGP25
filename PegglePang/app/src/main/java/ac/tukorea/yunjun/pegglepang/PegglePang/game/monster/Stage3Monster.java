@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.monster;
 
 import android.graphics.Canvas;
 import android.graphics.RectF;

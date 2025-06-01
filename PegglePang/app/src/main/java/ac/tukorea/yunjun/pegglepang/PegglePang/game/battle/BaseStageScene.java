@@ -1,7 +1,7 @@
 // 모든 스테이지 씬의 기본 클래스. 공통 기능(뒤로가기, 레이아웃 설정 등)을 구현
 // 각 스테이지는 이 클래스를 상속받아 stageSpecificElements 매서드를 통해  각 스테이지마다 표시되는 요소를 구현
 
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.battle;
 
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -11,6 +11,8 @@ import android.view.MotionEvent;
 import android.app.Activity;
 import android.widget.TextView;
 
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;

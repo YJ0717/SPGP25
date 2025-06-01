@@ -1,4 +1,4 @@
-package ac.tukorea.yunjun.pegglepang.PegglePang.game;
+package ac.tukorea.yunjun.pegglepang.PegglePang.game.player;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
