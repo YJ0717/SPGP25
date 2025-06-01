@@ -10,7 +10,6 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
 public class RoguelikeChoiceScene {
     private static RoguelikeChoiceScene instance;
@@ -35,8 +34,8 @@ public class RoguelikeChoiceScene {
         puzzleBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue);
         float centerX = Metrics.width / 2f;
         float centerY = Metrics.height / 2f;
-        float cardW = 420f;
-        float cardH = 500f;
+        float cardW = 820f;
+        float cardH = 700f;
         cardRect = new RectF(centerX - cardW/2, centerY - cardH/2, centerX + cardW/2, centerY + cardH/2);
         borderPaint = new Paint();
         borderPaint.setColor(Color.YELLOW);
@@ -64,38 +63,16 @@ public class RoguelikeChoiceScene {
 
     public void draw(Canvas canvas) {
         if (!isVisible) return;
-        // 반투명 검은색 배경
-        canvas.drawColor(Color.argb(180, 0, 0, 0));
-        
-        // 중앙에만 반투명 카드(패널) 그리기
-        Paint cardPaint = new Paint();
-        cardPaint.setColor(Color.argb(200, 40, 40, 40)); // 반투명 다크 그레이
-        canvas.drawRoundRect(cardRect, 40, 40, cardPaint);
-        canvas.drawRoundRect(cardRect, 40, 40, borderPaint);
-
-        // 카드 중앙에 이미지
-        float imgW = 180f, imgH = 180f;
+        // 중앙에 로그라이크 이미지만 크게 표시 (배경, 카드, 텍스트 모두 제거)
+        float imgW = Metrics.width * 0.8f;  // 화면 너비의 80%
+        float imgH = Metrics.height * 0.8f; // 화면 높이의 80%
         float imgX = Metrics.width / 2f - imgW / 2;
-        float imgY = cardRect.top + 40;
+        float imgY = Metrics.height / 2f - imgH / 2;
         if (step == Step.ATTACK) {
             canvas.drawBitmap(attackBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         } else if (step == Step.PUZZLE) {
             canvas.drawBitmap(puzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         }
-
-        // 텍스트
-        Paint textPaint = new Paint();
-        textPaint.setColor(Color.WHITE);
-        textPaint.setTextAlign(Paint.Align.CENTER);
-        textPaint.setAntiAlias(true);
-        textPaint.setTextSize(54);
-        String title = (step == Step.ATTACK) ? "전투 로그라이크" : "퍼즐 로그라이크";
-        canvas.drawText(title, Metrics.width/2, imgY + imgH + 60, textPaint);
-        textPaint.setTextSize(36);
-        String desc = (step == Step.ATTACK) ? "전투 특성 효과를 획득합니다!" : "퍼즐 특성 효과를 획득합니다!";
-        canvas.drawText(desc, Metrics.width/2, imgY + imgH + 120, textPaint);
-        textPaint.setTextSize(28);
-        canvas.drawText("(카드를 터치하세요)", Metrics.width/2, imgY + imgH + 170, textPaint);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
