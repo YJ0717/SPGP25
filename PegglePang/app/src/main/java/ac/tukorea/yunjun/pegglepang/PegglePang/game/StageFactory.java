@@ -11,7 +11,8 @@ public class StageFactory {
         switch (stageNumber) {
             case 1:
                 return createStage1(context, subStageNumber);
-            // 스테이지 선택창을 효율적으로 관리
+            case 2:
+                return createStage2(context, subStageNumber);
             default:
                 return null;
         }
@@ -25,6 +26,17 @@ public class StageFactory {
                 return new S1_2(context);
             case 3:
                 return new S1_3(context);
+            default:
+                return null;
+        }
+    }
+
+    private static Scene createStage2(Context context, int subStageNumber) {
+        switch (subStageNumber) {
+            case 0:
+                return new Stage2_Scene(context);
+            case 1:
+                return new S2_1(context);
             default:
                 return null;
         }

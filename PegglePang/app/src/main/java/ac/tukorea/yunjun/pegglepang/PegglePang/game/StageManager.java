@@ -9,6 +9,7 @@ public class StageManager {
     private static StageManager instance;
     private Map<String, StageData> stageDataMap;
     private static PlayerStats playerStats = new PlayerStats();
+    private boolean world2Unlocked = false;
 
     private StageManager() {
         stageDataMap = new HashMap<>();
@@ -74,6 +75,14 @@ public class StageManager {
 
     public static PlayerStats getPlayerStats() {
         return playerStats;
+    }
+
+    public void unlockWorld(int worldNumber) {
+        if (worldNumber == 2) world2Unlocked = true;
+    }
+
+    public boolean isWorldUnlocked(int worldNumber) {
+        return worldNumber == 1 || (worldNumber == 2 && world2Unlocked);
     }
 
     private static class StageData {

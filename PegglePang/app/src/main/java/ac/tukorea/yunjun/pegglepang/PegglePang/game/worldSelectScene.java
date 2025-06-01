@@ -8,26 +8,39 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.content.Context;
 import android.view.MotionEvent;
+import android.view.View;
 import android.util.DisplayMetrics;
 import android.widget.Button;
 import android.widget.TextView;
 import android.content.Intent;
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.RectF;
+import android.widget.ImageView;
 
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.MainActivity;
+import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 
 public class worldSelectScene extends Scene {
     private Paint paint; 
     private Context context;
     private int screenHeight;
+    private int worldNumber;
 
     public worldSelectScene(Context context) {
+        this(context, 1);
+    }
+
+    public worldSelectScene(Context context, int worldNumber) {
+        super();
+        this.context = context;
+        this.worldNumber = worldNumber;
         paint = new Paint();
         paint.setColor(Color.WHITE); 
-        this.context = context;
 
         DisplayMetrics metrics = context.getResources().getDisplayMetrics();
         screenHeight = metrics.heightPixels; 
@@ -64,6 +77,7 @@ public class worldSelectScene extends Scene {
 
     @Override
     public void draw(Canvas canvas) {
+        // 레이아웃 사용으로 draw()에서는 이미지 그리지 않음
         super.draw(canvas);
     }
 
@@ -78,8 +92,45 @@ public class worldSelectScene extends Scene {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
+            
+            // 월드2 해금 상태에 따라 배경 이미지 설정
+            ImageView backgroundImageView = activity.findViewById(R.id.background_image);
+            if (backgroundImageView != null) {
+                if (worldNumber == 2 || StageManager.getInstance().isWorldUnlocked(2)) {
+                    backgroundImageView.setImageResource(R.mipmap.world2);
+                } else {
+                    backgroundImageView.setImageResource(R.mipmap.world1);
+                }
+            }
+            
+            // Back 버튼 숨기기
+            TextView backText = activity.findViewById(R.id.back_text);
+            if (backText != null) {
+                backText.setVisibility(View.GONE);
+            }
+            
             setupStage1Button();
+            setupWorld2Button();
             setupBackButton();
+        }
+    }
+
+    public void setupWorld2Button() {
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            Button world2Button = activity.findViewById(R.id.world2_button);
+            
+            if (world2Button != null) {
+                if (worldNumber == 2 || StageManager.getInstance().isWorldUnlocked(2)) {
+                    world2Button.setVisibility(View.VISIBLE);
+                    world2Button.setOnClickListener(v -> {
+                        Stage2_Scene stage2Scene = new Stage2_Scene(context);
+                        activity.getGameView().changeScene(stage2Scene);
+                    });
+                } else {
+                    world2Button.setVisibility(View.GONE);
+                }
+            }
         }
     }
 
@@ -89,6 +140,13 @@ public class worldSelectScene extends Scene {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
+            
+            // Back 버튼 숨기기
+            TextView backText = activity.findViewById(R.id.back_text);
+            if (backText != null) {
+                backText.setVisibility(View.GONE);
+            }
+            
             setupStage1Button();
             setupBackButton();
         }

@@ -34,8 +34,13 @@ public abstract class BaseStageScene extends Scene {
         backText.setOnClickListener(v -> {
             if (context instanceof PegglePangActivity) {
                 PegglePangActivity gameActivity = (PegglePangActivity) context;
-                gameActivity.setContentView(R.layout.stage1_select);
-                gameActivity.getGameView().popScene();
+                if (stageNumber == 1) {
+                    gameActivity.setContentView(R.layout.stage1_select);
+                    gameActivity.getGameView().changeScene(new Stage1_Scene(context));
+                } else if (stageNumber == 2) {
+                    gameActivity.setContentView(R.layout.world2_stage_select);
+                    gameActivity.getGameView().changeScene(new Stage2_Scene(context));
+                }
             }
         });
     }

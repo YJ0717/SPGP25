@@ -59,11 +59,14 @@ public class StageClearScene {
     }
 
     public void show(int stage, int subStage) {
-        if (isVisible) return; // 이미 떠 있으면 무시
+        if (isVisible) return;
         isVisible = true;
         StageManager.getInstance().setStageCleared(stage, subStage);
         StageManager.getInstance().setMonstersDefeated(stage, subStage, true);
-        if (stage == 1 && subStage == 2) {
+        if (stage == 1 && subStage == 3) {
+            // 월드2 해금
+            StageManager.getInstance().unlockWorld(2);
+        } else if (stage == 1 && subStage == 2) {
             StageManager.getInstance().unlockStage(1, 3);
         } else {
             StageManager.getInstance().unlockStage(stage, subStage + 1);
@@ -95,28 +98,34 @@ public class StageClearScene {
                 hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
-                    activity.setContentView(R.layout.stage1_select);
-                    Scene stage1Scene = new Stage1_Scene(context);
-                    activity.getGameView().pushScene(stage1Scene);
+                    if (StageManager.getInstance().isWorldUnlocked(2) && StageManager.getInstance().isStageCleared(1, 3)) {
+                        // 월드2가 해금된 월드 선택 화면으로 이동
+                        activity.setContentView(R.layout.world_select);
+                        worldSelectScene world2Scene = new worldSelectScene(context, 2);
+                        activity.getGameView().changeScene(world2Scene);
+                    } else {
+                        // 기존 월드1 선택화면
+                        activity.setContentView(R.layout.stage1_select);
+                        Scene stage1Scene = new Stage1_Scene(context);
+                        activity.getGameView().changeScene(stage1Scene);
+                    }
                 }
                 return true;
             } else if (nextStageButtonRect.contains(x, y)) {
+                hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
-                    // 먼저 현재 씬을 제거
-                    activity.getGameView().popScene();
-                    // 클리어 창을 숨김
-                    hide();
-                    // 현재 스테이지에 따라 다음 스테이지로 이동
-                    Scene stage;
-                    if (StageManager.getInstance().isStageUnlocked(1, 3)) {
-                        // Stage 2에서 Stage 3로 이동
-                        stage = StageFactory.createStage(context, 1, 3);
+                    if (StageManager.getInstance().isWorldUnlocked(2) && StageManager.getInstance().isStageCleared(1, 3)) {
+                        // 월드2의 첫 스테이지(2-1)로 이동
+                        S2_1 stage = new S2_1(context);
+                        activity.getGameView().changeScene(stage);
+                    } else if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+                        Scene stage = StageFactory.createStage(context, 1, 3);
+                        activity.getGameView().changeScene(stage);
                     } else {
-                        // Stage 1에서 Stage 2로 이동
-                        stage = StageFactory.createStage(context, 1, 2);
+                        Scene stage = StageFactory.createStage(context, 1, 2);
+                        activity.getGameView().changeScene(stage);
                     }
-                    activity.getGameView().pushScene(stage);
                 }
                 return true;
             }

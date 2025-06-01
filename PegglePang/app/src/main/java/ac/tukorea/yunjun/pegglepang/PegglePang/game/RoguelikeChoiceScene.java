@@ -63,7 +63,6 @@ public class RoguelikeChoiceScene {
 
     public void draw(Canvas canvas) {
         if (!isVisible) return;
-        // 중앙에 로그라이크 이미지만 크게 표시 (배경, 카드, 텍스트 모두 제거)
         float imgW = Metrics.width * 0.8f;  // 화면 너비의 80%
         float imgH = Metrics.height * 0.8f; // 화면 높이의 80%
         float imgX = Metrics.width / 2f - imgW / 2;
