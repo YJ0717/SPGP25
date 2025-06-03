@@ -84,7 +84,11 @@ public class S1_3 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 몬스터 (redman_idle)
-        monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
+        if (!StageManager.getInstance().areMonstersDefeated(1, 3)) {
+            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
+        } else {
+            monster1 = null;
+        }
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
@@ -95,14 +99,24 @@ public class S1_3 extends BaseStageScene {
         // magic effect 위치 설정
         float effectWidth = Metrics.width * 0.4f;
         float effectHeight = effectWidth * (350f / (713f / 3f));
-        float effectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - effectWidth / 2;
+        float effectX;
+        if (monster1 != null) {
+            effectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - effectWidth / 2;
+        } else {
+            effectX = (playerLeft + playerDrawWidth + Metrics.width * 0.7f) / 2 - effectWidth / 2;
+        }
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
 
         // sword effect 위치 설정
         float swordEffectWidth = Metrics.width * 0.35f;
         float swordEffectHeight = swordEffectWidth * (139f / 190f);
-        float swordEffectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - swordEffectWidth / 2;
+        float swordEffectX;
+        if (monster1 != null) {
+            swordEffectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - swordEffectWidth / 2;
+        } else {
+            swordEffectX = (playerLeft + playerDrawWidth + Metrics.width * 0.7f) / 2 - swordEffectWidth / 2;
+        }
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
     }
@@ -117,7 +131,9 @@ public class S1_3 extends BaseStageScene {
         float dt = GameView.frameTime;
         blockGrid.update(dt);
         player.update(dt);
-        monster1.update(dt);
+        if (monster1 != null) {
+            monster1.update(dt);
+        }
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
             !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
@@ -138,37 +154,49 @@ public class S1_3 extends BaseStageScene {
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
-                                if (monster1.isAlive()) {
+                                if (monster1 != null && monster1.isAlive()) {
                                     monster1.startBlinking(lastSword);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                isWaitingForAnim = false;
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
-                                if (monster1.isAlive()) {
+                                if (monster1 != null && monster1.isAlive()) {
                                     monster1.startBlinking(lastMagic);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                isWaitingForAnim = false;
                             });
                         });
                     } else {
                         player.playHeal(() -> {
-                            if (monster1.isAlive()) {
+                            if (monster1 != null && monster1.isAlive()) {
                                 monster1.startBlinking(lastSword);
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);
+                            isBattlePhase = false;
+                            isPuzzleFrozen = false;
+                            playerStats.reset();
+                            isWaitingForAnim = false;
                         });
                     }
                 }
             } else {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
-                    if (monster1.isAlive()) {
+                    if (monster1 != null && monster1.isAlive()) {
                         monster1.attack(() -> {
                             player.takeDamage(monster1.getAttackPower());
                             if (!player.isAlive()) {
@@ -193,7 +221,6 @@ public class S1_3 extends BaseStageScene {
                                 RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
                                     @Override
                                     public void onRoguelikeDone() {
-                                        // TODO: 로그라이크 효과 적용 (전투/퍼즐)
                                         StageClearScene.getInstance(context).show(1, 3);
                                         isStageClearShown = true;
                                     }
@@ -221,7 +248,6 @@ public class S1_3 extends BaseStageScene {
                 RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
                     @Override
                     public void onRoguelikeDone() {
-                        // TODO: 로그라이크 효과 적용 (전투/퍼즐)
                         StageClearScene.getInstance(context).show(1, 3);
                         isStageClearShown = true;
                     }
@@ -346,7 +372,9 @@ public class S1_3 extends BaseStageScene {
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
         player.draw(canvas);
-        monster1.draw(canvas);
+        if (monster1 != null) {
+            monster1.draw(canvas);
+        }
 
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);

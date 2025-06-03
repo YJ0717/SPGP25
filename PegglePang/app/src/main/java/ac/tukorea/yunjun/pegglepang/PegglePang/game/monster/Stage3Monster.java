@@ -255,4 +255,8 @@ public class Stage3Monster {
     public float getX() {
         return x;
     }
+
+    public int getMaxHp() {
+        return maxHp;
+    }
 } 
