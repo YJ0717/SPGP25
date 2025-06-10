@@ -70,8 +70,9 @@ public class StageClearScene {
         StageManager.getInstance().setStageCleared(stage, subStage);
         StageManager.getInstance().setMonstersDefeated(stage, subStage, true);
         if (stage == 1 && subStage == 3) {
-            // 월드2 해금
+            // 월드2 해금 및 스테이지 2-1 해금
             StageManager.getInstance().unlockWorld(2);
+            StageManager.getInstance().unlockStage(2, 1);
         } else if (stage == 1 && subStage == 2) {
             StageManager.getInstance().unlockStage(1, 3);
         } else {
@@ -123,12 +124,15 @@ public class StageClearScene {
                     PegglePangActivity activity = (PegglePangActivity) context;
                     if (StageManager.getInstance().isWorldUnlocked(2) && StageManager.getInstance().isStageCleared(1, 3)) {
                         // 월드2의 첫 스테이지(2-1)로 이동
+                        activity.setContentView(R.layout.game_scene);
                         S2_1 stage = new S2_1(context);
                         activity.getGameView().changeScene(stage);
                     } else if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+                        activity.setContentView(R.layout.game_scene);
                         Scene stage = StageFactory.createStage(context, 1, 3);
                         activity.getGameView().changeScene(stage);
                     } else {
+                        activity.setContentView(R.layout.game_scene);
                         Scene stage = StageFactory.createStage(context, 1, 2);
                         activity.getGameView().changeScene(stage);
                     }

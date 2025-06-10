@@ -24,7 +24,9 @@ public class Stage2_Scene extends Scene {
             TextView backText = activity.findViewById(R.id.back_text);
             if (backText != null) {
                 backText.setOnClickListener(v -> {
-                    activity.getGameView().popScene();
+                    activity.setContentView(R.layout.world_select);
+                    worldSelectScene worldScene = new worldSelectScene(context, 2);
+                    activity.getGameView().changeScene(worldScene);
                 });
             }
         }
@@ -35,8 +37,10 @@ public class Stage2_Scene extends Scene {
             PegglePangActivity activity = (PegglePangActivity) context;
             Button stage2_1Button = activity.findViewById(R.id.stage2_1_button);
             if (stage2_1Button != null) {
-                stage2_1Button.setEnabled(StageManager.getInstance().isStageUnlocked(2, 1));
+                boolean isUnlocked = StageManager.getInstance().isStageUnlocked(2, 1);
+                stage2_1Button.setEnabled(isUnlocked);
                 stage2_1Button.setOnClickListener(v -> {
+                    activity.setContentView(R.layout.game_scene);
                     S2_1 stage = new S2_1(context);
                     activity.getGameView().changeScene(stage);
                 });
@@ -80,12 +84,6 @@ public class Stage2_Scene extends Scene {
     @Override
     public void onExit() {
         super.onExit();
-        if (context instanceof PegglePangActivity) {
-            PegglePangActivity activity = (PegglePangActivity) context;
-            activity.setContentView(R.layout.world_select);
-            // 월드2가 해금된 상태로 월드 선택 화면 생성
-            worldSelectScene worldScene = new worldSelectScene(context, 2);
-            activity.getGameView().changeScene(worldScene);
-        }
+        // onExit에서 Scene 전환을 하면 무한 루프가 발생하므로 제거
     }
 } 

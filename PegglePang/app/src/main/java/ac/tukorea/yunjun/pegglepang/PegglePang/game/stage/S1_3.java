@@ -93,7 +93,7 @@ public class S1_3 extends BaseStageScene {
 
         // 몬스터 (redman_idle)
         if (!StageManager.getInstance().areMonstersDefeated(1, 3)) {
-            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 100, playerInfoStart, 15f);
+            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
         } else {
             monster1 = null;
         }

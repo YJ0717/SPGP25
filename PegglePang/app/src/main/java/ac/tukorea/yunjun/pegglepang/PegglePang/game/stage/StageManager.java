@@ -18,6 +18,7 @@ public class StageManager {
         stageDataMap.put("1-1", new StageData(true));  
         stageDataMap.put("1-2", new StageData(false)); //추후 클리어 조건을 넣어 앞으로의 스테이지 클리어 선택
         stageDataMap.put("1-3", new StageData(false));
+        stageDataMap.put("2-1", new StageData(false)); // 월드 2 스테이지 1
     }
 
     public static StageManager getInstance() {
