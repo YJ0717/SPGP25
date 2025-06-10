@@ -58,6 +58,14 @@ public class S1_3 extends BaseStageScene {
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
     private boolean isRoguelikeChoiceShown = false;
+    private boolean isPlayerBlinkPhase = false;
+    private boolean isMonsterAttackPhase = false;
+    private static final float MONSTER_ATTACK_DURATION = 1.0f;
+    private float monsterAttackTimer = 0f;
+    private float monsterBlinkTimer = 0f;
+    private int playerBlinkCount = 0;
+    private float playerBlinkTimer = 0f;
+    private float deltaTime = 0f;
 
     private float puzzleTransitionTimer = 0f;
 
@@ -85,7 +93,7 @@ public class S1_3 extends BaseStageScene {
 
         // 몬스터 (redman_idle)
         if (!StageManager.getInstance().areMonstersDefeated(1, 3)) {
-            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
+            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 100, playerInfoStart, 15f);
         } else {
             monster1 = null;
         }
@@ -128,11 +136,11 @@ public class S1_3 extends BaseStageScene {
     @Override
     public void update() {
         super.update();
-        float dt = GameView.frameTime;
-        blockGrid.update(dt);
-        player.update(dt);
+        deltaTime = GameView.frameTime;
+        blockGrid.update(deltaTime);
+        player.update(deltaTime);
         if (monster1 != null) {
-            monster1.update(dt);
+            monster1.update(deltaTime);
         }
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
@@ -151,6 +159,7 @@ public class S1_3 extends BaseStageScene {
             if (isPlayerTurn) {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
+                    System.out.println("Player turn starting");
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
@@ -159,10 +168,12 @@ public class S1_3 extends BaseStageScene {
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
-                                isBattlePhase = false;
-                                isPuzzleFrozen = false;
-                                playerStats.reset();
-                                isWaitingForAnim = false;
+                                if (monster1 == null || !monster1.isAlive()) {
+                                    isBattlePhase = false;
+                                    isPuzzleFrozen = false;
+                                    playerStats.reset();
+                                    isWaitingForAnim = false;
+                                }
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
@@ -173,10 +184,12 @@ public class S1_3 extends BaseStageScene {
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
-                                isBattlePhase = false;
-                                isPuzzleFrozen = false;
-                                playerStats.reset();
-                                isWaitingForAnim = false;
+                                if (monster1 == null || !monster1.isAlive()) {
+                                    isBattlePhase = false;
+                                    isPuzzleFrozen = false;
+                                    playerStats.reset();
+                                    isWaitingForAnim = false;
+                                }
                             });
                         });
                     } else {
@@ -186,18 +199,26 @@ public class S1_3 extends BaseStageScene {
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);
-                            isBattlePhase = false;
-                            isPuzzleFrozen = false;
-                            playerStats.reset();
-                            isWaitingForAnim = false;
+                            if (monster1 == null || !monster1.isAlive()) {
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                isWaitingForAnim = false;
+                            }
                         });
                     }
                 }
             } else {
+                System.out.println("Monster turn - isWaitingForAnim: " + isWaitingForAnim + ", monster1 alive: " + (monster1 != null && monster1.isAlive()));
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
                     if (monster1 != null && monster1.isAlive()) {
+                        System.out.println("Monster attacking!");
+                        isMonsterAttackPhase = true;
+                        monsterAttackTimer = 0f;
                         monster1.attack(() -> {
+                            System.out.println("Monster attack completed");
+                            isMonsterAttackPhase = false;
                             player.takeDamage(monster1.getAttackPower());
                             if (!player.isAlive()) {
                                 player.die();
@@ -232,17 +253,48 @@ public class S1_3 extends BaseStageScene {
             }
         }
 
-        if (isMonsterBlinkPhase && !monster1.isBlinking()) {
+        if (isMonsterBlinkPhase && monster1 != null && !monster1.isBlinking()) {
             isMonsterBlinkPhase = false;
             isPlayerTurn = false;
             isWaitingForAnim = false;
+            System.out.println("Monster blink phase ended, switching to monster turn");
+        }
+
+        if (isMonsterAttackPhase) {
+            monsterAttackTimer += deltaTime;
+            if (monsterAttackTimer >= MONSTER_ATTACK_DURATION) {
+                monsterAttackTimer = 0f;
+                isMonsterAttackPhase = false;
+                isMonsterBlinkPhase = true;
+                monsterBlinkTimer = 0f;
+                
+                // 데미지 적용
+                if (monster1 != null && monster1.isAlive()) {
+                    playerStats.takeDamage(monster1.getAttackPower());
+                    isPlayerBlinkPhase = true;
+                    playerBlinkTimer = 0f;
+                    playerBlinkCount = 0;
+                }
+            }
+        }
+
+        if (isPlayerBlinkPhase) {
+            playerBlinkTimer += deltaTime;
+            if (playerBlinkTimer >= 0.1f) {
+                playerBlinkTimer = 0f;
+                playerBlinkCount++;
+                if (playerBlinkCount >= 4) {
+                    isPlayerBlinkPhase = false;
+                    playerBlinkCount = 0;
+                }
+            }
         }
 
         if (isGameOver) {
             return;
         }
 
-        if (!isStageClearShown && !monster1.isAlive() && !monster1.isDying()) {
+        if (!isStageClearShown && monster1 != null && !monster1.isAlive() && !monster1.isDying()) {
             if (!isRoguelikeChoiceShown) {
                 isRoguelikeChoiceShown = true;
                 RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {

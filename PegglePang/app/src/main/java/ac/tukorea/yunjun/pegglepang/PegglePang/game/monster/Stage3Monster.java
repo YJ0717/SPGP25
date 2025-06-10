@@ -124,7 +124,9 @@ public class Stage3Monster {
                 attackTimer = 0f;
                 attackFrame = 0;
                 if (attackCallback != null) {
-                    attackCallback.onAttackComplete();
+                    AttackCallback callback = attackCallback;
+                    attackCallback = null;
+                    callback.onAttackComplete();
                 }
             }
         } else {
