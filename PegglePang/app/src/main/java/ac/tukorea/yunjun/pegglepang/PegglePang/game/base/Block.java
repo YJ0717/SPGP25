@@ -10,11 +10,14 @@ import android.graphics.RectF;
 public class Block {
     public static final int HEAL = 0;   
     public static final int MAGIC = 1;  
-    public static final int SWORD = 2;  
+    public static final int SWORD = 2;
+    public static final int ROCK = 3;
     
     private int type;           
     private RectF rect;        
-    private Bitmap bitmap;     
+    private Bitmap bitmap;
+    private Bitmap rockBitmap;
+    private boolean isRock = false;
     
     private float currentX, currentY;    
     private float targetX, targetY;      
@@ -30,6 +33,18 @@ public class Block {
         this.type = type;
         this.bitmap = bitmap;
         this.rect = new RectF();
+    }
+
+    public void setRockBitmap(Bitmap rockBitmap) {
+        this.rockBitmap = rockBitmap;
+    }
+
+    public void convertToRock() {
+        this.isRock = true;
+    }
+
+    public boolean isRock() {
+        return isRock;
     }
 
     public void setGridPosition(int row, int col) {
@@ -106,7 +121,9 @@ public class Block {
     }
     
     public void draw(Canvas canvas) {
-        if (bitmap != null) {
+        if (isRock && rockBitmap != null) {
+            canvas.drawBitmap(rockBitmap, null, rect, null);
+        } else if (bitmap != null) {
             canvas.drawBitmap(bitmap, null, rect, null);
         }
     }

@@ -16,14 +16,23 @@ public class BlockGrid {
     private static final int GRID_SIZE = 6;
     private Block[][] blocks;
     private Bitmap[] blockBitmaps;
+    private Bitmap rockBitmap;
     private Random random;
     private float puzzleLeft, puzzleTop, blockSize;
     private PlayerStats playerStats;
     private boolean isProcessingMatches = false;
     private Handler mainHandler;
+    private int currentStage = 1;
+    private int currentSubStage = 1;
+    private int rockBottomRow = GRID_SIZE; // 가장 아래 rock이 있는 행 (6부터 시작)
 
     public void setPlayerStats(PlayerStats stats) {
         this.playerStats = stats;
+    }
+
+    public void setStageInfo(int stage, int subStage) {
+        this.currentStage = stage;
+        this.currentSubStage = subStage;
     }
 
     public BlockGrid(Context context) {
@@ -35,6 +44,7 @@ public class BlockGrid {
         blockBitmaps[Block.HEAL] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.heal_block);
         blockBitmaps[Block.MAGIC] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magic_block);
         blockBitmaps[Block.SWORD] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.sword_block);
+        rockBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.rock);
         
         initializeBlocks();
     }
@@ -162,6 +172,12 @@ public class BlockGrid {
     }
 
     public void swapBlocks(int row1, int col1, int row2, int col2) {
+        // rock 블록은 스왑할 수 없음
+        if ((blocks[row1][col1] != null && blocks[row1][col1].isRock()) ||
+            (blocks[row2][col2] != null && blocks[row2][col2].isRock())) {
+            return;
+        }
+
         float left1 = puzzleLeft + col1 * blockSize;
         float top1 = puzzleTop + row1 * blockSize;
         float left2 = puzzleLeft + col2 * blockSize;
@@ -184,6 +200,7 @@ public class BlockGrid {
                 }
                 
                 if (!checkMatch(row1, col1) && !checkMatch(row2, col2)) {
+                    // 매치 실패 - 원래 위치로 되돌리기
                     blocks[row1][col1].startAnimation(left1, top1, false);
                     blocks[row2][col2].startAnimation(left2, top2, false);
                     
@@ -193,6 +210,11 @@ public class BlockGrid {
                     
                     blocks[row1][col1].setGridPosition(row1, col1);
                     blocks[row2][col2].setGridPosition(row2, col2);
+                    
+                    // 스테이지 2-1부터 rock 추가
+                    if (shouldAddRockOnFailure()) {
+                        addRockFromBottom();
+                    }
                 } else {
                     processMatches();
                 }
@@ -202,23 +224,39 @@ public class BlockGrid {
         }).start();
     }
 
+    private boolean shouldAddRockOnFailure() {
+        return currentStage >= 2 && currentSubStage >= 1;
+    }
+
+    private void addRockFromBottom() {
+        if (rockBottomRow > 0) {
+            rockBottomRow--;
+            for (int col = 0; col < GRID_SIZE; col++) {
+                if (blocks[rockBottomRow][col] != null) {
+                    blocks[rockBottomRow][col].setRockBitmap(rockBitmap);
+                    blocks[rockBottomRow][col].convertToRock();
+                }
+            }
+        }
+    }
+
     private boolean checkMatch(int row, int col) {
-        if (blocks[row][col] == null) return false;
+        if (blocks[row][col] == null || blocks[row][col].isRock()) return false;
         int type = blocks[row][col].getType();
 
         int horizontalCount = 1;
-        for (int i = col - 1; i >= 0 && blocks[row][i] != null && blocks[row][i].getType() == type; i--) {
+        for (int i = col - 1; i >= 0 && blocks[row][i] != null && !blocks[row][i].isRock() && blocks[row][i].getType() == type; i--) {
             horizontalCount++;
         }
-        for (int i = col + 1; i < GRID_SIZE && blocks[row][i] != null && blocks[row][i].getType() == type; i++) {
+        for (int i = col + 1; i < GRID_SIZE && blocks[row][i] != null && !blocks[row][i].isRock() && blocks[row][i].getType() == type; i++) {
             horizontalCount++;
         }
 
         int verticalCount = 1;
-        for (int i = row - 1; i >= 0 && blocks[i][col] != null && blocks[i][col].getType() == type; i--) {
+        for (int i = row - 1; i >= 0 && blocks[i][col] != null && !blocks[i][col].isRock() && blocks[i][col].getType() == type; i--) {
             verticalCount++;
         }
-        for (int i = row + 1; i < GRID_SIZE && blocks[i][col] != null && blocks[i][col].getType() == type; i++) {
+        for (int i = row + 1; i < GRID_SIZE && blocks[i][col] != null && !blocks[i][col].isRock() && blocks[i][col].getType() == type; i++) {
             verticalCount++;
         }
 
@@ -234,11 +272,14 @@ public class BlockGrid {
 
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE - 2; col++) {
-                if (blocks[row][col] != null && blocks[row][col + 1] != null && blocks[row][col + 2] != null) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && 
+                    blocks[row][col + 1] != null && !blocks[row][col + 1].isRock() && 
+                    blocks[row][col + 2] != null && !blocks[row][col + 2].isRock()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row][col + 1].getType() == type && blocks[row][col + 2].getType() == type) {
                         int matchLength = 3;
                         while (col + matchLength < GRID_SIZE && blocks[row][col + matchLength] != null && 
+                               !blocks[row][col + matchLength].isRock() &&
                                blocks[row][col + matchLength].getType() == type) {
                             matchLength++;
                         }
@@ -259,11 +300,14 @@ public class BlockGrid {
 
         for (int col = 0; col < GRID_SIZE; col++) {
             for (int row = 0; row < GRID_SIZE - 2; row++) {
-                if (blocks[row][col] != null && blocks[row + 1][col] != null && blocks[row + 2][col] != null) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && 
+                    blocks[row + 1][col] != null && !blocks[row + 1][col].isRock() && 
+                    blocks[row + 2][col] != null && !blocks[row + 2][col].isRock()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row + 1][col].getType() == type && blocks[row + 2][col].getType() == type) {
                         int matchLength = 3;
                         while (row + matchLength < GRID_SIZE && blocks[row + matchLength][col] != null && 
+                               !blocks[row + matchLength][col].isRock() &&
                                blocks[row + matchLength][col].getType() == type) {
                             matchLength++;
                         }
@@ -289,7 +333,7 @@ public class BlockGrid {
 
             for (int row = 0; row < GRID_SIZE; row++) {
                 for (int col = 0; col < GRID_SIZE; col++) {
-                    if (toRemove[row][col]) {
+                    if (toRemove[row][col] && !blocks[row][col].isRock()) {
                         blocks[row][col] = null;
                     }
                 }
@@ -329,19 +373,34 @@ public class BlockGrid {
             Block[] validBlocks = new Block[GRID_SIZE];
             int validCount = 0;
             
+            // 아래부터 확인하면서 rock이 아닌 블록들만 수집 (원래 로직)
             for (int row = GRID_SIZE - 1; row >= 0; row--) {
-                if (blocks[row][col] != null) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock()) {
                     validBlocks[validCount++] = blocks[row][col];
                     blocks[row][col] = null;
                 }
             }
             
+            // 아래부터 배치하되 rock 블록이 있는 자리는 건너뛰기
             for (int i = 0; i < validCount; i++) {
-                int targetRow = GRID_SIZE - 1 - i;
-                blocks[targetRow][col] = validBlocks[i];
-                blocks[targetRow][col].setGridPosition(targetRow, col);
-                float targetY = puzzleTop + targetRow * blockSize;
-                validBlocks[i].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+                // rock 블록이 있는 위치는 건너뛰기
+                while (insertRow >= 0 && blocks[insertRow][col] != null && blocks[insertRow][col].isRock()) {
+                    insertRow--;
+                }
+                
+                if (insertRow >= 0) {
+                    int targetRow = GRID_SIZE - 1 - i;
+                    // rock 블록 때문에 더 위로 올라가야 하는 경우
+                    if (insertRow < targetRow) {
+                        targetRow = insertRow;
+                    }
+                    
+                    blocks[targetRow][col] = validBlocks[i];
+                    blocks[targetRow][col].setGridPosition(targetRow, col);
+                    float targetY = puzzleTop + targetRow * blockSize;
+                    validBlocks[i].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+                    insertRow = targetRow - 1;
+                }
             }
         }
     }
@@ -349,27 +408,33 @@ public class BlockGrid {
     private void fillNewBlocks() {
         for (int col = 0; col < GRID_SIZE; col++) {
             int emptyCount = 0;
+            // 빈 공간 개수 세기 (원래 로직)
             for (int row = 0; row < GRID_SIZE; row++) {
                 if (blocks[row][col] == null) {
                     emptyCount++;
                 }
             }
+            
             if (emptyCount > 0) {
+                // 원래 로직대로 위에서부터 새 블록 생성
                 for (int i = 0; i < emptyCount; i++) {
                     int targetRow = emptyCount - 1 - i;
                     int type;
                     do {
                         type = random.nextInt(3);
+                        // 아래쪽 블록과 다른 타입으로 생성 (단순화)
                         if (targetRow < GRID_SIZE - 1 && blocks[targetRow + 1][col] != null &&
                             blocks[targetRow + 1][col].getType() == type) {
                             continue;
                         }
+                        // 왼쪽 블록과 다른 타입으로 생성 (단순화)
                         if (col > 0 && blocks[targetRow][col - 1] != null &&
                             blocks[targetRow][col - 1].getType() == type) {
                             continue;
                         }
                         break;
                     } while (true);
+                    
                     blocks[targetRow][col] = new Block(type, blockBitmaps[type]);
                     blocks[targetRow][col].setGridPosition(targetRow, col);
                     float startY = puzzleTop - (i + 1) * blockSize;

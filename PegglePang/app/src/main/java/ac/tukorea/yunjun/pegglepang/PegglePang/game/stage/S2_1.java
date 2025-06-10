@@ -74,6 +74,7 @@ public class S2_1 extends BaseStageScene {
         player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight, playerStats);
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
+        blockGrid.setStageInfo(2, 1);
         isPuzzleFrozen = false;
 
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
