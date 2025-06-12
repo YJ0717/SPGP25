@@ -17,6 +17,10 @@ public class PlayerStats {
     private boolean isAlive = true;
     private boolean isGameOver = false;
 
+    private int roguePhysicalBuff = 0;
+    private int rogueMagicBuff = 0;
+    private int rogueHealBuff = 0;
+
     public PlayerStats() {
         physicalAttack = 0;
         magicAttack = 0;
@@ -71,11 +75,11 @@ public class PlayerStats {
         textPaint.setTextAlign(Paint.Align.RIGHT);
         
         textPaint.setColor(0xFFFFEB3B); // 노란색
-        canvas.drawText("물리공격력: " + physicalAttack, rightMargin, startY, textPaint);
+        canvas.drawText("물리공격력: " + getPhysicalAttack(), rightMargin, startY, textPaint);
         textPaint.setColor(0xFF9C27B0); // 보라색
-        canvas.drawText("마법공격력: " + magicAttack, rightMargin, startY + lineHeight, textPaint);
+        canvas.drawText("마법공격력: " + getMagicAttack(), rightMargin, startY + lineHeight, textPaint);
         textPaint.setColor(0xFF4CAF50); // 초록색
-        canvas.drawText("힐: " + healing, rightMargin, startY + lineHeight * 2, textPaint);
+        canvas.drawText("힐: " + getHealing(), rightMargin, startY + lineHeight * 2, textPaint);
         textPaint.setColor(0xFFF44336); // 빨간색
         canvas.drawText("Time: " + getRemainingSeconds() + "초", rightMargin, startY + lineHeight * 3, textPaint);
     }
@@ -120,15 +124,15 @@ public class PlayerStats {
     }
 
     public int getPhysicalAttack() {
-        return physicalAttack;
+        return physicalAttack + roguePhysicalBuff;
     }
 
     public int getMagicAttack() {
-        return magicAttack;
+        return magicAttack + rogueMagicBuff;
     }
 
     public int getHealing() {
-        return healing;
+        return healing + rogueHealBuff;
     }
 
     public void resetStatsAndTimer() {
@@ -137,5 +141,17 @@ public class PlayerStats {
         healing = 0;
         gameStartTime = System.currentTimeMillis();
         isGameOver = false;
+    }
+
+    public void applyRoguePhysicalBuff(int amount) {
+        this.roguePhysicalBuff = amount;
+    }
+
+    public void applyRogueMagicBuff(int amount) {
+        this.rogueMagicBuff = amount;
+    }
+
+    public void applyRogueHealBuff(int amount) {
+        this.rogueHealBuff = amount;
     }
 } 

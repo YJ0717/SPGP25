@@ -10,6 +10,8 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 
 public class RoguelikeChoiceScene {
     private static RoguelikeChoiceScene instance;
@@ -21,6 +23,7 @@ public class RoguelikeChoiceScene {
     private OnRoguelikeDoneListener listener;
     private Context context;
     private Step step = Step.ATTACK;
+    private PlayerStats playerStats;
 
     private enum Step { ATTACK, PUZZLE, DONE }
 
@@ -30,8 +33,8 @@ public class RoguelikeChoiceScene {
 
     private RoguelikeChoiceScene(Context context) {
         this.context = context;
-        attackBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.attack_rogue);
-        puzzleBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue);
+        this.attackBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.attack_rogue);
+        this.puzzleBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue);
         float centerX = Metrics.width / 2f;
         float centerY = Metrics.height / 2f;
         float cardW = 820f;
@@ -41,6 +44,7 @@ public class RoguelikeChoiceScene {
         borderPaint.setColor(Color.YELLOW);
         borderPaint.setStyle(Paint.Style.STROKE);
         borderPaint.setStrokeWidth(8f);
+        this.playerStats = StageManager.getPlayerStats();
     }
 
     public static RoguelikeChoiceScene getInstance(Context context) {
@@ -81,11 +85,37 @@ public class RoguelikeChoiceScene {
             float x = pt[0], y = pt[1];
             if (cardRect.contains(x, y)) {
                 if (step == Step.ATTACK) {
-                    // TODO: 전투 로그라이크 효과 적용
+                    // 전투 로그라이크 효과 적용
+                    float selectX = x - cardRect.left;
+                    float selectWidth = cardRect.width() / 3;
+                    
+                    if (selectX < selectWidth) {
+                        // 물리 공격력 +10
+                        playerStats.applyRoguePhysicalBuff(10);
+                    } else if (selectX < selectWidth * 2) {
+                        // 마법 공격력 +8
+                        playerStats.applyRogueMagicBuff(8);
+                    } else {
+                        // 힐링 +5
+                        playerStats.applyRogueHealBuff(5);
+                    }
                     step = Step.PUZZLE;
                     return true;
                 } else if (step == Step.PUZZLE) {
-                    // TODO: 퍼즐 로그라이크 효과 적용
+                    // 퍼즐 로그라이크 효과 적용
+                    float selectX = x - cardRect.left;
+                    float selectWidth = cardRect.width() / 3;
+                    
+                    if (selectX < selectWidth) {
+                        // 물리 공격력 추가 +10
+                        playerStats.applyRoguePhysicalBuff(playerStats.getPhysicalAttack() + 10);
+                    } else if (selectX < selectWidth * 2) {
+                        // 마법 공격력 추가 +8
+                        playerStats.applyRogueMagicBuff(playerStats.getMagicAttack() + 8);
+                    } else {
+                        // 힐링 추가 +5
+                        playerStats.applyRogueHealBuff(playerStats.getHealing() + 5);
+                    }
                     step = Step.DONE;
                     hide();
                     if (listener != null) listener.onRoguelikeDone();
