@@ -292,6 +292,7 @@ public class S1_2 extends BaseStageScene {
 
     @Override
     public void draw(Canvas canvas) {
+        canvas.drawColor(Color.BLACK); // 전체 화면을 검은색으로 채움
         float puzzleStart = Metrics.height * 0.45f;
         float playerInfoStart = Metrics.height * 0.30f;
         

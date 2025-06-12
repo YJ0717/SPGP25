@@ -116,6 +116,8 @@ public class S1_1 extends BaseStageScene {
 
     private boolean isStageClearShown = false;
 
+    private Bitmap stateBgBlack = null;
+
     public S1_1(Context context) {
         super(context, 1, 1);
         
@@ -150,6 +152,26 @@ public class S1_1 extends BaseStageScene {
         skeleton = new Stage1Monster(context, R.mipmap.skeleton_idle, 3, skeletonLeft, skeletonTop, skeletonDrawWidth, skeletonDrawHeight);
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
+        // 흰색~밝은색을 검은색으로 변환한 비트맵 생성
+        if (stateBg != null) {
+            stateBgBlack = stateBg.copy(Bitmap.Config.ARGB_8888, true);
+            int width = stateBgBlack.getWidth();
+            int height = stateBgBlack.getHeight();
+            int[] pixels = new int[width * height];
+            stateBgBlack.getPixels(pixels, 0, width, 0, 0, width, height);
+            for (int i = 0; i < pixels.length; i++) {
+                int color = pixels[i];
+                int alpha = (color >> 24) & 0xff;
+                int red = (color >> 16) & 0xff;
+                int green = (color >> 8) & 0xff;
+                int blue = color & 0xff;
+                // 밝은 색(흰색~밝은 회색)도 검은색으로 변경
+                if (alpha > 0 && red >= 200 && green >= 200 && blue >= 200) {
+                    pixels[i] = (alpha << 24) | (0 << 16) | (0 << 8) | 0;
+                }
+            }
+            stateBgBlack.setPixels(pixels, 0, width, 0, 0, width, height);
+        }
 
         battleSystem = new BattleSystem(playerStats, new BattleSystem.BattleCallback() {
             @Override
@@ -540,34 +562,32 @@ public class S1_1 extends BaseStageScene {
 
     @Override
     public void draw(Canvas canvas) {
+        canvas.drawColor(Color.BLACK); // 전체 화면을 검은색으로 채움
         float puzzleStart = Metrics.height * 0.45f;
         float playerInfoStart = Metrics.height * 0.30f;
-        // 전투영역 배경 그리기 (상단 30%)
+        float puzzleAreaHeight = Metrics.height - puzzleStart;
+        float puzzleSize = Math.min(Metrics.width, puzzleAreaHeight);
+        puzzleLeft = (Metrics.width - puzzleSize) / 2;
+        puzzleTop = puzzleStart;
+        gridRect.set(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
+        // 상단(전투), 중단(플레이어 정보) 영역 비트맵 먼저 그림
         if (battleBg != null) {
             RectF bgRect = new RectF(0, 0, Metrics.width, playerInfoStart);
             canvas.drawBitmap(battleBg, null, bgRect, null);
         }
-        // 플레이어 정보 영역 배경 그리기
         if (stateBg != null) {
             RectF stateRect = new RectF(0, playerInfoStart, Metrics.width, puzzleStart);
             canvas.drawBitmap(stateBg, null, stateRect, null);
         }
-        // 퍼즐 영역(하단 55%) 배경도 state.png로 채우기
-        if (stateBg != null) {
-            RectF puzzleRect = new RectF(0, puzzleStart, Metrics.width, Metrics.height);
-            canvas.drawBitmap(stateBg, null, puzzleRect, null);
-        }
+        // 퍼즐 영역만 clip
+        canvas.save();
+        canvas.clipRect(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
+        canvas.drawColor(Color.BLACK); // 퍼즐 영역을 완전히 검은색으로 채움
+        canvas.drawBitmap(gridBitmap, null, gridRect, null);
+        canvas.restore();
+
         canvas.drawLine(0, puzzleStart, Metrics.width, puzzleStart, linePaint);
         canvas.drawLine(0, playerInfoStart, Metrics.width, playerInfoStart, linePaint);
-
-        float puzzleAreaHeight = Metrics.height - puzzleStart;
-        float puzzleSize = Math.min(Metrics.width, puzzleAreaHeight);
-        
-        puzzleLeft = (Metrics.width - puzzleSize) / 2;
-        puzzleTop = puzzleStart;
-        
-        gridRect.set(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
-        canvas.drawBitmap(gridBitmap, null, gridRect, null);
 
         blockSize = puzzleSize / BlockGrid.getGridSize();
         blockGrid.setGridMetrics(puzzleLeft, puzzleTop, puzzleSize);

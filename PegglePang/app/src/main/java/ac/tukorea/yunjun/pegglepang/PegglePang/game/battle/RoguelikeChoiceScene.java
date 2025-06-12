@@ -115,7 +115,6 @@ public class RoguelikeChoiceScene {
                         return true;
                     }
                 } else if (step == Step.PUZZLE) {
-                    // PUZZLE 단계에서는 능력치 증가 없이 창만 닫음
                     step = Step.DONE;
                     hide();
                     if (listener != null) listener.onRoguelikeDone();

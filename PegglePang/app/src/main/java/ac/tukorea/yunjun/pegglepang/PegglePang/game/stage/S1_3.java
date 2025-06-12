@@ -377,6 +377,7 @@ public class S1_3 extends BaseStageScene {
 
     @Override
     public void draw(Canvas canvas) {
+        canvas.drawColor(Color.BLACK);
         float puzzleStart = Metrics.height * 0.45f;
         float playerInfoStart = Metrics.height * 0.30f;
         
