@@ -76,6 +76,18 @@ public class RoguelikeChoiceScene {
         } else if (step == Step.PUZZLE) {
             canvas.drawBitmap(puzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         }
+        // 디버깅용: 각 아이콘 클릭 영역 빨간색 테두리로 표시
+        float iconWidth = cardRect.width() / 3f;
+        RectF physicalRect = new RectF(cardRect.left, cardRect.top, cardRect.left + iconWidth, cardRect.bottom);
+        RectF magicRect = new RectF(cardRect.left + iconWidth, cardRect.top, cardRect.left + iconWidth * 2, cardRect.bottom);
+        RectF healRect = new RectF(cardRect.left + iconWidth * 2, cardRect.top, cardRect.right, cardRect.bottom);
+        Paint debugPaint = new Paint();
+        debugPaint.setColor(Color.RED);
+        debugPaint.setStyle(Paint.Style.STROKE);
+        debugPaint.setStrokeWidth(6f);
+        canvas.drawRect(physicalRect, debugPaint);
+        canvas.drawRect(magicRect, debugPaint);
+        canvas.drawRect(healRect, debugPaint);
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -84,38 +96,26 @@ public class RoguelikeChoiceScene {
             float[] pt = Metrics.fromScreen(event.getX(), event.getY());
             float x = pt[0], y = pt[1];
             if (cardRect.contains(x, y)) {
+                float iconWidth = cardRect.width() / 3f;
+                RectF physicalRect = new RectF(cardRect.left, cardRect.top, cardRect.left + iconWidth, cardRect.bottom);
+                RectF magicRect = new RectF(cardRect.left + iconWidth, cardRect.top, cardRect.left + iconWidth * 2, cardRect.bottom);
+                RectF healRect = new RectF(cardRect.left + iconWidth * 2, cardRect.top, cardRect.right, cardRect.bottom);
                 if (step == Step.ATTACK) {
-                    // 전투 로그라이크 효과 적용
-                    float selectX = x - cardRect.left;
-                    float selectWidth = cardRect.width() / 3;
-                    
-                    if (selectX < selectWidth) {
-                        // 물리 공격력 +10
+                    if (physicalRect.contains(x, y)) {
                         playerStats.applyRoguePhysicalBuff(10);
-                    } else if (selectX < selectWidth * 2) {
-                        // 마법 공격력 +8
+                        step = Step.PUZZLE;
+                        return true;
+                    } else if (magicRect.contains(x, y)) {
                         playerStats.applyRogueMagicBuff(8);
-                    } else {
-                        // 힐링 +5
+                        step = Step.PUZZLE;
+                        return true;
+                    } else if (healRect.contains(x, y)) {
                         playerStats.applyRogueHealBuff(5);
+                        step = Step.PUZZLE;
+                        return true;
                     }
-                    step = Step.PUZZLE;
-                    return true;
                 } else if (step == Step.PUZZLE) {
-                    // 퍼즐 로그라이크 효과 적용
-                    float selectX = x - cardRect.left;
-                    float selectWidth = cardRect.width() / 3;
-                    
-                    if (selectX < selectWidth) {
-                        // 물리 공격력 추가 +10
-                        playerStats.applyRoguePhysicalBuff(playerStats.getPhysicalAttack() + 10);
-                    } else if (selectX < selectWidth * 2) {
-                        // 마법 공격력 추가 +8
-                        playerStats.applyRogueMagicBuff(playerStats.getMagicAttack() + 8);
-                    } else {
-                        // 힐링 추가 +5
-                        playerStats.applyRogueHealBuff(playerStats.getHealing() + 5);
-                    }
+                    // PUZZLE 단계에서는 능력치 증가 없이 창만 닫음
                     step = Step.DONE;
                     hide();
                     if (listener != null) listener.onRoguelikeDone();
