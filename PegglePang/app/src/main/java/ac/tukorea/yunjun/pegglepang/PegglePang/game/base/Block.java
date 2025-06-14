@@ -12,12 +12,15 @@ public class Block {
     public static final int MAGIC = 1;  
     public static final int SWORD = 2;
     public static final int ROCK = 3;
+    public static final int BOMB = 4;
     
     private int type;           
     private RectF rect;        
     private Bitmap bitmap;
     private Bitmap rockBitmap;
+    private Bitmap bombBitmap;
     private boolean isRock = false;
+    private boolean isBomb = false;
     
     private float currentX, currentY;    
     private float targetX, targetY;      
@@ -39,12 +42,25 @@ public class Block {
         this.rockBitmap = rockBitmap;
     }
 
+    public void setBombBitmap(Bitmap bombBitmap) {
+        this.bombBitmap = bombBitmap;
+    }
+
     public void convertToRock() {
         this.isRock = true;
     }
 
+    public void convertToBomb() {
+        this.isBomb = true;
+        this.type = BOMB;
+    }
+
     public boolean isRock() {
         return isRock;
+    }
+
+    public boolean isBomb() {
+        return isBomb;
     }
 
     public void setGridPosition(int row, int col) {
@@ -121,7 +137,9 @@ public class Block {
     }
     
     public void draw(Canvas canvas) {
-        if (isRock && rockBitmap != null) {
+        if (isBomb && bombBitmap != null) {
+            canvas.drawBitmap(bombBitmap, null, rect, null);
+        } else if (isRock && rockBitmap != null) {
             canvas.drawBitmap(rockBitmap, null, rect, null);
         } else if (bitmap != null) {
             canvas.drawBitmap(bitmap, null, rect, null);

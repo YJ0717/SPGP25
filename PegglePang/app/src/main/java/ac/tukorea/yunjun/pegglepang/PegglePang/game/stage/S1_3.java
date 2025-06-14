@@ -241,7 +241,20 @@ public class S1_3 extends BaseStageScene {
                                 isRoguelikeChoiceShown = true;
                                 RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
                                     @Override
-                                    public void onRoguelikeDone() {
+                                    public void onRoguelikeDone(int puzzleChoice) {
+                                        // 퍼즐 로그라이크 선택 처리
+                                        switch(puzzleChoice) {
+                                            case 0: // 폭탄 선택
+                                                StageManager.enableBombBlocks();
+                                                blockGrid.enableBombBlocks();
+                                                break;
+                                            case 1: // 시간 연장 선택 (60초 -> 90초)
+                                                playerStats.extendPuzzleTime(30);
+                                                break;
+                                            case 2: // 무작위 블록 5개 터뜨리기
+                                                blockGrid.destroyRandomBlocks(5);
+                                                break;
+                                        }
                                         StageClearScene.getInstance(context).show(1, 3);
                                         isStageClearShown = true;
                                     }
@@ -299,7 +312,20 @@ public class S1_3 extends BaseStageScene {
                 isRoguelikeChoiceShown = true;
                 RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
                     @Override
-                    public void onRoguelikeDone() {
+                    public void onRoguelikeDone(int puzzleChoice) {
+                        // 퍼즐 로그라이크 선택 처리
+                        switch(puzzleChoice) {
+                            case 0: // 폭탄 선택
+                                StageManager.enableBombBlocks();
+                                blockGrid.enableBombBlocks();
+                                break;
+                            case 1: // 시간 연장 선택 (60초 -> 90초)
+                                playerStats.extendPuzzleTime(30);
+                                break;
+                            case 2: // 무작위 블록 5개 터뜨리기
+                                blockGrid.destroyRandomBlocks(5);
+                                break;
+                        }
                         StageClearScene.getInstance(context).show(1, 3);
                         isStageClearShown = true;
                     }
@@ -340,6 +366,13 @@ public class S1_3 extends BaseStageScene {
         if (row >= 0 && row < BlockGrid.getGridSize() && col >= 0 && col < BlockGrid.getGridSize()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:  
+                    // 폭탄 블록 클릭 확인
+                    if (blockGrid.getBlock(row, col) != null && blockGrid.getBlock(row, col).isBomb()) {
+                        if (blockGrid.handleBombClick(row, col)) {
+                            return true; // 폭탄이 터졌으므로 이벤트 처리 완료
+                        }
+                    }
+                    
                     touchStartX = x;
                     touchStartY = y;
                     selectedBlock = blockGrid.getBlock(row, col);

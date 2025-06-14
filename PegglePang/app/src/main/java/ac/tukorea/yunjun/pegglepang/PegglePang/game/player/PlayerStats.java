@@ -10,7 +10,8 @@ public class PlayerStats {
     private int healing;
     private Paint textPaint;
     private long gameStartTime;
-    private static final long GAME_DURATION = 5000;
+    private static final long GAME_DURATION = 5000; // 60초
+    private long extendedDuration = 0; // 로그라이크로 연장된 시간
 
     private int maxHp = 100;
     private int currentHp;
@@ -98,7 +99,7 @@ public class PlayerStats {
 
     public boolean isGameOver() {
         if (isGameOver) return true;
-        if (System.currentTimeMillis() - gameStartTime >= GAME_DURATION) {
+        if (System.currentTimeMillis() - gameStartTime >= GAME_DURATION + extendedDuration) {
             isGameOver = true;
             return true;
         }
@@ -107,7 +108,7 @@ public class PlayerStats {
 
     public int getRemainingSeconds() {
         long elapsed = System.currentTimeMillis() - gameStartTime;
-        return Math.max(0, (int)((GAME_DURATION - elapsed) / 1000));
+        return Math.max(0, (int)((GAME_DURATION + extendedDuration - elapsed) / 1000));
     }
 
     public void reset() {
@@ -153,5 +154,10 @@ public class PlayerStats {
 
     public void applyRogueHealBuff(int amount) {
         this.rogueHealBuff = amount;
+    }
+
+    // 퍼즐 로그라이크 기능들
+    public void extendPuzzleTime(int seconds) {
+        this.extendedDuration = seconds * 1000; // 밀리초로 변환
     }
 } 

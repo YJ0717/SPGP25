@@ -74,7 +74,12 @@ public class S2_1 extends BaseStageScene {
         player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight, playerStats);
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
-        blockGrid.setStageInfo(2, 1);
+        blockGrid.setStageInfo(2, 1); // 스테이지 2-1 정보 설정
+        
+        // 전역 설정에서 폭탄 블록이 활성화되어 있으면 적용
+        if (StageManager.isBombBlocksEnabled()) {
+            blockGrid.enableBombBlocks();
+        }
         isPuzzleFrozen = false;
 
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
@@ -114,6 +119,7 @@ public class S2_1 extends BaseStageScene {
 
     @Override
     protected void setupStageSpecificElements() {
+        // 스테이지별 특별한 설정이 필요한 경우 여기에 추가
     }
 
     @Override
@@ -249,6 +255,13 @@ public class S2_1 extends BaseStageScene {
         if (row >= 0 && row < BlockGrid.getGridSize() && col >= 0 && col < BlockGrid.getGridSize()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:  
+                    // 폭탄 블록 클릭 확인
+                    if (blockGrid.getBlock(row, col) != null && blockGrid.getBlock(row, col).isBomb()) {
+                        if (blockGrid.handleBombClick(row, col)) {
+                            return true; // 폭탄이 터졌으므로 이벤트 처리 완료
+                        }
+                    }
+                    
                     touchStartX = x;
                     touchStartY = y;
                     selectedBlock = blockGrid.getBlock(row, col);
@@ -348,16 +361,18 @@ public class S2_1 extends BaseStageScene {
     @Override
     public void onEnter() {
         super.onEnter();
-        if (StageManager.getInstance().isStageUnlocked(2, 2)) {
+        if (StageManager.getInstance().isStageCleared(2, 1)) {
+            // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
             StageClearScene.getInstance(context).show(2, 1);
             isStageClearShown = true;
             
+            // Back 버튼 비활성화
             if (context instanceof PegglePangActivity) {
                 PegglePangActivity activity = (PegglePangActivity) context;
                 TextView backText = activity.findViewById(R.id.back_text);
                 if (backText != null) {
                     backText.setEnabled(false);
-                    backText.setAlpha(0.5f);
+                    backText.setAlpha(0.5f); // 반투명하게 표시
                 }
             }
         }
@@ -366,6 +381,7 @@ public class S2_1 extends BaseStageScene {
     @Override
     public void onExit() {
         super.onExit();
+        // Back 버튼 다시 활성화
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             TextView backText = activity.findViewById(R.id.back_text);

@@ -17,6 +17,7 @@ public class BlockGrid {
     private Block[][] blocks;
     private Bitmap[] blockBitmaps;
     private Bitmap rockBitmap;
+    private Bitmap bombBitmap;
     private Random random;
     private float puzzleLeft, puzzleTop, blockSize;
     private PlayerStats playerStats;
@@ -25,6 +26,9 @@ public class BlockGrid {
     private int currentStage = 1;
     private int currentSubStage = 1;
     private int rockBottomRow = GRID_SIZE; // 가장 아래 rock이 있는 행 (6부터 시작)
+    
+    // 퍼즐 로그라이크 관련
+    private boolean bombBlockEnabled = false;
 
     public void setPlayerStats(PlayerStats stats) {
         this.playerStats = stats;
@@ -33,6 +37,14 @@ public class BlockGrid {
     public void setStageInfo(int stage, int subStage) {
         this.currentStage = stage;
         this.currentSubStage = subStage;
+    }
+
+    public void enableBombBlocks() {
+        this.bombBlockEnabled = true;
+    }
+
+    public void disableBombBlocks() {
+        this.bombBlockEnabled = false;
     }
 
     public BlockGrid(Context context) {
@@ -45,6 +57,7 @@ public class BlockGrid {
         blockBitmaps[Block.MAGIC] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magic_block);
         blockBitmaps[Block.SWORD] = BitmapFactory.decodeResource(context.getResources(), R.mipmap.sword_block);
         rockBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.rock);
+        bombBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.bomb);
         
         initializeBlocks();
     }
@@ -127,7 +140,9 @@ public class BlockGrid {
     public boolean hasChainMatches() {
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE - 2; col++) {
-                if (blocks[row][col] != null && blocks[row][col + 1] != null && blocks[row][col + 2] != null) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && !blocks[row][col].isBomb() && 
+                    blocks[row][col + 1] != null && !blocks[row][col + 1].isRock() && !blocks[row][col + 1].isBomb() && 
+                    blocks[row][col + 2] != null && !blocks[row][col + 2].isRock() && !blocks[row][col + 2].isBomb()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row][col + 1].getType() == type && blocks[row][col + 2].getType() == type) {
                         return true;
@@ -138,7 +153,9 @@ public class BlockGrid {
         
         for (int col = 0; col < GRID_SIZE; col++) {
             for (int row = 0; row < GRID_SIZE - 2; row++) {
-                if (blocks[row][col] != null && blocks[row + 1][col] != null && blocks[row + 2][col] != null) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && !blocks[row][col].isBomb() && 
+                    blocks[row + 1][col] != null && !blocks[row + 1][col].isRock() && !blocks[row + 1][col].isBomb() && 
+                    blocks[row + 2][col] != null && !blocks[row + 2][col].isRock() && !blocks[row + 2][col].isBomb()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row + 1][col].getType() == type && blocks[row + 2][col].getType() == type) {
                         return true;
@@ -172,9 +189,9 @@ public class BlockGrid {
     }
 
     public void swapBlocks(int row1, int col1, int row2, int col2) {
-        // rock 블록은 스왑할 수 없음
-        if ((blocks[row1][col1] != null && blocks[row1][col1].isRock()) ||
-            (blocks[row2][col2] != null && blocks[row2][col2].isRock())) {
+        // rock 블록이나 bomb 블록은 스왑할 수 없음
+        if ((blocks[row1][col1] != null && (blocks[row1][col1].isRock() || blocks[row1][col1].isBomb())) ||
+            (blocks[row2][col2] != null && (blocks[row2][col2].isRock() || blocks[row2][col2].isBomb()))) {
             return;
         }
 
@@ -241,7 +258,7 @@ public class BlockGrid {
     }
 
     private boolean checkMatch(int row, int col) {
-        if (blocks[row][col] == null || blocks[row][col].isRock()) return false;
+        if (blocks[row][col] == null || blocks[row][col].isRock() || blocks[row][col].isBomb()) return false;
         int type = blocks[row][col].getType();
 
         int horizontalCount = 1;
@@ -272,9 +289,9 @@ public class BlockGrid {
 
         for (int row = 0; row < GRID_SIZE; row++) {
             for (int col = 0; col < GRID_SIZE - 2; col++) {
-                if (blocks[row][col] != null && !blocks[row][col].isRock() && 
-                    blocks[row][col + 1] != null && !blocks[row][col + 1].isRock() && 
-                    blocks[row][col + 2] != null && !blocks[row][col + 2].isRock()) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && !blocks[row][col].isBomb() && 
+                    blocks[row][col + 1] != null && !blocks[row][col + 1].isRock() && !blocks[row][col + 1].isBomb() && 
+                    blocks[row][col + 2] != null && !blocks[row][col + 2].isRock() && !blocks[row][col + 2].isBomb()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row][col + 1].getType() == type && blocks[row][col + 2].getType() == type) {
                         int matchLength = 3;
@@ -300,9 +317,9 @@ public class BlockGrid {
 
         for (int col = 0; col < GRID_SIZE; col++) {
             for (int row = 0; row < GRID_SIZE - 2; row++) {
-                if (blocks[row][col] != null && !blocks[row][col].isRock() && 
-                    blocks[row + 1][col] != null && !blocks[row + 1][col].isRock() && 
-                    blocks[row + 2][col] != null && !blocks[row + 2][col].isRock()) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && !blocks[row][col].isBomb() && 
+                    blocks[row + 1][col] != null && !blocks[row + 1][col].isRock() && !blocks[row + 1][col].isBomb() && 
+                    blocks[row + 2][col] != null && !blocks[row + 2][col].isRock() && !blocks[row + 2][col].isBomb()) {
                     int type = blocks[row][col].getType();
                     if (blocks[row + 1][col].getType() == type && blocks[row + 2][col].getType() == type) {
                         int matchLength = 3;
@@ -340,7 +357,7 @@ public class BlockGrid {
             }
 
             dropBlocks();
-            fillNewBlocks();
+            fillNewBlocks(false); // 매치로 인한 생성이므로 폭탄 블록 생성 가능
 
             new Thread(() -> {
                 try {
@@ -406,6 +423,12 @@ public class BlockGrid {
     }
 
     private void fillNewBlocks() {
+        fillNewBlocks(false); // 기본적으로 일반 매치로 간주
+    }
+
+    private void fillNewBlocks(boolean isBombDestroy) {
+        ArrayList<int[]> newBlockPositions = new ArrayList<>();
+        
         for (int col = 0; col < GRID_SIZE; col++) {
             int emptyCount = 0;
             // 빈 공간 개수 세기 (원래 로직)
@@ -442,10 +465,38 @@ public class BlockGrid {
                     blocks[targetRow][col].setPosition(puzzleLeft + col * blockSize, startY, 
                                                      puzzleLeft + col * blockSize + blockSize, startY + blockSize);
                     blocks[targetRow][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+                    
+                    // 새로 생성된 블록 위치 저장
+                    newBlockPositions.add(new int[]{targetRow, col});
                 }
             }
         }
+        
+        // 매치로 인한 생성이고 폭탄 블록이 활성화된 경우, 새로 생성된 블록 중 하나를 폭탄 블록으로 변경
+        if (!isBombDestroy && bombBlockEnabled && currentStage >= 2 && currentSubStage >= 1 && 
+            !newBlockPositions.isEmpty() && random.nextInt(100) < 10) {
+            
+            int randomIndex = random.nextInt(newBlockPositions.size());
+            int[] pos = newBlockPositions.get(randomIndex);
+            int row = pos[0];
+            int col = pos[1];
+            
+            // 기존 블록을 폭탄 블록으로 변경
+            blocks[row][col] = new Block(Block.BOMB, blockBitmaps[0]); // 임시 비트맵
+            blocks[row][col].setBombBitmap(bombBitmap);
+            blocks[row][col].convertToBomb();
+            blocks[row][col].setGridPosition(row, col);
+            
+            // 위치와 애니메이션 설정 (기존 애니메이션 유지)
+            float startY = puzzleTop - (newBlockPositions.size() - randomIndex) * blockSize;
+            float targetY = puzzleTop + row * blockSize;
+            blocks[row][col].setPosition(puzzleLeft + col * blockSize, startY, 
+                                       puzzleLeft + col * blockSize + blockSize, startY + blockSize);
+            blocks[row][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+        }
     }
+
+
 
     public void update(float deltaTime) {
         for (int row = 0; row < GRID_SIZE; row++) {
@@ -485,5 +536,84 @@ public class BlockGrid {
     public void reset() {
         playerStats.reset();
         initializeBlocks();
+    }
+
+    // 폭탄 블록 클릭 시 해당 행과 열의 모든 블록 제거
+    public boolean handleBombClick(int row, int col) {
+        if (blocks[row][col] != null && blocks[row][col].isBomb()) {
+            int swordCount = 0;
+            int magicCount = 0;
+            int healCount = 0;
+            
+            // 같은 행의 모든 블록 제거하면서 스텟 계산
+            for (int c = 0; c < GRID_SIZE; c++) {
+                if (blocks[row][c] != null && !blocks[row][c].isRock() && !blocks[row][c].isBomb()) {
+                    int type = blocks[row][c].getType();
+                    switch(type) {
+                        case Block.SWORD: swordCount++; break;
+                        case Block.MAGIC: magicCount++; break;
+                        case Block.HEAL: healCount++; break;
+                    }
+                }
+                if (blocks[row][c] != null) {
+                    blocks[row][c] = null;
+                }
+            }
+            
+            // 같은 열의 모든 블록 제거하면서 스텟 계산 (중복 제거를 위해 폭탄 위치 제외)
+            for (int r = 0; r < GRID_SIZE; r++) {
+                if (r != row && blocks[r][col] != null && !blocks[r][col].isRock() && !blocks[r][col].isBomb()) {
+                    int type = blocks[r][col].getType();
+                    switch(type) {
+                        case Block.SWORD: swordCount++; break;
+                        case Block.MAGIC: magicCount++; break;
+                        case Block.HEAL: healCount++; break;
+                    }
+                }
+                if (r != row && blocks[r][col] != null) {
+                    blocks[r][col] = null;
+                }
+            }
+            
+            // 플레이어 스텟에 추가
+            if (playerStats != null) {
+                playerStats.addPhysicalAttack(swordCount);
+                playerStats.addMagicAttack(magicCount);
+                playerStats.addHealing(healCount);
+    
+            }
+            
+            // 블록들 떨어뜨리고 새로운 블록 생성 (폭탄으로 인한 생성이므로 새로운 폭탄 블록 생성 안함)
+            dropBlocks();
+            fillNewBlocks(true);
+            
+            return true; // 폭탄이 터졌음을 알림
+        }
+        return false; // 폭탄이 아니거나 없음
+    }
+
+    // 무작위 블록 5개 터뜨리기 (로그라이크 기능)
+    public void destroyRandomBlocks(int count) {
+        ArrayList<int[]> availableBlocks = new ArrayList<>();
+        
+        // 터뜨릴 수 있는 블록 찾기 (rock과 bomb 제외)
+        for (int row = 0; row < GRID_SIZE; row++) {
+            for (int col = 0; col < GRID_SIZE; col++) {
+                if (blocks[row][col] != null && !blocks[row][col].isRock() && !blocks[row][col].isBomb()) {
+                    availableBlocks.add(new int[]{row, col});
+                }
+            }
+        }
+        
+        // 무작위로 count개 선택해서 제거
+        for (int i = 0; i < Math.min(count, availableBlocks.size()); i++) {
+            int randomIndex = random.nextInt(availableBlocks.size());
+            int[] pos = availableBlocks.remove(randomIndex);
+            blocks[pos[0]][pos[1]] = null;
+        }
+        
+        // 블록들 떨어뜨리고 새로운 블록 생성 (로그라이크 기능이므로 폭탄 블록 생성 가능)
+        dropBlocks();
+        fillNewBlocks(false);
     }
 } 

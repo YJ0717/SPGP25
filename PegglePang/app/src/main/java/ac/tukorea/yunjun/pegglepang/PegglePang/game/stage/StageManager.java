@@ -12,6 +12,9 @@ public class StageManager {
     private Map<String, StageData> stageDataMap;
     private static PlayerStats playerStats = new PlayerStats();
     private boolean world2Unlocked = false;
+    
+    // 퍼즐 로그라이크 설정
+    private static boolean bombBlocksEnabled = false;
 
     private StageManager() {
         stageDataMap = new HashMap<>();
@@ -86,6 +89,19 @@ public class StageManager {
 
     public boolean isWorldUnlocked(int worldNumber) {
         return worldNumber == 1 || (worldNumber == 2 && world2Unlocked);
+    }
+
+    // 퍼즐 로그라이크 관련 메소드들
+    public static void enableBombBlocks() {
+        bombBlocksEnabled = true;
+    }
+
+    public static boolean isBombBlocksEnabled() {
+        return bombBlocksEnabled;
+    }
+
+    public static void disableBombBlocks() {
+        bombBlocksEnabled = false;
     }
 
     private static class StageData {

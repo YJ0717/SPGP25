@@ -28,7 +28,7 @@ public class RoguelikeChoiceScene {
     private enum Step { ATTACK, PUZZLE, DONE }
 
     public interface OnRoguelikeDoneListener {
-        void onRoguelikeDone();
+        void onRoguelikeDone(int puzzleChoice); // puzzleChoice: 0=폭탄, 1=시간연장, 2=무작위블록
     }
 
     private RoguelikeChoiceScene(Context context) {
@@ -115,10 +115,25 @@ public class RoguelikeChoiceScene {
                         return true;
                     }
                 } else if (step == Step.PUZZLE) {
-                    step = Step.DONE;
-                    hide();
-                    if (listener != null) listener.onRoguelikeDone();
-                    return true;
+                    if (physicalRect.contains(x, y)) {
+                        // 폭탄 선택 - 폭탄 블록 활성화
+                        step = Step.DONE;
+                        hide();
+                        if (listener != null) listener.onRoguelikeDone(0);
+                        return true;
+                    } else if (magicRect.contains(x, y)) {
+                        // 모래시계 선택 - 퍼즐 시간 연장
+                        step = Step.DONE;
+                        hide();
+                        if (listener != null) listener.onRoguelikeDone(1);
+                        return true;
+                    } else if (healRect.contains(x, y)) {
+                        // 주머니 선택 - 무작위 블록 5개 터뜨리기
+                        step = Step.DONE;
+                        hide();
+                        if (listener != null) listener.onRoguelikeDone(2);
+                        return true;
+                    }
                 }
             }
         }
