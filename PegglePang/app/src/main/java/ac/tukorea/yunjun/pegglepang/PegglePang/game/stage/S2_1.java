@@ -249,6 +249,16 @@ public class S2_1 extends BaseStageScene {
         float x = touchPoint[0];
         float y = touchPoint[1];
         
+        // 주머니 아이템 클릭 확인
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float playerInfoStart = Metrics.height * 0.30f;
+            float puzzleStart = Metrics.height * 0.45f;
+            if (playerStats.isPocketClicked(x, y, Metrics.width, playerInfoStart, puzzleStart)) {
+                blockGrid.destroyRandomBlocks(5);
+                return true;
+            }
+        }
+        
         int col = (int)((x - puzzleLeft) / blockSize);
         int row = (int)((y - puzzleTop) / blockSize);
         

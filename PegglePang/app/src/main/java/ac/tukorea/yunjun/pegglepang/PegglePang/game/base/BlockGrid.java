@@ -605,11 +605,31 @@ public class BlockGrid {
             }
         }
         
-        // 무작위로 count개 선택해서 제거
+        int swordCount = 0;
+        int magicCount = 0;
+        int healCount = 0;
+        
+        // 무작위로 count개 선택해서 제거하면서 스텟 계산
         for (int i = 0; i < Math.min(count, availableBlocks.size()); i++) {
             int randomIndex = random.nextInt(availableBlocks.size());
             int[] pos = availableBlocks.remove(randomIndex);
+            
+            // 터트리기 전에 블록 타입 확인하여 스텟 계산
+            int type = blocks[pos[0]][pos[1]].getType();
+            switch(type) {
+                case Block.SWORD: swordCount++; break;
+                case Block.MAGIC: magicCount++; break;
+                case Block.HEAL: healCount++; break;
+            }
+            
             blocks[pos[0]][pos[1]] = null;
+        }
+        
+        // 플레이어 스텟에 추가
+        if (playerStats != null) {
+            playerStats.addPhysicalAttack(swordCount);
+            playerStats.addMagicAttack(magicCount);
+            playerStats.addHealing(healCount);
         }
         
         // 블록들 떨어뜨리고 새로운 블록 생성 (로그라이크 기능이므로 폭탄 블록 생성 가능)

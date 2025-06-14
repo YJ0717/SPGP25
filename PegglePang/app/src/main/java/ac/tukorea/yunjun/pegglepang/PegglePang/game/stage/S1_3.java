@@ -319,11 +319,18 @@ public class S1_3 extends BaseStageScene {
                                 StageManager.enableBombBlocks();
                                 blockGrid.enableBombBlocks();
                                 break;
-                            case 1: // 시간 연장 선택 (60초 -> 90초)
+                            case 1: // 시간 연장 선택 (5초 -> 35초)
                                 playerStats.extendPuzzleTime(30);
+                                // 모래시계 비트맵 설정
+                                Bitmap hourglassBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.time);
+                                playerStats.setHourglassBitmap(hourglassBitmap);
                                 break;
-                            case 2: // 무작위 블록 5개 터뜨리기
+                            case 2: // 무작위 블록 5개 터뜨리기 (주머니 아이템)
                                 blockGrid.destroyRandomBlocks(5);
+                                // 주머니 아이템 활성화
+                                playerStats.activatePocketItem();
+                                Bitmap pocketBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.pocket);
+                                playerStats.setPocketBitmap(pocketBitmap);
                                 break;
                         }
                         StageClearScene.getInstance(context).show(1, 3);
@@ -359,6 +366,16 @@ public class S1_3 extends BaseStageScene {
         float[] touchPoint = Metrics.fromScreen(event.getX(), event.getY());
         float x = touchPoint[0];
         float y = touchPoint[1];
+        
+        // 주머니 아이템 클릭 확인
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float playerInfoStart = Metrics.height * 0.30f;
+            float puzzleStart = Metrics.height * 0.45f;
+            if (playerStats.isPocketClicked(x, y, Metrics.width, playerInfoStart, puzzleStart)) {
+                blockGrid.destroyRandomBlocks(5);
+                return true;
+            }
+        }
         
         int col = (int)((x - puzzleLeft) / blockSize);
         int row = (int)((y - puzzleTop) / blockSize);
