@@ -10,6 +10,7 @@ import android.content.Context;
 import android.view.MotionEvent;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
@@ -68,6 +69,7 @@ public class S1_3 extends BaseStageScene {
     private float deltaTime = 0f;
 
     private float puzzleTransitionTimer = 0f;
+    private DamageText damageText;
 
     public S1_3(Context context) {
         super(context, 1, 3);
@@ -127,6 +129,8 @@ public class S1_3 extends BaseStageScene {
         }
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
+        
+        damageText = new DamageText(context);
     }
 
     @Override
@@ -142,6 +146,7 @@ public class S1_3 extends BaseStageScene {
         if (monster1 != null) {
             monster1.update(deltaTime);
         }
+        damageText.update(deltaTime);
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
             !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
@@ -164,7 +169,9 @@ public class S1_3 extends BaseStageScene {
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword);
+                                    int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
+                                    monster1.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -180,7 +187,9 @@ public class S1_3 extends BaseStageScene {
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
-                                    monster1.startBlinking(lastMagic);
+                                    int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
+                                    monster1.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -195,7 +204,9 @@ public class S1_3 extends BaseStageScene {
                     } else {
                         player.playHeal(() -> {
                             if (monster1 != null && monster1.isAlive()) {
-                                monster1.startBlinking(lastSword);
+                                int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
+                                monster1.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);
@@ -286,7 +297,9 @@ public class S1_3 extends BaseStageScene {
                 
                 // 데미지 적용
                 if (monster1 != null && monster1.isAlive()) {
-                    playerStats.takeDamage(monster1.getAttackPower());
+                    float damage = monster1.getAttackPower();
+                    playerStats.takeDamage(damage);
+                    damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
                     isPlayerBlinkPhase = true;
                     playerBlinkTimer = 0f;
                     playerBlinkCount = 0;
@@ -480,6 +493,9 @@ public class S1_3 extends BaseStageScene {
         if (monster1 != null) {
             monster1.draw(canvas);
         }
+
+        // 데미지 텍스트 그리기 (몬스터 바로 다음에)
+        damageText.draw(canvas);
 
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
