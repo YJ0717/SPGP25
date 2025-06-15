@@ -90,6 +90,9 @@ public class StageClearScene {
             System.out.println("월드3 해금 완료");
         } else if (stage == 1 && subStage == 2) {
             StageManager.getInstance().unlockStage(1, 3);
+        } else if (stage == 3 && subStage == 1) {
+            // 3-1 클리어 시 3-2 해금
+            StageManager.getInstance().unlockStage(3, 2);
         } else {
             StageManager.getInstance().unlockStage(stage, subStage + 1);
         }
@@ -162,6 +165,13 @@ public class StageClearScene {
                     } else if (currentStage == 2 && currentSubStage == 3) {
                         // 2-3 클리어 후 3-1로
                         Scene nextStage = StageFactory.createStage(context, 3, 1);
+                        if (nextStage != null) {
+                            activity.setContentView(R.layout.game_scene);
+                            activity.getGameView().changeScene(nextStage);
+                        }
+                    } else if (currentStage == 3 && currentSubStage == 1) {
+                        // 3-1 클리어 후 3-2로
+                        Scene nextStage = StageFactory.createStage(context, 3, 2);
                         if (nextStage != null) {
                             activity.setContentView(R.layout.game_scene);
                             activity.getGameView().changeScene(nextStage);

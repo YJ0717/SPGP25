@@ -88,6 +88,13 @@ public class Stage2Monster {
             this.dieFrameCount = 3; // 고스트 죽음은 3프레임
             this.canCauseFear = true; // 고스트는 공포 효과 가능
         }
+        // insect인 경우
+        else if (resId == R.mipmap.insect_idle) {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.insect_attack);
+            this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
+            this.attackFrameCount = 7; // insect 공격은 7프레임
+            this.dieFrameCount = 6; // magicman 죽음 애니메이션 사용
+        }
         // magicDamageThreshold가 0보다 크면 magicman (S1_2), 0이면 axeman (S2_1)
         else if (magicDamageThreshold > 0) {
             this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);

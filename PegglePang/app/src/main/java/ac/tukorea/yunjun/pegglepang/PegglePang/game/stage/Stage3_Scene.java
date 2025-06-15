@@ -23,6 +23,8 @@ public class Stage3_Scene extends Scene {
     private void setupStageButtons() {
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
+            
+            // 3-1 버튼 설정
             Button stage3_1Button = activity.findViewById(R.id.stage3_1_button);
             if (stage3_1Button != null) {
                 boolean isUnlocked = StageManager.getInstance().isStageUnlocked(3, 1);
@@ -30,6 +32,18 @@ public class Stage3_Scene extends Scene {
                 stage3_1Button.setOnClickListener(v -> {
                     activity.setContentView(R.layout.game_scene);
                     S3_1 stage = new S3_1(context);
+                    activity.getGameView().changeScene(stage);
+                });
+            }
+            
+            // 3-2 버튼 설정
+            Button stage3_2Button = activity.findViewById(R.id.stage3_2_button);
+            if (stage3_2Button != null) {
+                boolean isUnlocked = StageManager.getInstance().isStageUnlocked(3, 2);
+                stage3_2Button.setEnabled(isUnlocked);
+                stage3_2Button.setOnClickListener(v -> {
+                    activity.setContentView(R.layout.game_scene);
+                    S3_2 stage = new S3_2(context);
                     activity.getGameView().changeScene(stage);
                 });
             }
