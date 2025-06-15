@@ -4,6 +4,8 @@
 package ac.tukorea.yunjun.pegglepang.PegglePang.app;
 
 import android.os.Bundle;
+import android.view.View;
+import android.view.WindowManager;
 import androidx.appcompat.app.AppCompatActivity;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
@@ -18,6 +20,10 @@ public class PegglePangActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // 전체화면 모드 설정 (네비게이션 바, 상태바 숨기기)
+        enableFullScreenMode();
+        
         setContentView(R.layout.world_select);
 
         gameView = findViewById(R.id.game_view);
@@ -59,6 +65,8 @@ public class PegglePangActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // 전체화면 모드 재설정 (앱 전환 후 복귀 시)
+        enableFullScreenMode();
         // 앱이 다시 활성화될 때 배경음악 재개
         BackgroundMusicManager.getInstance().resumeBackgroundMusic();
     }
@@ -77,5 +85,24 @@ public class PegglePangActivity extends AppCompatActivity {
         BackgroundMusicManager.getInstance().stopBackgroundMusic();
         // 효과음 매니저 해제
         SoundEffectManager.getInstance().release();
+    }
+    
+    /**
+     * 전체화면 몰입형 모드 설정
+     * 네비게이션 바와 상태바를 숨기고 게임에 집중할 수 있도록 함
+     */
+    private void enableFullScreenMode() {
+        // 화면을 항상 켜둠
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        
+        // 몰입형 전체화면 모드 설정
+        View decorView = getWindow().getDecorView();
+        int uiOptions = View.SYSTEM_UI_FLAG_HIDE_NAVIGATION          // 네비게이션 바 숨기기
+                      | View.SYSTEM_UI_FLAG_FULLSCREEN               // 상태바 숨기기
+                      | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY         // 터치해도 바로 나타나지 않는 몰입 모드
+                      | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION   // 레이아웃이 네비게이션 바 영역까지 확장
+                      | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN        // 레이아웃이 상태바 영역까지 확장
+                      | View.SYSTEM_UI_FLAG_LAYOUT_STABLE;           // 레이아웃 안정성
+        decorView.setSystemUiVisibility(uiOptions);
     }
 }

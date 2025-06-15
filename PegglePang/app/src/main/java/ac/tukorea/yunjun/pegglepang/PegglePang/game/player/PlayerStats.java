@@ -14,7 +14,7 @@ public class PlayerStats {
     private int healing;
     private Paint textPaint;
     private long gameStartTime;
-    private static final long GAME_DURATION = 5000; // 60초
+    private static final long GAME_DURATION = 10000;
     private long extendedDuration = 0; // 로그라이크로 연장된 시간
 
     private int maxHp = 100;

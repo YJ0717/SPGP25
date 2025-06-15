@@ -160,6 +160,7 @@ public class S2_2 extends BaseStageScene {
             lastSword = playerStats.getPhysicalAttack();
             lastMagic = playerStats.getMagicAttack();
             lastHeal = playerStats.getHealing();
+            playerStats.resetTimerOnly(); // 폭탄 사용 후 타이머만 리셋
         }
 
         if (isBattlePhase) {

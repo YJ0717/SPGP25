@@ -103,6 +103,8 @@ public class S3_2 extends BaseStageScene {
             float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
             monster = new Stage2Monster(context, R.mipmap.insect_idle, 5, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 1f);
             monster.setMaxHp(30);
+            monster.setCanCauseBleeding(true);
+            monster.setBleedingChance(1.0f); // 100% 출혈 확률
         } else {
             monster = null;
         }
@@ -270,8 +272,8 @@ public class S3_2 extends BaseStageScene {
                         // 마비 상태 체크
                         if (monster.canAttack()) {
                             monster.attack(() -> {
-                                // 20% 확률로 출혈 효과 적용
-                                if (Math.random() < 0.2) {
+                                // 몬스터의 출혈 효과 체크 (100% 확률로 설정됨)
+                                if (monster.checkBleedingEffect()) {
                                     isBleedingActive = true;
                                     bleedingTimer = 0f;
                                     bleedingTickTimer = 0f;

@@ -92,18 +92,7 @@ public class RoguelikeChoiceScene {
             Bitmap currentPuzzleBitmap = useSecondImages ? puzzleBitmap2 : puzzleBitmap;
             canvas.drawBitmap(currentPuzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         }
-        // 디버깅용: 각 아이콘 클릭 영역 빨간색 테두리로 표시
-        float iconWidth = cardRect.width() / 3f;
-        RectF physicalRect = new RectF(cardRect.left, cardRect.top, cardRect.left + iconWidth, cardRect.bottom);
-        RectF magicRect = new RectF(cardRect.left + iconWidth, cardRect.top, cardRect.left + iconWidth * 2, cardRect.bottom);
-        RectF healRect = new RectF(cardRect.left + iconWidth * 2, cardRect.top, cardRect.right, cardRect.bottom);
-        Paint debugPaint = new Paint();
-        debugPaint.setColor(Color.RED);
-        debugPaint.setStyle(Paint.Style.STROKE);
-        debugPaint.setStrokeWidth(6f);
-        canvas.drawRect(physicalRect, debugPaint);
-        canvas.drawRect(magicRect, debugPaint);
-        canvas.drawRect(healRect, debugPaint);
+
     }
 
     public boolean onTouchEvent(MotionEvent event) {

@@ -58,6 +58,15 @@ public class S3_3 extends BaseStageScene {
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
     private DamageText damageText;
+    
+    // 출혈 효과 관련 (분신용)
+    private boolean isBleedingActive = false;
+    private float bleedingTimer = 0f;
+    private float bleedingTickTimer = 0f;
+    private static final float BLEEDING_DURATION = 10f; // 10초
+    private static final float BLEEDING_TICK_INTERVAL = 1f; // 1초마다
+    private static final int BLEEDING_DAMAGE = 1; // 1 데미지
+    private Paint bleedingTextPaint;
 
     public S3_3(Context context) {
         super(context, 3, 3);
@@ -96,6 +105,8 @@ public class S3_3 extends BaseStageScene {
             monster = new Stage2Monster(context, R.mipmap.demon_idle, 8, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
             monster.setMaxHp(40);
             monster.setAttackPower(20f);
+            monster.setCanCauseFear(true);
+            monster.setFearChance(1.0f); // 100% 공포 확률 (본체는 공포만)
         } else {
             monster = null;
         }
@@ -129,6 +140,14 @@ public class S3_3 extends BaseStageScene {
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
         
         damageText = new DamageText(context);
+        
+        // 출혈 텍스트 페인트 설정
+        bleedingTextPaint = new Paint();
+        bleedingTextPaint.setColor(Color.RED);
+        bleedingTextPaint.setTextSize(40f);
+        bleedingTextPaint.setTextAlign(Paint.Align.CENTER);
+        bleedingTextPaint.setAntiAlias(true);
+        
         setupStageSpecificElements();
     }
 
@@ -143,6 +162,30 @@ public class S3_3 extends BaseStageScene {
         
         if (isGameOver) {
             return;
+        }
+
+        // 출혈 효과 업데이트
+        if (isBleedingActive) {
+            bleedingTimer += 0.016f; // 대략 60fps 기준
+            bleedingTickTimer += 0.016f;
+            
+            // 1초마다 데미지
+            if (bleedingTickTimer >= BLEEDING_TICK_INTERVAL) {
+                bleedingTickTimer = 0f;
+                playerStats.takeDamage(BLEEDING_DAMAGE);
+                
+                // 출혈 데미지 텍스트 표시
+                float playerCenterX = player.getX() + player.getWidth() / 2;
+                float playerTopY = player.getY();
+                damageText.showDamage(BLEEDING_DAMAGE, playerCenterX, playerTopY - 50, true);
+            }
+            
+            // 10초 후 출혈 효과 종료
+            if (bleedingTimer >= BLEEDING_DURATION) {
+                isBleedingActive = false;
+                bleedingTimer = 0f;
+                bleedingTickTimer = 0f;
+            }
         }
 
         if (monster != null) {
@@ -286,13 +329,7 @@ public class S3_3 extends BaseStageScene {
                                 player.takeDamage(finalDamage);
                                 damageText.showDamage((int)finalDamage, player.getX() + player.getWidth()/2, player.getY(), true);
                                 
-                                // 출혈 효과 체크 (기본 demon 효과)
-                                if (monster.checkBleedingEffect()) {
-                                    // 출혈 효과 적용 (S3_2 스타일)
-                                    // TODO: 출혈 효과 구현 필요
-                                }
-                                
-                                // 공포 효과 체크 (분신 스킬 사용 후)
+                                // 본체는 공포 효과만
                                 if (monster.canCauseFear() && monster.checkFearEffect()) {
                                     playerStats.applyFear();
                                 }
@@ -313,10 +350,11 @@ public class S3_3 extends BaseStageScene {
                                         player.takeDamage(cloneFinalDamage);
                                         damageText.showDamage((int)cloneFinalDamage, player.getX() + player.getWidth()/2, player.getY(), true);
                                         
-                                        // 분신의 출혈 효과 체크 (S3_2 스타일)
+                                        // 분신의 출혈 효과 체크 (100% 확률)
                                         if (cloneMonster.checkBleedingEffect()) {
-                                            // 출혈 효과 적용
-                                            // TODO: 출혈 효과 구현 필요
+                                            isBleedingActive = true;
+                                            bleedingTimer = 0f;
+                                            bleedingTickTimer = 0f;
                                         }
                                         
                                         if (!player.isAlive()) {
@@ -454,6 +492,13 @@ public class S3_3 extends BaseStageScene {
         
         player.draw(canvas);
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
+        
+        // 출혈 텍스트 표시
+        if (isBleedingActive) {
+            float textX = player.getX() + player.getWidth() / 2;
+            float textY = player.getY() - 20;
+            canvas.drawText("출혈", textX, textY, bleedingTextPaint);
+        }
         
         damageText.draw(canvas);
 
@@ -637,6 +682,8 @@ public class S3_3 extends BaseStageScene {
         cloneMonster = new Stage2Monster(context, R.mipmap.demon_idle, 8, cloneLeft, cloneTop, cloneDrawWidth, cloneDrawHeight, 0f);
         cloneMonster.setMaxHp(monster.getCurrentHp()); // 본체와 동일한 HP
         cloneMonster.setAttackPower(monster.getAttackPower()); // 본체와 동일한 공격력
-        cloneMonster.setCanCauseBleeding(true); // 분신은 출혈 효과 (S3_2 스타일)
+        cloneMonster.setCanCauseBleeding(true);
+        cloneMonster.setBleedingChance(1.0f); // 100% 출혈 확률 (분신은 출혈만)
+        cloneMonster.setFlipped(true); // 분신은 가로대칭으로 표시
     }
 } 

@@ -303,6 +303,7 @@ public class BlockGrid {
                         int matchLength = 3;
                         while (col + matchLength < GRID_SIZE && blocks[row][col + matchLength] != null && 
                                !blocks[row][col + matchLength].isRock() &&
+                               !blocks[row][col + matchLength].isBomb() &&
                                blocks[row][col + matchLength].getType() == type) {
                             matchLength++;
                         }
@@ -331,6 +332,7 @@ public class BlockGrid {
                         int matchLength = 3;
                         while (row + matchLength < GRID_SIZE && blocks[row + matchLength][col] != null && 
                                !blocks[row + matchLength][col].isRock() &&
+                               !blocks[row + matchLength][col].isBomb() &&
                                blocks[row + matchLength][col].getType() == type) {
                             matchLength++;
                         }
@@ -365,7 +367,7 @@ public class BlockGrid {
 
             for (int row = 0; row < GRID_SIZE; row++) {
                 for (int col = 0; col < GRID_SIZE; col++) {
-                    if (toRemove[row][col] && !blocks[row][col].isRock()) {
+                    if (toRemove[row][col] && blocks[row][col] != null && !blocks[row][col].isRock()) {
                         blocks[row][col] = null;
                     }
                 }
@@ -390,7 +392,7 @@ public class BlockGrid {
                         if (hasMoreMatches) break;
                     }
                     if (hasMoreMatches) {
-                        processMatches();
+                        mainHandler.post(() -> processMatches());
                     }
                 } catch (InterruptedException e) {
                     e.printStackTrace();
@@ -489,12 +491,21 @@ public class BlockGrid {
         
         // 매치로 인한 생성이고 폭탄 블록이 활성화된 경우, 새로 생성된 블록 중 하나를 폭탄 블록으로 변경
         if (!isBombDestroy && bombBlockEnabled && currentStage >= 2 && currentSubStage >= 1 && 
-            !newBlockPositions.isEmpty() && random.nextInt(100) < 10) {
+            !newBlockPositions.isEmpty() && random.nextInt(100) < 50) {
             
             int randomIndex = random.nextInt(newBlockPositions.size());
             int[] pos = newBlockPositions.get(randomIndex);
             int row = pos[0];
             int col = pos[1];
+            
+            // 기존 블록의 애니메이션 정보 저장
+            Block originalBlock = blocks[row][col];
+            float currentX = originalBlock.getCurrentX();
+            float currentY = originalBlock.getCurrentY();
+            float targetX = originalBlock.getTargetX();
+            float targetY = originalBlock.getTargetY();
+            boolean isAnimating = originalBlock.isAnimating();
+            boolean isFalling = originalBlock.isFalling();
             
             // 기존 블록을 폭탄 블록으로 변경
             blocks[row][col] = new Block(Block.BOMB, blockBitmaps[0]); // 임시 비트맵
@@ -502,12 +513,11 @@ public class BlockGrid {
             blocks[row][col].convertToBomb();
             blocks[row][col].setGridPosition(row, col);
             
-            // 위치와 애니메이션 설정 (기존 애니메이션 유지)
-            float startY = puzzleTop - (newBlockPositions.size() - randomIndex) * blockSize;
-            float targetY = puzzleTop + row * blockSize;
-            blocks[row][col].setPosition(puzzleLeft + col * blockSize, startY, 
-                                       puzzleLeft + col * blockSize + blockSize, startY + blockSize);
-            blocks[row][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
+            // 기존 애니메이션 상태 복원
+            blocks[row][col].setPosition(currentX, currentY, currentX + blockSize, currentY + blockSize);
+            if (isAnimating) {
+                blocks[row][col].startAnimation(targetX, targetY, isFalling);
+            }
         }
     }
 
@@ -602,6 +612,30 @@ public class BlockGrid {
             dropBlocks();
             fillNewBlocks(true);
             
+            // 연쇄 매칭 확인을 위한 Thread 추가
+            new Thread(() -> {
+                try {
+                    while (isAnyBlockAnimating() || isAnyBlockFalling()) {
+                        Thread.sleep(50);
+                    }
+                    boolean hasMoreMatches = false;
+                    for (int r = 0; r < GRID_SIZE; r++) {
+                        for (int c = 0; c < GRID_SIZE; c++) {
+                            if (blocks[r][c] != null && checkMatch(r, c)) {
+                                hasMoreMatches = true;
+                                break;
+                            }
+                        }
+                        if (hasMoreMatches) break;
+                    }
+                    if (hasMoreMatches) {
+                        mainHandler.post(() -> processMatches());
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            
             return true; // 폭탄이 터졌음을 알림
         }
         return false; // 폭탄이 아니거나 없음
@@ -653,6 +687,30 @@ public class BlockGrid {
         // 블록들 떨어뜨리고 새로운 블록 생성 (로그라이크 기능이므로 폭탄 블록 생성 가능)
         dropBlocks();
         fillNewBlocks(false);
+        
+        // 연쇄 매칭 확인을 위한 Thread 추가
+        new Thread(() -> {
+            try {
+                while (isAnyBlockAnimating() || isAnyBlockFalling()) {
+                    Thread.sleep(50);
+                }
+                boolean hasMoreMatches = false;
+                for (int r = 0; r < GRID_SIZE; r++) {
+                    for (int c = 0; c < GRID_SIZE; c++) {
+                        if (blocks[r][c] != null && checkMatch(r, c)) {
+                            hasMoreMatches = true;
+                            break;
+                        }
+                    }
+                    if (hasMoreMatches) break;
+                }
+                if (hasMoreMatches) {
+                    mainHandler.post(() -> processMatches());
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
     }
     
     // 외부에서 매치 처리를 호출할 수 있는 public 메서드

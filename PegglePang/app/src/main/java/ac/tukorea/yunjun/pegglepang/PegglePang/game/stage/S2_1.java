@@ -147,6 +147,7 @@ public class S2_1 extends BaseStageScene {
             lastSword = playerStats.getPhysicalAttack();
             lastMagic = playerStats.getMagicAttack();
             lastHeal = playerStats.getHealing();
+            playerStats.resetTimerOnly();
             System.out.println("Battle stats - Sword: " + lastSword + ", Magic: " + lastMagic + ", Heal: " + lastHeal);
         }
 

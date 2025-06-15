@@ -87,6 +87,9 @@ public class Stage2Monster {
     // 출혈 효과 관련
     private boolean canCauseBleeding = false;
     private float bleedingChance = 0.2f; // 20% 확률
+    
+    // 가로대칭(flip) 관련
+    private boolean isFlipped = false;
 
     public interface AttackCallback {
         void onAttackComplete();
@@ -289,14 +292,13 @@ public class Stage2Monster {
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
             
-            // 고스트인 경우 가로대칭으로 그리기
-            if (canCauseFear) {
+            if (isFlipped) {
                 canvas.save();
                 canvas.scale(-1f, 1f, x + width/2, y + height/2); // 좌우 반전
                 canvas.drawBitmap(attackSheet, src, dest, null);
                 canvas.restore();
             } else {
-            canvas.drawBitmap(attackSheet, src, dest, null);
+                canvas.drawBitmap(attackSheet, src, dest, null);
             }
         } else if (idleSheet != null) {
             int frameW = idleSheet.getWidth() / frameCount;
@@ -306,8 +308,8 @@ public class Stage2Monster {
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
             
-            // 고스트인 경우 가로대칭으로 그리기
-            if (canCauseFear) {
+            // 가로대칭이 설정된 경우 반전해서 그리기
+            if (isFlipped) {
                 canvas.save();
                 canvas.scale(-1f, 1f, x + width/2, y + height/2); // 좌우 반전
                 if (isBlinking) {
@@ -319,12 +321,12 @@ public class Stage2Monster {
                 }
                 canvas.restore();
             } else {
-            if (isBlinking) {
-                Paint blinkPaint = new Paint();
-                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
-                canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
-            } else {
-                canvas.drawBitmap(idleSheet, src, dest, null);
+                if (isBlinking) {
+                    Paint blinkPaint = new Paint();
+                    blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
+                    canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+                } else {
+                    canvas.drawBitmap(idleSheet, src, dest, null);
                 }
             }
         }
@@ -491,6 +493,14 @@ public class Stage2Monster {
         this.canCauseFear = canCauseFear;
     }
 
+    public void setFearChance(float fearChance) {
+        this.fearChance = fearChance;
+    }
+    
+    public float getFearChance() {
+        return fearChance;
+    }
+
     // 분신 스킬 관련
     public void setCanUseCloneSkill(boolean canUseCloneSkill) {
         this.canUseCloneSkill = canUseCloneSkill;
@@ -595,5 +605,14 @@ public class Stage2Monster {
     // 출혈 효과 체크
     public boolean checkBleedingEffect() {
         return canCauseBleeding && Math.random() < bleedingChance;
+    }
+    
+    // 가로대칭 설정
+    public void setFlipped(boolean flipped) {
+        this.isFlipped = flipped;
+    }
+    
+    public boolean isFlipped() {
+        return isFlipped;
     }
 } 

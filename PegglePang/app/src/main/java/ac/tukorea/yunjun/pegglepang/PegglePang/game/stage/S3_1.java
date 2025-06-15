@@ -94,6 +94,9 @@ public class S3_1 extends BaseStageScene {
             float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
             monster = new Stage2Monster(context, R.mipmap.ghost_idle, 3, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
             monster.setMaxHp(25);
+            monster.setCanCauseFear(true);
+            monster.setFearChance(1.0f); // 100% 공포 확률
+            monster.setFlipped(true); // 이미지 좌우 반전
         } else {
             monster = null;
         }
