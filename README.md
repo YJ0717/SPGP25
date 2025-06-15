@@ -152,8 +152,8 @@
 
 - 🎥 **발표 영상**
   - [1차 발표 영상](https://youtu.be/XScikEudSP4)
-  - [2차 발표 영상](#)  
-  - [3차 발표 영상](#)
+  - [2차 발표 영상](https://youtu.be/K5Scyzw0F3s)  
+  - [3차 발표 영상](https://youtu.be/iOEwV6Eyrs0)
 
 --- <br>
 
