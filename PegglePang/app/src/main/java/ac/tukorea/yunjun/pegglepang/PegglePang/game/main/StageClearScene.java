@@ -10,7 +10,9 @@ import android.graphics.RectF;
 import android.view.MotionEvent;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_1;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_2;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageFactory;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.world.worldSelectScene;
@@ -28,6 +30,8 @@ public class StageClearScene {
     private RectF nextStageButtonRect;
     private Paint buttonPaint;
     private Context context;
+    private int currentStage = 1;
+    private int currentSubStage = 1;
 
     private StageClearScene(Context context) {
         this.context = context;
@@ -67,6 +71,8 @@ public class StageClearScene {
     public void show(int stage, int subStage) {
         if (isVisible) return;
         isVisible = true;
+        currentStage = stage;
+        currentSubStage = subStage;
         StageManager.getInstance().setStageCleared(stage, subStage);
         StageManager.getInstance().setMonstersDefeated(stage, subStage, true);
         if (stage == 1 && subStage == 3) {
@@ -105,16 +111,16 @@ public class StageClearScene {
                 hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
-                    if (StageManager.getInstance().isWorldUnlocked(2) && StageManager.getInstance().isStageCleared(1, 3)) {
-                        // 월드2가 해금된 월드 선택 화면으로 이동
-                        activity.setContentView(R.layout.world_select);
-                        worldSelectScene world2Scene = new worldSelectScene(context, 2);
-                        activity.getGameView().changeScene(world2Scene);
-                    } else {
-                        // 기존 월드1 선택화면
+                    if (currentStage == 1) {
+                        // 월드1 스테이지 선택화면으로
                         activity.setContentView(R.layout.stage1_select);
                         Scene stage1Scene = new Stage1_Scene(context);
                         activity.getGameView().changeScene(stage1Scene);
+                    } else if (currentStage == 2) {
+                        // 월드2 스테이지 선택화면으로
+                        activity.setContentView(R.layout.world2_stage_select);
+                        Scene stage2Scene = new Stage2_Scene(context);
+                        activity.getGameView().changeScene(stage2Scene);
                     }
                 }
                 return true;
@@ -122,19 +128,25 @@ public class StageClearScene {
                 hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
-                    if (StageManager.getInstance().isWorldUnlocked(2) && StageManager.getInstance().isStageCleared(1, 3)) {
-                        // 월드2의 첫 스테이지(2-1)로 이동
+                    
+                    // 다음 스테이지로 이동
+                    if (currentStage == 1 && currentSubStage == 3) {
+                        // 1-3 클리어 후 2-1로
                         activity.setContentView(R.layout.game_scene);
                         S2_1 stage = new S2_1(context);
                         activity.getGameView().changeScene(stage);
-                    } else if (StageManager.getInstance().isStageUnlocked(1, 3)) {
+                    } else if (currentStage == 2 && currentSubStage == 1) {
+                        // 2-1 클리어 후 2-2로
                         activity.setContentView(R.layout.game_scene);
-                        Scene stage = StageFactory.createStage(context, 1, 3);
+                        S2_2 stage = new S2_2(context);
                         activity.getGameView().changeScene(stage);
                     } else {
-                        activity.setContentView(R.layout.game_scene);
-                        Scene stage = StageFactory.createStage(context, 1, 2);
-                        activity.getGameView().changeScene(stage);
+                        // 일반적인 다음 스테이지
+                        Scene nextStage = StageFactory.createStage(context, currentStage, currentSubStage + 1);
+                        if (nextStage != null) {
+                            activity.setContentView(R.layout.game_scene);
+                            activity.getGameView().changeScene(nextStage);
+                        }
                     }
                 }
                 return true;

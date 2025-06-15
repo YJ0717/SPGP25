@@ -272,6 +272,21 @@ public class S2_1 extends BaseStageScene {
             float puzzleStart = Metrics.height * 0.45f;
             if (playerStats.isPocketClicked(x, y, Metrics.width, playerInfoStart, puzzleStart)) {
                 blockGrid.destroyRandomBlocks(5);
+                // 주머니 사용 후 매치 처리를 위해 약간의 지연 후 체크
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(100); // 블록 떨어지는 시간 대기
+                        while (blockGrid.isAnyBlockAnimating() || blockGrid.isAnyBlockFalling()) {
+                            Thread.sleep(50);
+                        }
+                        // 매치가 있으면 처리
+                        if (blockGrid.hasChainMatches()) {
+                            blockGrid.forceProcessMatches();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
                 return true;
             }
         }

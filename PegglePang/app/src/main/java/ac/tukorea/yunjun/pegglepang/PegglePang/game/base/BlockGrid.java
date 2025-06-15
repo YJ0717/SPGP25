@@ -636,4 +636,9 @@ public class BlockGrid {
         dropBlocks();
         fillNewBlocks(false);
     }
+    
+    // 외부에서 매치 처리를 호출할 수 있는 public 메서드
+    public void forceProcessMatches() {
+        processMatches();
+    }
 } 

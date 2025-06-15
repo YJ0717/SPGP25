@@ -45,7 +45,17 @@ public class Stage2_Scene extends Scene {
                     activity.getGameView().changeScene(stage);
                 });
             }
-            // 2-2, 2-3 등은 추후 추가
+            
+            Button stage2_2Button = activity.findViewById(R.id.stage2_2_button);
+            if (stage2_2Button != null) {
+                boolean isUnlocked = StageManager.getInstance().isStageUnlocked(2, 2);
+                stage2_2Button.setEnabled(isUnlocked);
+                stage2_2Button.setOnClickListener(v -> {
+                    activity.setContentView(R.layout.game_scene);
+                    S2_2 stage = new S2_2(context);
+                    activity.getGameView().changeScene(stage);
+                });
+            }
         }
     }
 

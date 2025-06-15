@@ -14,8 +14,7 @@ import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.RoguelikeChoiceScene;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage3Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage2Monster;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
@@ -25,7 +24,7 @@ import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 import android.widget.TextView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
 
-public class S1_3 extends BaseStageScene {
+public class S2_2 extends BaseStageScene {
     private static final int GRID_SIZE = 6;              
     private static final float SWIPE_THRESHOLD = 20.0f;   
     
@@ -51,28 +50,18 @@ public class S1_3 extends BaseStageScene {
     private float touchStartY;    
 
     private Player player;
-    private Stage3Monster monster1;
+    private Stage2Monster magicMonster; // 왼쪽 마법사 (S1_2 스타일)
+    private Stage2Monster axeMonster;   // 오른쪽 도끼병 (S2_1 스타일)
     private Bitmap battleBg;
     private Bitmap stateBg;
 
     private boolean isGameOver = false;
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
-    private boolean isRoguelikeChoiceShown = false;
-    private boolean isPlayerBlinkPhase = false;
-    private boolean isMonsterAttackPhase = false;
-    private static final float MONSTER_ATTACK_DURATION = 1.0f;
-    private float monsterAttackTimer = 0f;
-    private float monsterBlinkTimer = 0f;
-    private int playerBlinkCount = 0;
-    private float playerBlinkTimer = 0f;
-    private float deltaTime = 0f;
-
-    private float puzzleTransitionTimer = 0f;
     private DamageText damageText;
 
-    public S1_3(Context context) {
-        super(context, 1, 3);
+    public S2_2(Context context) {
+        super(context, 2, 2);
         
         linePaint = new Paint();
         linePaint.setColor(Color.BLACK);
@@ -91,13 +80,33 @@ public class S1_3 extends BaseStageScene {
         player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight, playerStats);
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
+        blockGrid.setStageInfo(2, 2); // 스테이지 2-2 정보 설정
+        
+        // 전역 설정에서 폭탄 블록이 활성화되어 있으면 적용
+        if (StageManager.isBombBlocksEnabled()) {
+            blockGrid.enableBombBlocks();
+        }
         isPuzzleFrozen = false;
 
-        // 몬스터 (redman_idle)
-        if (!StageManager.getInstance().areMonstersDefeated(1, 3)) {
-            monster1 = new Stage3Monster(context, R.mipmap.redman_idle, 1, playerInfoStart, 15f);
+        // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
+        if (!StageManager.getInstance().isStageCleared(2, 2)) {
+            // 오른쪽 도끼병 몬스터 (S2_1 스타일 - 마법 저항 없음)
+            float axeMonsterHeight = battleHeight * 0.7f;
+            float axeMonsterWidth = 80f;
+            float axeMonsterLeft = Metrics.width - axeMonsterWidth - (Metrics.width * 0.05f); // 오른쪽 위치
+            float axeMonsterTop = battleHeight - axeMonsterHeight - (battleHeight * 0.05f);
+            axeMonster = new Stage2Monster(context, R.mipmap.axeman_idle, 3, axeMonsterLeft, axeMonsterTop, axeMonsterWidth, axeMonsterHeight, 0f);
+            
+            // 마법사 몬스터 (도끼병 옆에 위치 - S1_2 스타일 - 마법 저항)
+            float magicMonsterHeight = battleHeight * 0.5f;
+            float magicMonsterWidth = 80f;
+            float magicMonsterLeft = axeMonsterLeft - magicMonsterWidth - 20f; // 도끼병 왼쪽에 20px 간격
+            float magicMonsterTop = battleHeight - magicMonsterHeight - (battleHeight * 0.05f);
+            magicMonster = new Stage2Monster(context, R.mipmap.magicman_idle, 2, magicMonsterLeft, magicMonsterTop, magicMonsterWidth, magicMonsterHeight, 10f);
         } else {
-            monster1 = null;
+            // 이미 클리어된 상태라면 몬스터를 null로 설정
+            magicMonster = null;
+            axeMonster = null;
         }
 
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
@@ -106,27 +115,17 @@ public class S1_3 extends BaseStageScene {
         player.getAnimation().setFrameDuration(0.15f);
         playerStats.resetStatsAndTimer();
 
-        // magic effect 위치 설정
+        // magic effect 위치 설정 (두 몬스터 중간)
         float effectWidth = Metrics.width * 0.4f;
         float effectHeight = effectWidth * (350f / (713f / 3f));
-        float effectX;
-        if (monster1 != null) {
-            effectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - effectWidth / 2;
-        } else {
-            effectX = (playerLeft + playerDrawWidth + Metrics.width * 0.7f) / 2 - effectWidth / 2;
-        }
+        float effectX = Metrics.width * 0.5f - effectWidth / 2; // 화면 중앙
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
 
         // sword effect 위치 설정
         float swordEffectWidth = Metrics.width * 0.35f;
         float swordEffectHeight = swordEffectWidth * (139f / 190f);
-        float swordEffectX;
-        if (monster1 != null) {
-            swordEffectX = (playerLeft + playerDrawWidth + monster1.getX()) / 2 - swordEffectWidth / 2;
-        } else {
-            swordEffectX = (playerLeft + playerDrawWidth + Metrics.width * 0.7f) / 2 - swordEffectWidth / 2;
-        }
+        float swordEffectX = Metrics.width * 0.5f - swordEffectWidth / 2; // 화면 중앙
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
         
@@ -140,13 +139,16 @@ public class S1_3 extends BaseStageScene {
     @Override
     public void update() {
         super.update();
-        deltaTime = GameView.frameTime;
-        blockGrid.update(deltaTime);
-        player.update(deltaTime);
-        if (monster1 != null) {
-            monster1.update(deltaTime);
+        float dt = GameView.frameTime;
+        blockGrid.update(dt);
+        player.update(dt);
+        if (magicMonster != null) {
+            magicMonster.update(dt);
         }
-        damageText.update(deltaTime);
+        if (axeMonster != null) {
+            axeMonster.update(dt);
+        }
+        damageText.update(dt);
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
             !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
@@ -164,195 +166,156 @@ public class S1_3 extends BaseStageScene {
             if (isPlayerTurn) {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
-                    System.out.println("Player turn starting");
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
-                                if (monster1 != null && monster1.isAlive()) {
-                                    int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
-                                    monster1.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
-                                    isMonsterBlinkPhase = true;
+                                // 마법사는 물리공격력만 받음 (마법 저항)
+                                if (magicMonster != null && magicMonster.isAlive()) {
+                                    magicMonster.startBlinking(lastSword);
+                                    damageText.showDamage(lastSword, magicMonster.getX() + magicMonster.getWidth()/2, magicMonster.getY() + magicMonster.getHeight()/2, false);
                                 }
+                                // 도끼병은 물리+마법 합산
+                                if (axeMonster != null && axeMonster.isAlive()) {
+                                    int totalDamage = lastSword + lastMagic;
+                                    axeMonster.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, axeMonster.getX() + axeMonster.getWidth()/2, axeMonster.getY() + axeMonster.getHeight()/2, false);
+                                }
+                                isMonsterBlinkPhase = true;
                                 playerStats.heal(lastHeal);
-                                if (monster1 == null || !monster1.isAlive()) {
-                                    isBattlePhase = false;
-                                    isPuzzleFrozen = false;
-                                    playerStats.reset();
-                                    isWaitingForAnim = false;
-                                }
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
-                                if (monster1 != null && monster1.isAlive()) {
-                                    int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
-                                    monster1.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
-                                    isMonsterBlinkPhase = true;
+                                // 마법사는 물리공격력만 받음 (마법 저항)
+                                if (magicMonster != null && magicMonster.isAlive()) {
+                                    magicMonster.startBlinking(lastSword);
+                                    damageText.showDamage(lastSword, magicMonster.getX() + magicMonster.getWidth()/2, magicMonster.getY() + magicMonster.getHeight()/2, false);
                                 }
+                                // 도끼병은 물리+마법 합산
+                                if (axeMonster != null && axeMonster.isAlive()) {
+                                    int totalDamage = lastSword + lastMagic;
+                                    axeMonster.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, axeMonster.getX() + axeMonster.getWidth()/2, axeMonster.getY() + axeMonster.getHeight()/2, false);
+                                }
+                                isMonsterBlinkPhase = true;
                                 playerStats.heal(lastHeal);
-                                if (monster1 == null || !monster1.isAlive()) {
-                                    isBattlePhase = false;
-                                    isPuzzleFrozen = false;
-                                    playerStats.reset();
-                                    isWaitingForAnim = false;
-                                }
                             });
                         });
                     } else {
                         player.playHeal(() -> {
-                            if (monster1 != null && monster1.isAlive()) {
-                                int totalDamage = lastSword + lastMagic; // 물리 + 마법 합산
-                                monster1.startBlinking(totalDamage);
-                                damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY() + monster1.getHeight()/2, false);
-                                isMonsterBlinkPhase = true;
+                            // 마법사는 물리공격력만 받음 (마법 저항)
+                            if (magicMonster != null && magicMonster.isAlive()) {
+                                magicMonster.startBlinking(lastSword);
+                                damageText.showDamage(lastSword, magicMonster.getX() + magicMonster.getWidth()/2, magicMonster.getY() + magicMonster.getHeight()/2, false);
                             }
+                            // 도끼병은 물리+마법 합산
+                            if (axeMonster != null && axeMonster.isAlive()) {
+                                int totalDamage = lastSword + lastMagic;
+                                axeMonster.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, axeMonster.getX() + axeMonster.getWidth()/2, axeMonster.getY() + axeMonster.getHeight()/2, false);
+                            }
+                            isMonsterBlinkPhase = true;
                             playerStats.heal(lastHeal);
-                            if (monster1 == null || !monster1.isAlive()) {
-                                isBattlePhase = false;
-                                isPuzzleFrozen = false;
-                                playerStats.reset();
-                                isWaitingForAnim = false;
-                            }
                         });
                     }
                 }
             } else {
-                System.out.println("Monster turn - isWaitingForAnim: " + isWaitingForAnim + ", monster1 alive: " + (monster1 != null && monster1.isAlive()));
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
-                    if (monster1 != null && monster1.isAlive()) {
-                        System.out.println("Monster attacking!");
-                        isMonsterAttackPhase = true;
-                        monsterAttackTimer = 0f;
-                        monster1.attack(() -> {
-                            System.out.println("Monster attack completed");
-                            isMonsterAttackPhase = false;
-                            player.takeDamage(monster1.getAttackPower());
+                    
+                    // 살아있는 몬스터들이 순서대로 공격
+                    if (magicMonster != null && magicMonster.isAlive()) {
+                        magicMonster.attack(() -> {
+                            float damage = magicMonster.getAttackPower();
+                            player.takeDamage(damage);
+                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
                             if (!player.isAlive()) {
                                 player.die();
                                 isGameOver = true;
                                 GameOverScene.getInstance().show();
                                 return;
                             }
+                            
+                            // 도끼병도 살아있으면 공격
+                            if (axeMonster != null && axeMonster.isAlive()) {
+                                axeMonster.attack(() -> {
+                                    float axeDamage = axeMonster.getAttackPower();
+                                    player.takeDamage(axeDamage);
+                                    damageText.showDamage((int)axeDamage, player.getX() + player.getWidth()/2, player.getY(), true);
+                                    if (!player.isAlive()) {
+                                        player.die();
+                                        isGameOver = true;
+                                        GameOverScene.getInstance().show();
+                                        return;
+                                    }
+                                    
+                                    // 모든 공격 완료
+                                    isBattlePhase = false;
+                                    isPuzzleFrozen = false;
+                                    playerStats.reset();
+                                    isWaitingForAnim = false;
+                                });
+                            } else {
+                                // 마법사만 공격하고 끝
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                isWaitingForAnim = false;
+                            }
+                        });
+                    } else if (axeMonster != null && axeMonster.isAlive()) {
+                        // 마법사가 죽고 도끼병만 살아있는 경우
+                        axeMonster.attack(() -> {
+                            float damage = axeMonster.getAttackPower();
+                            player.takeDamage(damage);
+                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
+                            if (!player.isAlive()) {
+                                player.die();
+                                isGameOver = true;
+                                GameOverScene.getInstance().show();
+                                return;
+                            }
+                            
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
                             playerStats.reset();
                             isWaitingForAnim = false;
-                        }, lastMagic >= lastSword && lastMagic >= lastHeal);
+                        });
                     } else {
+                        // 모든 몬스터가 죽은 경우
                         isBattlePhase = false;
                         isPuzzleFrozen = false;
                         playerStats.reset();
                         isWaitingForAnim = false;
                         if (!isStageClearShown) {
-                            if (!isRoguelikeChoiceShown) {
-                                isRoguelikeChoiceShown = true;
-                                RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
-                                    @Override
-                                    public void onRoguelikeDone(int puzzleChoice) {
-                                        // 퍼즐 로그라이크 선택 처리
-                                        switch(puzzleChoice) {
-                                            case 0: // 폭탄 선택
-                                                StageManager.enableBombBlocks();
-                                                blockGrid.enableBombBlocks();
-                                                break;
-                                            case 1: // 시간 연장 선택 (60초 -> 90초)
-                                                playerStats.extendPuzzleTime(30);
-                                                break;
-                                            case 2: // 주머니 아이템 (스테이지 클리어 후에는 블록을 터뜨리지 않음)
-                                                // 주머니 아이템 활성화만 함
-                                                playerStats.activatePocketItem();
-                                                Bitmap pocketBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.pocket);
-                                                playerStats.setPocketBitmap(pocketBitmap);
-                                                break;
-                                        }
-                                        StageClearScene.getInstance(context).show(1, 3);
-                                        isStageClearShown = true;
-                                    }
-                                });
-                            }
+                            StageClearScene.getInstance(context).show(2, 2);
+                            isStageClearShown = true;
+                            StageManager.getInstance().unlockStage(2, 3);
                         }
                     }
                 }
             }
         }
 
-        if (isMonsterBlinkPhase && monster1 != null && !monster1.isBlinking()) {
+        if (isMonsterBlinkPhase && 
+            (magicMonster == null || !magicMonster.isBlinking()) && 
+            (axeMonster == null || !axeMonster.isBlinking())) {
             isMonsterBlinkPhase = false;
             isPlayerTurn = false;
             isWaitingForAnim = false;
-            System.out.println("Monster blink phase ended, switching to monster turn");
-        }
-
-        if (isMonsterAttackPhase) {
-            monsterAttackTimer += deltaTime;
-            if (monsterAttackTimer >= MONSTER_ATTACK_DURATION) {
-                monsterAttackTimer = 0f;
-                isMonsterAttackPhase = false;
-                isMonsterBlinkPhase = true;
-                monsterBlinkTimer = 0f;
-                
-                // 데미지 적용
-                if (monster1 != null && monster1.isAlive()) {
-                    float damage = monster1.getAttackPower();
-                    playerStats.takeDamage(damage);
-                    damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
-                    isPlayerBlinkPhase = true;
-                    playerBlinkTimer = 0f;
-                    playerBlinkCount = 0;
-                }
-            }
-        }
-
-        if (isPlayerBlinkPhase) {
-            playerBlinkTimer += deltaTime;
-            if (playerBlinkTimer >= 0.1f) {
-                playerBlinkTimer = 0f;
-                playerBlinkCount++;
-                if (playerBlinkCount >= 4) {
-                    isPlayerBlinkPhase = false;
-                    playerBlinkCount = 0;
-                }
-            }
         }
 
         if (isGameOver) {
             return;
         }
 
-        if (!isStageClearShown && monster1 != null && !monster1.isAlive() && !monster1.isDying()) {
-            if (!isRoguelikeChoiceShown) {
-                isRoguelikeChoiceShown = true;
-                RoguelikeChoiceScene.getInstance(context).show(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
-                    @Override
-                    public void onRoguelikeDone(int puzzleChoice) {
-                        // 퍼즐 로그라이크 선택 처리
-                        switch(puzzleChoice) {
-                            case 0: // 폭탄 선택
-                                StageManager.enableBombBlocks();
-                                blockGrid.enableBombBlocks();
-                                break;
-                            case 1: // 시간 연장 선택 (5초 -> 35초)
-                                playerStats.extendPuzzleTime(30);
-                                // 모래시계 비트맵 설정
-                                Bitmap hourglassBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.time);
-                                playerStats.setHourglassBitmap(hourglassBitmap);
-                                break;
-                            case 2: // 주머니 아이템 (스테이지 클리어 후에는 블록을 터뜨리지 않음)
-                                // 주머니 아이템 활성화만 하고 블록은 터뜨리지 않음
-                                playerStats.activatePocketItem();
-                                Bitmap pocketBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.pocket);
-                                playerStats.setPocketBitmap(pocketBitmap);
-                                break;
-                        }
-                        StageClearScene.getInstance(context).show(1, 3);
-                        isStageClearShown = true;
-                    }
-                });
-            }
+        if (!isStageClearShown && 
+            (magicMonster == null || (!magicMonster.isAlive() && !magicMonster.isDying())) &&
+            (axeMonster == null || (!axeMonster.isAlive() && !axeMonster.isDying()))) {
+            StageClearScene.getInstance(context).show(2, 2);
+            isStageClearShown = true;
+            StageManager.getInstance().unlockStage(2, 3);
         }
 
         if (!isGameOver && player.isDead()) {
@@ -371,10 +334,6 @@ public class S1_3 extends BaseStageScene {
         }
 
         if (playerStats.isGameOver() || blockGrid.isAnyBlockAnimating() || isPuzzleFrozen) {
-            return true;
-        }
-
-        if (RoguelikeChoiceScene.getInstance(context).onTouchEvent(event)) {
             return true;
         }
 
@@ -505,27 +464,29 @@ public class S1_3 extends BaseStageScene {
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
         player.draw(canvas);
-        if (monster1 != null) {
-            monster1.draw(canvas);
+        if (magicMonster != null) {
+            magicMonster.draw(canvas);
+        }
+        if (axeMonster != null) {
+            axeMonster.draw(canvas);
         }
 
         // 데미지 텍스트 그리기 (몬스터 바로 다음에)
         damageText.draw(canvas);
-
+        
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }
 
         StageClearScene.getInstance(context).draw(canvas);
-        RoguelikeChoiceScene.getInstance(context).draw(canvas);
     }
 
     @Override
     public void onEnter() {
         super.onEnter();
-        if (StageManager.getInstance().isStageCleared(1, 3)) {
+        if (StageManager.getInstance().isStageCleared(2, 2)) {
             // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
-            StageClearScene.getInstance(context).show(1, 3);
+            StageClearScene.getInstance(context).show(2, 2);
             isStageClearShown = true;
             
             // Back 버튼 비활성화
