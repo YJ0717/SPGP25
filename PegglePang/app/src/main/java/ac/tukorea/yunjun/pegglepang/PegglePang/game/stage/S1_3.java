@@ -271,6 +271,8 @@ public class S1_3 extends BaseStageScene {
                                         }
                                         StageClearScene.getInstance(context).show(1, 3);
                                         isStageClearShown = true;
+                                        // 스테이지 클리어 상태 저장
+                                        StageManager.getInstance().setStageCleared(1, 3);
                                     }
                                 });
                             }
@@ -350,6 +352,8 @@ public class S1_3 extends BaseStageScene {
                         }
                         StageClearScene.getInstance(context).show(1, 3);
                         isStageClearShown = true;
+                        // 스테이지 클리어 상태 저장
+                        StageManager.getInstance().setStageCleared(1, 3);
                     }
                 });
             }

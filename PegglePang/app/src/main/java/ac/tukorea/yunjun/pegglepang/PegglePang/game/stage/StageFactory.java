@@ -56,6 +56,8 @@ public class StageFactory {
                 return new S3_1(context);
             case 2:
                 return new S3_2(context);
+            case 3:
+                return new S3_3(context);
             default:
                 return null;
         }

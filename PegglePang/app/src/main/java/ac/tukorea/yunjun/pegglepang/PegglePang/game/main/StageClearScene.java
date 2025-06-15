@@ -93,6 +93,9 @@ public class StageClearScene {
         } else if (stage == 3 && subStage == 1) {
             // 3-1 클리어 시 3-2 해금
             StageManager.getInstance().unlockStage(3, 2);
+        } else if (stage == 3 && subStage == 2) {
+            // 3-2 클리어 시 3-3 해금
+            StageManager.getInstance().unlockStage(3, 3);
         } else {
             StageManager.getInstance().unlockStage(stage, subStage + 1);
         }
@@ -172,6 +175,13 @@ public class StageClearScene {
                     } else if (currentStage == 3 && currentSubStage == 1) {
                         // 3-1 클리어 후 3-2로
                         Scene nextStage = StageFactory.createStage(context, 3, 2);
+                        if (nextStage != null) {
+                            activity.setContentView(R.layout.game_scene);
+                            activity.getGameView().changeScene(nextStage);
+                        }
+                    } else if (currentStage == 3 && currentSubStage == 2) {
+                        // 3-2 클리어 후 3-3으로
+                        Scene nextStage = StageFactory.createStage(context, 3, 3);
                         if (nextStage != null) {
                             activity.setContentView(R.layout.game_scene);
                             activity.getGameView().changeScene(nextStage);

@@ -51,6 +51,7 @@ public class PlayerStats {
     // 공포 상태 관련
     private boolean isFeared = false; // 공포 상태
     private long fearStartTime = 0;   // 공포 시작 시간
+    private int fearTurnsRemaining = 0; // 공포 남은 턴 수
 
     public PlayerStats() {
         this(null);
@@ -114,9 +115,9 @@ public class PlayerStats {
         
         // 공포 상태 표시 (HP 위에)
         if (isFeared) {
-            textPaint.setColor(0xFF800080); // 보라색
+            textPaint.setColor(0xFFFFEB3B); // 노란색으로 변경
             textPaint.setTextSize(40); // 크기도 키우기
-            canvas.drawText("공포", leftMargin, startY - 40, textPaint);
+            canvas.drawText("공포 (" + fearTurnsRemaining + "턴)", leftMargin, startY - 40, textPaint);
             textPaint.setTextSize(30); // 원래 크기로 복원
         }
         
@@ -400,6 +401,7 @@ public class PlayerStats {
     public void applyFear() {
         this.isFeared = true;
         this.fearStartTime = System.currentTimeMillis();
+        this.fearTurnsRemaining = 2; // 공포 턴 카운터 초기화
     }
     
     public boolean isFeared() {
@@ -409,6 +411,21 @@ public class PlayerStats {
     public void clearFear() {
         this.isFeared = false;
         this.fearStartTime = 0;
+        this.fearTurnsRemaining = 0;
+    }
+    
+    // 공포 턴 감소 (퍼즐 턴이 끝날 때마다 호출)
+    public void reduceFearTurns() {
+        if (isFeared && fearTurnsRemaining > 0) {
+            fearTurnsRemaining--;
+            if (fearTurnsRemaining <= 0) {
+                clearFear();
+            }
+        }
+    }
+    
+    public int getFearTurnsRemaining() {
+        return fearTurnsRemaining;
     }
     
     // 공포 상태일 때 퍼즐 시간 계산 (50% 감소)

@@ -64,4 +64,15 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/stage3_3_button"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:layout_marginStart="144dp"
+        android:layout_marginTop="632dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Stage 3-3"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
 </androidx.constraintlayout.widget.ConstraintLayout> 

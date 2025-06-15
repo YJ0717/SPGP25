@@ -47,6 +47,18 @@ public class Stage3_Scene extends Scene {
                     activity.getGameView().changeScene(stage);
                 });
             }
+            
+            // 3-3 버튼 설정
+            Button stage3_3Button = activity.findViewById(R.id.stage3_3_button);
+            if (stage3_3Button != null) {
+                boolean isUnlocked = StageManager.getInstance().isStageUnlocked(3, 3);
+                stage3_3Button.setEnabled(isUnlocked);
+                stage3_3Button.setOnClickListener(v -> {
+                    activity.setContentView(R.layout.game_scene);
+                    S3_3 stage = new S3_3(context);
+                    activity.getGameView().changeScene(stage);
+                });
+            }
         }
     }
 

@@ -353,6 +353,15 @@ public class BlockGrid {
             int finalSwordCount = playerStats.calculateSwordBlockScore(swordCount);
             int finalMagicCount = playerStats.calculateMagicBlockScore(magicCount);
             
+            // 디버그 로그 추가
+            System.out.println("BlockGrid 매치 처리:");
+            System.out.println("- 원본 칼블럭: " + swordCount + " -> 최종: " + finalSwordCount);
+            System.out.println("- 원본 마법블럭: " + magicCount + " -> 최종: " + finalMagicCount);
+            System.out.println("- 치유블럭: " + healCount);
+            System.out.println("- 현재 스테이지: " + currentStage + "-" + currentSubStage);
+            System.out.println("- 칼블럭 2배 활성화: " + (playerStats != null ? playerStats.hasSwordBlockDouble() : "null"));
+            System.out.println("- 마법블럭 2배 활성화: " + (playerStats != null ? playerStats.hasMagicBlockDouble() : "null"));
+            
             playerStats.addPhysicalAttack(finalSwordCount);
             playerStats.addMagicAttack(finalMagicCount);
             playerStats.addHealing(healCount);
@@ -477,9 +486,9 @@ public class BlockGrid {
                     
                     // 새로 생성된 블록 위치 저장
                     newBlockPositions.add(new int[]{targetRow, col});
-                }
             }
         }
+    }
         
         // 매치로 인한 생성이고 폭탄 블록이 활성화된 경우, 새로 생성된 블록 중 하나를 폭탄 블록으로 변경
         if (!isBombDestroy && bombBlockEnabled && currentStage >= 2 && currentSubStage >= 1 && 

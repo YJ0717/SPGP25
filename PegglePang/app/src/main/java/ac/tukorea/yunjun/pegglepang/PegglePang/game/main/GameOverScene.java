@@ -16,6 +16,7 @@ public class GameOverScene {
     private RectF retryButton;
     private RectF mainMenuButton;
     private boolean isVisible = false;
+    private SceneManager.SceneType currentStage = SceneManager.SceneType.S1_1; // 현재 스테이지 저장
 
     private GameOverScene() {
         textPaint = new Paint();
@@ -60,6 +61,11 @@ public class GameOverScene {
         isVisible = true;
     }
 
+    public void show(SceneManager.SceneType stage) {
+        this.currentStage = stage;
+        isVisible = true;
+    }
+
     public void hide() {
         isVisible = false;
     }
@@ -94,7 +100,7 @@ public class GameOverScene {
             if (retryButton.contains(x, y)) {
                 // 다시하기 버튼 클릭
                 hide();
-                SceneManager.getInstance().changeScene(SceneManager.SceneType.S1_1);
+                SceneManager.getInstance().changeScene(currentStage);
                 return true;
             } else if (mainMenuButton.contains(x, y)) {
                 // 메인메뉴 버튼 클릭

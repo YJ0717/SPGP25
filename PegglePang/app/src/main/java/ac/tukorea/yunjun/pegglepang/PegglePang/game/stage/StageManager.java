@@ -14,18 +14,22 @@ public class StageManager {
     private boolean world2Unlocked = false;
     private boolean world3Unlocked = false;
 
-    // 퍼즐 로그라이크 설정
+    // 퍼즐 로그라이크 관련
     private static boolean bombBlocksEnabled = false;
 
-    // 퍼즐 로그라이크 효과들 (스테이지 3 시리즈에서 지속)
+    // 퍼즐 로그라이크 효과 관리
     private static boolean puzzleRockPreventionEnabled = false;
     private static boolean puzzleSwordDoubleEnabled = false;
     private static boolean puzzleMagicDoubleEnabled = false;
 
-    // 전투 로그라이크 효과들 (스테이지 3 시리즈에서 지속)
+    // 전투 로그라이크 효과 관리
     private static boolean battleCriticalEnabled = false;
     private static boolean battleDamageReductionEnabled = false;
     private static boolean battleStunEnabled = false;
+    
+    // 선택된 로그라이크 효과 저장 (3중 1택 보장)
+    private static int selectedStage1RoguelikeChoice = -1; // -1: 미선택, 0: 폭탄, 1: 시간연장, 2: 주머니
+    private static int selectedStage2PuzzleRoguelikeChoice = -1; // -1: 미선택, 0: 돌블럭방지, 1: 칼블럭2배, 2: 마법블럭2배
 
     private StageManager() {
         stageDataMap = new HashMap<>();
@@ -37,6 +41,7 @@ public class StageManager {
         stageDataMap.put("2-3", new StageData(false)); // 월드 2 스테이지 3
         stageDataMap.put("3-1", new StageData(false)); // 월드 3 스테이지 1
         stageDataMap.put("3-2", new StageData(false)); // 월드 3 스테이지 2
+        stageDataMap.put("3-3", new StageData(false)); // 월드 3 스테이지 3
     }
 
     public static StageManager getInstance() {
@@ -118,6 +123,55 @@ public class StageManager {
 
     public static void disableBombBlocks() {
         bombBlocksEnabled = false;
+    }
+    
+    // 선택된 로그라이크 효과 저장 메서드들
+    public static void setStage1RoguelikeChoice(int choice) {
+        selectedStage1RoguelikeChoice = choice;
+        // 기존 효과들 초기화
+        bombBlocksEnabled = false;
+        // 선택된 효과만 활성화
+        if (choice == 0) {
+            bombBlocksEnabled = true;
+        }
+        // choice 1(시간연장)과 2(주머니)는 PlayerStats에서 직접 관리
+    }
+    
+    public static void setStage2PuzzleRoguelikeChoice(int choice) {
+        selectedStage2PuzzleRoguelikeChoice = choice;
+        // 기존 효과들 초기화
+        puzzleRockPreventionEnabled = false;
+        puzzleSwordDoubleEnabled = false;
+        puzzleMagicDoubleEnabled = false;
+        // 선택된 효과만 활성화
+        if (choice == 0) {
+            puzzleRockPreventionEnabled = true;
+        } else if (choice == 1) {
+            puzzleSwordDoubleEnabled = true;
+        } else if (choice == 2) {
+            puzzleMagicDoubleEnabled = true;
+        }
+    }
+    
+    public static int getStage1RoguelikeChoice() {
+        return selectedStage1RoguelikeChoice;
+    }
+    
+    public static int getStage2PuzzleRoguelikeChoice() {
+        return selectedStage2PuzzleRoguelikeChoice;
+    }
+    
+    // 로그라이크 효과 지속성 보장 메서드
+    public static void ensureRoguelikeEffectsPersistence() {
+        // 스테이지 1-3이 클리어되었고 선택이 저장되어 있다면 해당 효과만 활성화
+        if (getInstance().isStageCleared(1, 3) && selectedStage1RoguelikeChoice >= 0) {
+            setStage1RoguelikeChoice(selectedStage1RoguelikeChoice);
+        }
+        
+        // 스테이지 2-3이 클리어되었고 선택이 저장되어 있다면 해당 효과만 활성화
+        if (getInstance().isStageCleared(2, 3) && selectedStage2PuzzleRoguelikeChoice >= 0) {
+            setStage2PuzzleRoguelikeChoice(selectedStage2PuzzleRoguelikeChoice);
+        }
     }
 
     // 퍼즐 로그라이크 효과 관리 메서드들

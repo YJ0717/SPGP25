@@ -124,7 +124,7 @@ public class RoguelikeChoiceScene {
                             StageManager.enableBattleCritical();
                         } else {
                             // 기존 로그라이크: 물리 공격력 버프
-                            playerStats.applyRoguePhysicalBuff(10);
+                        playerStats.applyRoguePhysicalBuff(10);
                         }
                         step = Step.PUZZLE;
                         return true;
@@ -153,28 +153,62 @@ public class RoguelikeChoiceScene {
                     }
                 } else if (step == Step.PUZZLE) {
                     if (physicalRect.contains(x, y)) {
-                        // 퍼즐 로그라이크: 돌블럭 생성 방지 (망치 아이콘)
-                        playerStats.applyRockBlockPrevention();
-                        StageManager.enablePuzzleRockPrevention();
-                        step = Step.DONE;
-                        hide();
-                        if (listener != null) listener.onRoguelikeDone(0);
+                        if (useSecondImages) {
+                            // 스테이지 3 퍼즐 로그라이크: 돌블럭 생성 방지 (망치 아이콘)
+                            playerStats.applyRockBlockPrevention();
+                            StageManager.enablePuzzleRockPrevention();
+                            StageManager.setStage2PuzzleRoguelikeChoice(0); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(0);
+                        } else {
+                            // 스테이지 1 퍼즐 로그라이크: 폭탄 블록
+                            StageManager.enableBombBlocks();
+                            StageManager.setStage1RoguelikeChoice(0); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(0);
+                        }
                         return true;
                     } else if (magicRect.contains(x, y)) {
-                        // 퍼즐 로그라이크: 칼블럭 2배 (칼 아이콘)
-                        playerStats.applySwordBlockDouble();
-                        StageManager.enablePuzzleSwordDouble();
-                        step = Step.DONE;
-                        hide();
-                        if (listener != null) listener.onRoguelikeDone(1);
+                        if (useSecondImages) {
+                            // 스테이지 3 퍼즐 로그라이크: 칼블럭 2배 (칼 아이콘)
+                            playerStats.applySwordBlockDouble();
+                            StageManager.enablePuzzleSwordDouble();
+                            StageManager.setStage2PuzzleRoguelikeChoice(1); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(1);
+                        } else {
+                            // 스테이지 1 퍼즐 로그라이크: 시간 연장
+                            playerStats.extendPuzzleTime(30);
+                            Bitmap hourglassBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.time);
+                            playerStats.setHourglassBitmap(hourglassBitmap);
+                            StageManager.setStage1RoguelikeChoice(1); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(1);
+                        }
                         return true;
                     } else if (healRect.contains(x, y)) {
-                        // 퍼즐 로그라이크: 마법블럭 2배 (마법 아이콘)
-                        playerStats.applyMagicBlockDouble();
-                        StageManager.enablePuzzleMagicDouble();
-                        step = Step.DONE;
-                        hide();
-                        if (listener != null) listener.onRoguelikeDone(2);
+                        if (useSecondImages) {
+                            // 스테이지 3 퍼즐 로그라이크: 마법블럭 2배 (마법 아이콘)
+                            playerStats.applyMagicBlockDouble();
+                            StageManager.enablePuzzleMagicDouble();
+                            StageManager.setStage2PuzzleRoguelikeChoice(2); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(2);
+                        } else {
+                            // 스테이지 1 퍼즐 로그라이크: 주머니 아이템
+                            playerStats.activatePocketItem();
+                            Bitmap pocketBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.pocket);
+                            playerStats.setPocketBitmap(pocketBitmap);
+                            StageManager.setStage1RoguelikeChoice(2); // 선택 저장
+                            step = Step.DONE;
+                            hide();
+                            if (listener != null) listener.onRoguelikeDone(2);
+                        }
                         return true;
                     }
                 }

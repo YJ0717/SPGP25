@@ -94,9 +94,8 @@ public class S3_2 extends BaseStageScene {
         }
         isPuzzleFrozen = false;
 
-        boolean is3_3Unlocked = StageManager.getInstance().isStageUnlocked(3, 3);
-        
-        if (!is3_3Unlocked) {
+        // 스테이지가 이미 클리어되지 않았을 때만 몬스터 생성
+        if (!StageManager.getInstance().isStageCleared(3, 2)) {
             // 3-2 스테이지용 몬스터 (insect, HP 30, 공격력 15)
             float monsterDrawHeight = battleHeight * 0.5f;
             float monsterDrawWidth = 80f;
@@ -287,11 +286,13 @@ public class S3_2 extends BaseStageScene {
                                 if (!player.isAlive()) {
                                     player.die();
                                     isGameOver = true;
-                                    GameOverScene.getInstance().show();
+                                    GameOverScene.getInstance().show(SceneManager.SceneType.S3_2);
                                     return;
                                 }
                                 // 마비 턴 감소
                                 monster.reduceStunTurns();
+                                // 공포 턴 감소
+                                playerStats.reduceFearTurns();
                                 isBattlePhase = false;
                                 isPuzzleFrozen = false;
                                 playerStats.reset();
@@ -300,6 +301,8 @@ public class S3_2 extends BaseStageScene {
                         } else {
                             // 스턴 상태에서는 공격하지 않고 턴만 감소
                             monster.reduceStunTurns();
+                            // 공포 턴 감소
+                            playerStats.reduceFearTurns();
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
                             playerStats.reset();
@@ -313,7 +316,6 @@ public class S3_2 extends BaseStageScene {
                         if (!isStageClearShown) {
                             StageClearScene.getInstance(context).show(3, 2);
                             isStageClearShown = true;
-                            StageManager.getInstance().unlockStage(3, 3);
                         }
                     }
                 }
@@ -403,9 +405,11 @@ public class S3_2 extends BaseStageScene {
         
         damageText.draw(canvas);
 
-        if (isGameOver && !player.isDead()) {
+        if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }
+
+        StageClearScene.getInstance(context).draw(canvas);
     }
 
     @Override
@@ -426,13 +430,36 @@ public class S3_2 extends BaseStageScene {
         float x = touchPoint[0];
         float y = touchPoint[1];
         
+        // 주머니 아이템 클릭 확인
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            float playerInfoStart = Metrics.height * 0.30f;
+            float puzzleStartLocal = Metrics.height * 0.45f;
+            if (playerStats.isPocketClicked(x, y, Metrics.width, playerInfoStart, puzzleStartLocal)) {
+                blockGrid.destroyRandomBlocks(5);
+                new Thread(() -> {
+                    try {
+                        Thread.sleep(100);
+                        while (blockGrid.isAnyBlockAnimating() || blockGrid.isAnyBlockFalling()) {
+                            Thread.sleep(50);
+                        }
+                        if (blockGrid.hasChainMatches()) {
+                            blockGrid.forceProcessMatches();
+                        }
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+                return true;
+            }
+        }
+        
         // 퍼즐 영역 계산 (draw 메서드와 동일하게)
-        float puzzleStart = Metrics.height * 0.45f;
-        float puzzleAreaHeight = Metrics.height - puzzleStart;
+        float puzzleStartLocal = Metrics.height * 0.45f;
+        float puzzleAreaHeight = Metrics.height - puzzleStartLocal;
         float puzzleSize = Math.min(Metrics.width, puzzleAreaHeight);
         
         float currentPuzzleLeft = (Metrics.width - puzzleSize) / 2;
-        float currentPuzzleTop = puzzleStart;
+        float currentPuzzleTop = puzzleStartLocal;
         float currentBlockSize = puzzleSize / BlockGrid.getGridSize();
         
         int col = (int)((x - currentPuzzleLeft) / currentBlockSize);
@@ -441,6 +468,27 @@ public class S3_2 extends BaseStageScene {
         if (row >= 0 && row < BlockGrid.getGridSize() && col >= 0 && col < BlockGrid.getGridSize()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:  
+                    // 폭탄 블록 클릭 확인
+                    if (blockGrid.getBlock(row, col) != null && blockGrid.getBlock(row, col).isBomb()) {
+                        if (blockGrid.handleBombClick(row, col)) {
+                            // 폭탄 클릭 후 백그라운드에서 퍼즐 처리
+                            new Thread(() -> {
+                                try {
+                                    Thread.sleep(100);
+                                    while (blockGrid.isAnyBlockAnimating() || blockGrid.isAnyBlockFalling()) {
+                                        Thread.sleep(50);
+                                    }
+                                    if (blockGrid.hasChainMatches()) {
+                                        blockGrid.forceProcessMatches();
+                                    }
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }).start();
+                            return true; // 폭탄이 터졌으므로 이벤트 처리 완료
+                        }
+                    }
+                    
                     touchStartX = x;
                     touchStartY = y;
                     selectedBlock = blockGrid.getBlock(row, col);
@@ -476,17 +524,29 @@ public class S3_2 extends BaseStageScene {
         return true;
     }
 
-
-
     @Override
     public void onEnter() {
         super.onEnter();
+        
+        // 로그라이크 효과 지속성 보장
+        StageManager.ensureRoguelikeEffectsPersistence();
         
         // 스테이지 3부터 전투 로그라이크 효과 적용
         StageManager.applyBattleRoguelikeEffects(playerStats);
         
         // 스테이지 3부터 퍼즐 로그라이크 효과 적용
         StageManager.applyPuzzleRoguelikeEffects(playerStats);
+        
+        // 디버그: 퍼즐 로그라이크 효과 확인
+        System.out.println("S3_2 퍼즐 로그라이크 상태:");
+        System.out.println("- 돌블럭 방지: " + StageManager.isPuzzleRockPreventionEnabled());
+        System.out.println("- 칼블럭 2배: " + StageManager.isPuzzleSwordDoubleEnabled());
+        System.out.println("- 마법블럭 2배: " + StageManager.isPuzzleMagicDoubleEnabled());
+        System.out.println("- 폭탄 블록 활성화: " + StageManager.isBombBlocksEnabled());
+        System.out.println("PlayerStats 상태:");
+        System.out.println("- 돌블럭 방지: " + playerStats.hasRockBlockPrevention());
+        System.out.println("- 칼블럭 2배: " + playerStats.hasSwordBlockDouble());
+        System.out.println("- 마법블럭 2배: " + playerStats.hasMagicBlockDouble());
         
         if (StageManager.getInstance().isStageCleared(3, 2)) {
             StageClearScene.getInstance(context).show(3, 2);

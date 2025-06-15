@@ -71,6 +71,22 @@ public class Stage2Monster {
     // 공포 효과 관련 (고스트 전용)
     private boolean canCauseFear = false;
     private float fearChance = 0.2f; // 20% 확률
+    
+    // 분신 스킬 관련
+    private boolean canUseCloneSkill = false; // demon만 사용 가능
+    private boolean hasUsedCloneSkill = false; // 1회성 스킬
+    private boolean isUsingSkill = false; // 스킬 사용 중
+    private Bitmap skillSheet; // 스킬 애니메이션
+    private int skillFrame = 0;
+    private int skillFrameCount = 4;
+    private float skillAnimTimer = 0f;
+    private static final float SKILL_FRAME_DURATION = 0.2f;
+    private static final float SKILL_DURATION = 0.8f; // 4프레임 * 0.2초
+    private float skillTimer = 0f;
+    
+    // 출혈 효과 관련
+    private boolean canCauseBleeding = false;
+    private float bleedingChance = 0.2f; // 20% 확률
 
     public interface AttackCallback {
         void onAttackComplete();
@@ -88,6 +104,16 @@ public class Stage2Monster {
             this.dieFrameCount = 3; // 고스트 죽음은 3프레임
             this.canCauseFear = true; // 고스트는 공포 효과 가능
         }
+        // demon인 경우
+        else if (resId == R.mipmap.demon_idle) {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.demon_attack);
+            this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
+            this.skillSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.demon_skill);
+            this.attackFrameCount = 7; // demon 공격은 7프레임
+            this.dieFrameCount = 6; // magicman 죽음 애니메이션 사용
+            this.canUseCloneSkill = true; // demon은 분신 스킬 사용 가능
+            this.canCauseBleeding = true; // demon은 출혈 효과 가능
+        }
         // insect인 경우
         else if (resId == R.mipmap.insect_idle) {
             this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.insect_attack);
@@ -97,7 +123,7 @@ public class Stage2Monster {
         }
         // magicDamageThreshold가 0보다 크면 magicman (S1_2), 0이면 axeman (S2_1)
         else if (magicDamageThreshold > 0) {
-            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
             this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
             this.attackFrameCount = 4; // magicman은 4프레임
             this.dieFrameCount = 6; // magicman 죽음은 6프레임
@@ -127,6 +153,10 @@ public class Stage2Monster {
     public void setMaxHp(int maxHp) {
         this.maxHp = maxHp;
         this.currentHp = maxHp;
+    }
+
+    public void setAttackPower(float attackPower) {
+        this.attackPower = attackPower;
     }
 
     public void setTargetPosition(float x, float y) {
@@ -173,6 +203,26 @@ public class Stage2Monster {
                 }
                 if (attackCallback != null) {
                     attackCallback.onAttackComplete();
+                }
+            }
+        } else if (isUsingSkill) {
+            // 스킬 애니메이션 처리
+            skillTimer += dt;
+            skillAnimTimer += dt;
+            if (skillAnimTimer >= SKILL_FRAME_DURATION) {
+                skillAnimTimer -= SKILL_FRAME_DURATION;
+                skillFrame++;
+                if (skillFrame >= skillFrameCount) {
+                    skillFrame = skillFrameCount - 1; // 마지막 프레임에서 정지
+                }
+            }
+            if (skillTimer >= SKILL_DURATION) {
+                isUsingSkill = false;
+                skillTimer = 0f;
+                skillFrame = 0;
+                hasUsedCloneSkill = true; // 스킬 사용 완료
+                if (attackCallback != null) {
+                    attackCallback.onAttackComplete(); // 스킬 완료 후 콜백
                 }
             }
         } else {
@@ -222,6 +272,15 @@ public class Stage2Monster {
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
             canvas.drawBitmap(dieSheet, src, dest, null);
+        } else if (isUsingSkill && skillSheet != null) {
+            // 스킬 애니메이션 그리기
+            int frameW = skillSheet.getWidth() / skillFrameCount;
+            int frameH = skillSheet.getHeight();
+            int left = frameW * skillFrame;
+            int right = left + frameW;
+            Rect src = new Rect(left, 0, right, frameH);
+            RectF dest = new RectF(x, y, x + width, y + height);
+            canvas.drawBitmap(skillSheet, src, dest, null);
         } else if (isAttacking && attackSheet != null) {
             int frameW = attackSheet.getWidth() / attackFrameCount;
             int frameH = attackSheet.getHeight();
@@ -237,7 +296,7 @@ public class Stage2Monster {
                 canvas.drawBitmap(attackSheet, src, dest, null);
                 canvas.restore();
             } else {
-                canvas.drawBitmap(attackSheet, src, dest, null);
+            canvas.drawBitmap(attackSheet, src, dest, null);
             }
         } else if (idleSheet != null) {
             int frameW = idleSheet.getWidth() / frameCount;
@@ -260,12 +319,12 @@ public class Stage2Monster {
                 }
                 canvas.restore();
             } else {
-                if (isBlinking) {
-                    Paint blinkPaint = new Paint();
-                    blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
-                    canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
-                } else {
-                    canvas.drawBitmap(idleSheet, src, dest, null);
+            if (isBlinking) {
+                Paint blinkPaint = new Paint();
+                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
+                canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+            } else {
+                canvas.drawBitmap(idleSheet, src, dest, null);
                 }
             }
         }
@@ -426,5 +485,115 @@ public class Stage2Monster {
     
     public boolean canCauseFear() {
         return canCauseFear;
+    }
+
+    public void setCanCauseFear(boolean canCauseFear) {
+        this.canCauseFear = canCauseFear;
+    }
+
+    // 분신 스킬 관련
+    public void setCanUseCloneSkill(boolean canUseCloneSkill) {
+        this.canUseCloneSkill = canUseCloneSkill;
+    }
+    
+    public boolean canUseCloneSkill() {
+        return canUseCloneSkill;
+    }
+
+    public void setHasUsedCloneSkill(boolean hasUsedCloneSkill) {
+        this.hasUsedCloneSkill = hasUsedCloneSkill;
+    }
+    
+    public boolean hasUsedCloneSkill() {
+        return hasUsedCloneSkill;
+    }
+
+    public void setIsUsingSkill(boolean isUsingSkill) {
+        this.isUsingSkill = isUsingSkill;
+    }
+    
+    public boolean isUsingSkill() {
+        return isUsingSkill;
+    }
+
+    public void setSkillSheet(Bitmap skillSheet) {
+        this.skillSheet = skillSheet;
+    }
+    
+    public Bitmap getSkillSheet() {
+        return skillSheet;
+    }
+
+    public void setSkillFrame(int skillFrame) {
+        this.skillFrame = skillFrame;
+    }
+    
+    public int getSkillFrame() {
+        return skillFrame;
+    }
+
+    public void setSkillFrameCount(int skillFrameCount) {
+        this.skillFrameCount = skillFrameCount;
+    }
+    
+    public int getSkillFrameCount() {
+        return skillFrameCount;
+    }
+
+    public void setSkillAnimTimer(float skillAnimTimer) {
+        this.skillAnimTimer = skillAnimTimer;
+    }
+    
+    public float getSkillAnimTimer() {
+        return skillAnimTimer;
+    }
+
+    public void setSkillTimer(float skillTimer) {
+        this.skillTimer = skillTimer;
+    }
+    
+    public float getSkillTimer() {
+        return skillTimer;
+    }
+
+    // 출혈 효과 관련
+    public void setCanCauseBleeding(boolean canCauseBleeding) {
+        this.canCauseBleeding = canCauseBleeding;
+    }
+    
+    public boolean canCauseBleeding() {
+        return canCauseBleeding;
+    }
+
+    public void setBleedingChance(float bleedingChance) {
+        this.bleedingChance = bleedingChance;
+    }
+    
+    public float getBleedingChance() {
+        return bleedingChance;
+    }
+
+    // 분신 스킬 사용
+    public void useCloneSkill(AttackCallback callback) {
+        if (!isAlive || !canUseCloneSkill || hasUsedCloneSkill) return;
+        isUsingSkill = true;
+        skillTimer = 0f;
+        skillFrame = 0;
+        this.attackCallback = callback;
+    }
+    
+    // HP가 50% 미만인지 체크
+    public boolean isHpBelowHalf() {
+        return currentHp < (maxHp / 2);
+    }
+    
+    // 분신 스킬 사용 가능한지 체크
+    public boolean shouldUseCloneSkill() {
+        return canUseCloneSkill && !hasUsedCloneSkill && isHpBelowHalf();
+    }
+    
+    // 출혈 효과 체크
+    public boolean checkBleedingEffect() {
+        return canCauseBleeding && Math.random() < bleedingChance;
     }
 } 
