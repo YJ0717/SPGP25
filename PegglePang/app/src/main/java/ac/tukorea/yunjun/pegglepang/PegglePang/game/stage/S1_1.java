@@ -19,6 +19,7 @@ import android.view.MotionEvent;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BattleSystem;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
@@ -117,6 +118,7 @@ public class S1_1 extends BaseStageScene {
     private boolean isStageClearShown = false;
 
     private Bitmap stateBgBlack = null;
+    private DamageText damageText;
 
     public S1_1(Context context) {
         super(context, 1, 1);
@@ -215,6 +217,8 @@ public class S1_1 extends BaseStageScene {
         player.getAnimation().setFrameDuration(0.3f);
 
         playerStats.resetStatsAndTimer();
+        
+        damageText = new DamageText(context);
     }
 
     @Override
@@ -229,6 +233,7 @@ public class S1_1 extends BaseStageScene {
         player.update(dt);
         slime.update(dt);
         skeleton.update(dt);
+        damageText.update(dt);
 
         // 퍼즐 시간이 끝났을 때 딜레이 시작
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
@@ -292,8 +297,15 @@ public class S1_1 extends BaseStageScene {
                             pendingSwordDamage = lastSword + lastMagic;
                             pendingHeal = lastHeal;
                             player.playSwordEffect(() -> {
-                                if (slime.isAlive()) slime.startBlinking(pendingSwordDamage);
-                                if (skeleton.isAlive()) skeleton.startBlinking(pendingSwordDamage);
+                                int totalDamage = lastSword + lastMagic; // 실제 적용되는 총 데미지
+                                if (slime.isAlive()) {
+                                    slime.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, slime.getX() + slime.getWidth()/2, slime.getY() + slime.getHeight()/2, false);
+                                }
+                                if (skeleton.isAlive()) {
+                                    skeleton.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, skeleton.getX() + skeleton.getWidth()/2, skeleton.getY() + skeleton.getHeight()/2, false);
+                                }
                                 isMonsterBlinkPhase = true;
                                 pendingSwordDamage = 0;
                                 pendingHeal = lastHeal;
@@ -306,8 +318,15 @@ public class S1_1 extends BaseStageScene {
                             pendingMagicDamage = lastSword + lastMagic;
                             pendingHeal = lastHeal;
                             player.playMagicEffect(() -> {
-                                if (slime.isAlive()) slime.startBlinking(pendingMagicDamage);
-                                if (skeleton.isAlive()) skeleton.startBlinking(pendingMagicDamage);
+                                int totalDamage = lastSword + lastMagic; // 실제 적용되는 총 데미지
+                                if (slime.isAlive()) {
+                                    slime.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, slime.getX() + slime.getWidth()/2, slime.getY() + slime.getHeight()/2, false);
+                                }
+                                if (skeleton.isAlive()) {
+                                    skeleton.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, skeleton.getX() + skeleton.getWidth()/2, skeleton.getY() + skeleton.getHeight()/2, false);
+                                }
                                 isMonsterBlinkPhase = true;
                                 pendingMagicDamage = 0;
                                 pendingHeal = lastHeal;
@@ -316,8 +335,14 @@ public class S1_1 extends BaseStageScene {
                     } else {
                         player.playHeal(() -> {
                             int totalDamage = lastSword + lastMagic;
-                            if (slime.isAlive()) slime.startBlinking(totalDamage);
-                            if (skeleton.isAlive()) skeleton.startBlinking(totalDamage);
+                            if (slime.isAlive()) {
+                                slime.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, slime.getX() + slime.getWidth()/2, slime.getY() + slime.getHeight()/2, false);
+                            }
+                            if (skeleton.isAlive()) {
+                                skeleton.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, skeleton.getX() + skeleton.getWidth()/2, skeleton.getY() + skeleton.getHeight()/2, false);
+                            }
                             playerStats.heal(lastHeal);
                             isMonsterBlinkPhase = true;
                             pendingMagicDamage = 0;
@@ -333,7 +358,9 @@ public class S1_1 extends BaseStageScene {
                     // 스켈레톤이 살아있으면 스켈레톤이 먼저 공격
                     if (skeleton.isAlive()) {
                         skeleton.attack(() -> {
-                            player.takeDamage(skeleton.getAttackPower());
+                            float damage = skeleton.getAttackPower();
+                            player.takeDamage(damage);
+                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
                             if (!player.isAlive()) {
                                 player.die();
                                 isGameOver = true;
@@ -347,7 +374,9 @@ public class S1_1 extends BaseStageScene {
                             // 슬라임이 살아있으면 슬라임이 공격
                             if (slime.isAlive()) {
                                 slime.attack(() -> {
-                                    player.takeDamage(slime.getAttackPower());
+                                    float slimeDamage = slime.getAttackPower();
+                                    player.takeDamage(slimeDamage);
+                                    damageText.showDamage((int)slimeDamage, player.getX() + player.getWidth()/2, player.getY(), true);
                                     if (!player.isAlive()) {
                                         player.die();
                                         isGameOver = true;
@@ -615,11 +644,14 @@ public class S1_1 extends BaseStageScene {
         slime.draw(canvas);
         skeleton.draw(canvas);
 
+        // 데미지 텍스트 그리기 (몬스터 바로 다음에)
+        damageText.draw(canvas);
+
         // 게임 오버 화면 표시
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }
-
+        
         // 스테이지 클리어 화면 표시
         StageClearScene.getInstance(context).draw(canvas);
     }

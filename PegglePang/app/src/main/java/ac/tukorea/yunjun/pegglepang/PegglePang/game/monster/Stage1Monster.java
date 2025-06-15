@@ -252,4 +252,20 @@ public class Stage1Monster {
     public boolean isDying() {
         return isDying;
     }
+    
+    public float getX() {
+        return x;
+    }
+    
+    public float getY() {
+        return y;
+    }
+    
+    public float getWidth() {
+        return width;
+    }
+    
+    public float getHeight() {
+        return height;
+    }
 } 

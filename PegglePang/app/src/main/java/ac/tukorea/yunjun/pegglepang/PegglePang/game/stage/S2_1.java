@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 import android.widget.TextView;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
@@ -53,6 +54,7 @@ public class S2_1 extends BaseStageScene {
     private boolean isGameOver = false;
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
+    private DamageText damageText;
 
     public S2_1(Context context) {
         super(context, 2, 1);
@@ -115,6 +117,8 @@ public class S2_1 extends BaseStageScene {
         float swordEffectX = (playerLeft + playerDrawWidth + (Metrics.width - 80f - (Metrics.width * 0.05f))) / 2 - swordEffectWidth / 2;
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
+        
+        damageText = new DamageText(context);
     }
 
     @Override
@@ -131,6 +135,7 @@ public class S2_1 extends BaseStageScene {
         if (monster1 != null) {
             monster1.update(dt);
         }
+        damageText.update(dt);
 
         if (!isBattlePhase && playerStats.isGameOver() && !isPuzzleFrozen && 
             !blockGrid.isAnyBlockAnimating() && !blockGrid.isAnyBlockFalling() && 
@@ -156,6 +161,7 @@ public class S2_1 extends BaseStageScene {
                             player.playSwordEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
                                     monster1.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY(), false);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -168,6 +174,7 @@ public class S2_1 extends BaseStageScene {
                             player.playMagicEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
                                     monster1.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY(), false);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
@@ -179,6 +186,7 @@ public class S2_1 extends BaseStageScene {
                         player.playHeal(() -> {
                             if (monster1 != null && monster1.isAlive()) {
                                 monster1.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, monster1.getX() + monster1.getWidth()/2, monster1.getY(), false);
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);
@@ -190,7 +198,9 @@ public class S2_1 extends BaseStageScene {
                     isWaitingForAnim = true;
                     if (monster1 != null && monster1.isAlive()) {
                         monster1.attack(() -> {
-                            player.takeDamage(monster1.getAttackPower());
+                            float damage = monster1.getAttackPower();
+                            player.takeDamage(damage);
+                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
                             if (!player.isAlive()) {
                                 player.die();
                                 isGameOver = true;
@@ -368,6 +378,9 @@ public class S2_1 extends BaseStageScene {
             monster1.draw(canvas);
         }
 
+        // 데미지 텍스트 그리기 (몬스터 바로 다음에)
+        damageText.draw(canvas);
+        
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }

@@ -19,7 +19,7 @@ public class Player {
     private int pendingDamage = 0;
     private boolean isDead = false;
     private boolean isAttacking = false;
-    private float x, y;
+    private float x, y, width, height;
 
     public Player(Context context, float x, float y, float width, float height, PlayerStats stats) {
         this.stats = stats;
@@ -36,6 +36,8 @@ public class Player {
         this.animation.setSwordEffectSheet(swordEffect);
         this.x = x;
         this.y = y;
+        this.width = width;
+        this.height = height;
     }
 
     public void update(float frameTime) {
@@ -185,5 +187,21 @@ public class Player {
             die();
         }
         pendingDamage = 0;
+    }
+    
+    public float getX() {
+        return x;
+    }
+    
+    public float getY() {
+        return y;
+    }
+    
+    public float getWidth() {
+        return width;
+    }
+    
+    public float getHeight() {
+        return height;
     }
 } 
