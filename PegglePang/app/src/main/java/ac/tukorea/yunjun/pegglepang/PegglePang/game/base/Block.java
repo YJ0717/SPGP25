@@ -6,6 +6,7 @@ package ac.tukorea.yunjun.pegglepang.PegglePang.game.base;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.audio.SoundEffectManager;
 
 public class Block {
     public static final int HEAL = 0;   
@@ -26,8 +27,12 @@ public class Block {
     private float targetX, targetY;      
     private boolean isAnimating = false; 
     private boolean isFalling = false;
+    private boolean isRemoving = false;
+    private float removeScale = 1.0f;
+    private boolean soundPlayed = false;
     private static final float SLIDE_SPEED = 0.2f;
     private static final float GRAVITY = 1.5f;
+    private static final float REMOVE_SPEED = 0.1f;
     private float velocityY = 0;
 
     private int row, col;
@@ -91,9 +96,34 @@ public class Block {
             this.velocityY = 0;
         }
     }
+    
+    public void startRemoveAnimation() {
+        this.isRemoving = true;
+        this.removeScale = 1.0f;
+        this.soundPlayed = false;
+    }
+    
+    public boolean isRemoving() {
+        return isRemoving;
+    }
+    
+    public boolean isCompletelyRemoved() {
+        return isRemoving && removeScale <= 0.0f;
+    }
 
     public void update(float deltaTime) {
-        if (isAnimating) {
+        if (isRemoving) {
+            // 제거 애니메이션 - 스케일 축소
+            removeScale -= REMOVE_SPEED;
+            if (removeScale <= 0.8f && !soundPlayed) {
+                // 블록이 80% 축소되었을 때 효과음 재생 (시각적으로 거의 사라질 때)
+                SoundEffectManager.getInstance().playBlockBreakSound();
+                soundPlayed = true;
+            }
+            if (removeScale <= 0.0f) {
+                removeScale = 0.0f;
+            }
+        } else if (isAnimating) {
             if (isFalling) {
                 velocityY += GRAVITY;
                 currentY += velocityY;
@@ -137,12 +167,31 @@ public class Block {
     }
     
     public void draw(Canvas canvas) {
-        if (isBomb && bombBitmap != null) {
-            canvas.drawBitmap(bombBitmap, null, rect, null);
-        } else if (isRock && rockBitmap != null) {
-            canvas.drawBitmap(rockBitmap, null, rect, null);
-        } else if (bitmap != null) {
-            canvas.drawBitmap(bitmap, null, rect, null);
+        if (isRemoving && removeScale > 0.0f) {
+            // 제거 애니메이션 중일 때 스케일 적용
+            canvas.save();
+            float centerX = rect.centerX();
+            float centerY = rect.centerY();
+            canvas.scale(removeScale, removeScale, centerX, centerY);
+            
+            if (isBomb && bombBitmap != null) {
+                canvas.drawBitmap(bombBitmap, null, rect, null);
+            } else if (isRock && rockBitmap != null) {
+                canvas.drawBitmap(rockBitmap, null, rect, null);
+            } else if (bitmap != null) {
+                canvas.drawBitmap(bitmap, null, rect, null);
+            }
+            
+            canvas.restore();
+        } else if (!isRemoving) {
+            // 일반 상태일 때
+            if (isBomb && bombBitmap != null) {
+                canvas.drawBitmap(bombBitmap, null, rect, null);
+            } else if (isRock && rockBitmap != null) {
+                canvas.drawBitmap(rockBitmap, null, rect, null);
+            } else if (bitmap != null) {
+                canvas.drawBitmap(bitmap, null, rect, null);
+            }
         }
     }
     

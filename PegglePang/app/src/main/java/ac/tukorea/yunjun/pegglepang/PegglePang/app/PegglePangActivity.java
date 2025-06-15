@@ -8,6 +8,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.world.worldSelectScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.audio.BackgroundMusicManager;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.audio.SoundEffectManager;
 
 public class PegglePangActivity extends AppCompatActivity {
     private GameView gameView;
@@ -25,6 +27,12 @@ public class PegglePangActivity extends AppCompatActivity {
 
         worldSelectScene worldSelectScene = new worldSelectScene(this);
         gameView.pushScene(worldSelectScene);
+        
+        // 배경음악 시작
+        BackgroundMusicManager.getInstance().startBackgroundMusic(this);
+        
+        // 효과음 매니저 초기화
+        SoundEffectManager.getInstance().initialize(this);
     }
 
     public GameView getGameView() {
@@ -46,5 +54,28 @@ public class PegglePangActivity extends AppCompatActivity {
         if (oldGameView != null && gameView != null) {
             gameView.restoreFromGameView(oldGameView);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // 앱이 다시 활성화될 때 배경음악 재개
+        BackgroundMusicManager.getInstance().resumeBackgroundMusic();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        // 앱이 백그라운드로 갈 때 배경음악 일시정지
+        BackgroundMusicManager.getInstance().pauseBackgroundMusic();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // 앱이 종료될 때 배경음악 완전 정지
+        BackgroundMusicManager.getInstance().stopBackgroundMusic();
+        // 효과음 매니저 해제
+        SoundEffectManager.getInstance().release();
     }
 }

@@ -10,6 +10,7 @@ import java.util.Arrays;
 import android.os.Handler;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.audio.SoundEffectManager;
 import ac.tukorea.yunjun.pegglepang.R;
 
 public class BlockGrid {
@@ -348,19 +349,15 @@ public class BlockGrid {
             }
         }
 
+        if (hasMatches) {
+            // 블록 터지는 효과음 즉시 재생
+            SoundEffectManager.getInstance().playBlockBreakSound();
+        }
+        
         if (hasMatches && playerStats != null) {
             // 퍼즐 로그라이크: 칼블럭과 마법블럭 2배 효과 적용
             int finalSwordCount = playerStats.calculateSwordBlockScore(swordCount);
             int finalMagicCount = playerStats.calculateMagicBlockScore(magicCount);
-            
-            // 디버그 로그 추가
-            System.out.println("BlockGrid 매치 처리:");
-            System.out.println("- 원본 칼블럭: " + swordCount + " -> 최종: " + finalSwordCount);
-            System.out.println("- 원본 마법블럭: " + magicCount + " -> 최종: " + finalMagicCount);
-            System.out.println("- 치유블럭: " + healCount);
-            System.out.println("- 현재 스테이지: " + currentStage + "-" + currentSubStage);
-            System.out.println("- 칼블럭 2배 활성화: " + (playerStats != null ? playerStats.hasSwordBlockDouble() : "null"));
-            System.out.println("- 마법블럭 2배 활성화: " + (playerStats != null ? playerStats.hasMagicBlockDouble() : "null"));
             
             playerStats.addPhysicalAttack(finalSwordCount);
             playerStats.addMagicAttack(finalMagicCount);
@@ -557,6 +554,9 @@ public class BlockGrid {
     // 폭탄 블록 클릭 시 해당 행과 열의 모든 블록 제거
     public boolean handleBombClick(int row, int col) {
         if (blocks[row][col] != null && blocks[row][col].isBomb()) {
+            // 폭탄 터지는 효과음 재생
+            SoundEffectManager.getInstance().playBlockBreakSound();
+            
             int swordCount = 0;
             int magicCount = 0;
             int healCount = 0;
@@ -609,6 +609,9 @@ public class BlockGrid {
 
     // 무작위 블록 5개 터뜨리기 (로그라이크 기능)
     public void destroyRandomBlocks(int count) {
+        // 무작위 블록 터지는 효과음 재생
+        SoundEffectManager.getInstance().playBlockBreakSound();
+        
         ArrayList<int[]> availableBlocks = new ArrayList<>();
         
         // 터뜨릴 수 있는 블록 찾기 (rock과 bomb 제외)
