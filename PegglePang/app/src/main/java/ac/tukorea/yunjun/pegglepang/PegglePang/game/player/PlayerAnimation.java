@@ -25,10 +25,11 @@ public class PlayerAnimation {
 
     private float x, y, width, height;
 
-    private int idleFrameWidth = 105;
+    private int idleFrameWidth = 90;
     private int idleFrameHeight = 133;
-    private int deadFrameWidth = 105;
+    private int deadFrameWidth = 90;
     private int deadFrameHeight = 149;
+
 
     private Bitmap magicEffectSheet;
     private int magicEffectFrame = 0;
@@ -172,14 +173,14 @@ public class PlayerAnimation {
             case HEAL:  return healFrameCount;
             case DEAD:  return deadFrameCount;
             default:    return idleFrameCount;
-        }
+                }
     }
 
     private int getFrameWidth(Type type) {
         switch (type) {
-            case SWORD: return 90;
-            case MAGIC: return 100;
-            case HEAL:  return 70;
+            case SWORD: return 80;
+            case MAGIC: return 90;
+            case HEAL:  return 60;
             case DEAD:  return deadFrameWidth;
             case IDLE:  return idleFrameWidth;
             default:    return idleFrameWidth;

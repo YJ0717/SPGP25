@@ -69,8 +69,9 @@ public class DamageText {
     
     private void drawNumber(Canvas canvas, int number, float x, float y, float timer, boolean isPlayerDamage) {
         String numberStr = String.valueOf(number);
-        float digitWidth = 18f;
-        float digitHeight = 34f;
+        // 실제 스프라이트 시트 크기에서 계산 (0~9 총 10개 숫자)
+        float digitWidth = numberSheet.getWidth() / 10f;
+        float digitHeight = numberSheet.getHeight();
         
         // 숫자 크기 설정 (플레이어와 몬스터 데미지 크기 동일)
         float scale = 2.5f; // 크게 표시
