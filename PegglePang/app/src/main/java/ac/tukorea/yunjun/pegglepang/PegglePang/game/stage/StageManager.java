@@ -12,7 +12,7 @@ public class StageManager {
     private Map<String, StageData> stageDataMap;
     private static PlayerStats playerStats = new PlayerStats();
     private boolean world2Unlocked = false;
-    
+
     // 퍼즐 로그라이크 설정
     private static boolean bombBlocksEnabled = false;
 

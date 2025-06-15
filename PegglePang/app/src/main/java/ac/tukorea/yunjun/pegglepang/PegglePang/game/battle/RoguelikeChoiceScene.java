@@ -129,10 +129,10 @@ public class RoguelikeChoiceScene {
                         return true;
                     } else if (healRect.contains(x, y)) {
                         // 주머니 선택 - 무작위 블록 5개 터뜨리기
-                        step = Step.DONE;
-                        hide();
+                    step = Step.DONE;
+                    hide();
                         if (listener != null) listener.onRoguelikeDone(2);
-                        return true;
+                    return true;
                     }
                 }
             }

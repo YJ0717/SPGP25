@@ -468,9 +468,9 @@ public class BlockGrid {
                     
                     // 새로 생성된 블록 위치 저장
                     newBlockPositions.add(new int[]{targetRow, col});
-                }
             }
         }
+    }
         
         // 매치로 인한 생성이고 폭탄 블록이 활성화된 경우, 새로 생성된 블록 중 하나를 폭탄 블록으로 변경
         if (!isBombDestroy && bombBlockEnabled && currentStage >= 2 && currentSubStage >= 1 && 

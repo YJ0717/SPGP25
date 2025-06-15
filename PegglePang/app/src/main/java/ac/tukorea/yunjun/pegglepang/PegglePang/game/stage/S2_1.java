@@ -84,11 +84,11 @@ public class S2_1 extends BaseStageScene {
 
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
         if (!StageManager.getInstance().isStageUnlocked(2, 2)) {
-            float monster1DrawHeight = battleHeight * 0.5f;
-            float monster1DrawWidth = 80f;
+            float monster1DrawHeight = battleHeight * 0.7f; // 세로 크기
+            float monster1DrawWidth = 80f; 
             float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
             float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
-            monster1 = new Stage2Monster(context, R.mipmap.magicman_idle, 2, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 10f);
+            monster1 = new Stage2Monster(context, R.mipmap.axeman_idle, 3, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 0f);
         } else {
             monster1 = null;
         }
@@ -142,6 +142,7 @@ public class S2_1 extends BaseStageScene {
             lastSword = playerStats.getPhysicalAttack();
             lastMagic = playerStats.getMagicAttack();
             lastHeal = playerStats.getHealing();
+            System.out.println("Battle stats - Sword: " + lastSword + ", Magic: " + lastMagic + ", Heal: " + lastHeal);
         }
 
         if (isBattlePhase) {
@@ -149,29 +150,35 @@ public class S2_1 extends BaseStageScene {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using SWORD attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword);
+                                    monster1.startBlinking(totalDamage);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using MAGIC attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
                                 if (monster1 != null && monster1.isAlive()) {
-                                    monster1.startBlinking(lastSword);
+                                    monster1.startBlinking(totalDamage);
                                     isMonsterBlinkPhase = true;
                                 }
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using HEAL with amount: " + lastHeal + " and total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playHeal(() -> {
                             if (monster1 != null && monster1.isAlive()) {
-                                monster1.startBlinking(lastSword);
+                                monster1.startBlinking(totalDamage);
                                 isMonsterBlinkPhase = true;
                             }
                             playerStats.heal(lastHeal);

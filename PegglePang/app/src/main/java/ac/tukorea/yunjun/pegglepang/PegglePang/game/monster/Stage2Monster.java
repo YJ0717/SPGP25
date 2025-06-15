@@ -17,7 +17,7 @@ public class Stage2Monster {
     private Bitmap dieSheet;
     private int frame = 0;
     private int frameCount;
-    private int attackFrameCount = 4;
+    private int attackFrameCount = 4; // 기본값, 생성자에서 설정됨
     private int dieFrameCount = 6;
     private int attackFrame = 0;
     private int dieFrame = 0;
@@ -71,7 +71,14 @@ public class Stage2Monster {
     public Stage2Monster(Context context, int resId, int frameCount, float x, float y, float width, float height, float magicDamageThreshold) {
         this.context = context;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
-        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+        // magicDamageThreshold가 0보다 크면 magicman (S1_2), 0이면 axeman (S2_1)
+        if (magicDamageThreshold > 0) {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+            this.attackFrameCount = 4; // magicman은 4프레임
+        } else {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.axeman_attack);
+            this.attackFrameCount = 3; // axeman은 3프레임
+        }
         this.iceBallSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ice_ball);
         this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
         this.frameCount = frameCount;
@@ -115,7 +122,7 @@ public class Stage2Monster {
                 attackAnimTimer -= ATTACK_FRAME_DURATION;
                 attackFrame = (attackFrame + 1) % attackFrameCount;
                 
-                if (attackFrame == 2 && !isShootingIceBall) {
+                if (attackFrame == 2 && !isShootingIceBall && magicDamageThreshold > 0) {
                     shouldShootIceBall = true;
                 }
             }
@@ -123,7 +130,7 @@ public class Stage2Monster {
                 isAttacking = false;
                 attackTimer = 0f;
                 attackFrame = 0;
-                if (shouldShootIceBall) {
+                if (shouldShootIceBall && magicDamageThreshold > 0) {
                     isShootingIceBall = true;
                     isIceBallActive = true;
                     iceBallX = x;
@@ -143,18 +150,15 @@ public class Stage2Monster {
             }
         }
 
-        if (isIceBallActive) {
+        if (isIceBallActive && magicDamageThreshold > 0) {
             iceBallAnimTimer += dt;
             if (iceBallAnimTimer >= ICE_BALL_FRAME_DURATION) {
                 iceBallAnimTimer -= ICE_BALL_FRAME_DURATION;
                 iceBallFrame = (iceBallFrame + 1) % 2;
             }
 
-            // 왼쪽으로 이동
             iceBallX -= ICE_BALL_SPEED * dt;
-            // y 위치는 고정
 
-            // 화면 왼쪽 끝을 벗어나면 비활성화
             if (iceBallX < -iceBallWidth) {
                 isIceBallActive = false;
                 isShootingIceBall = false;
@@ -209,7 +213,7 @@ public class Stage2Monster {
             }
         }
 
-        if (isIceBallActive && iceBallSheet != null) {
+        if (isIceBallActive && iceBallSheet != null && magicDamageThreshold > 0) {
             int frameW = iceBallSheet.getWidth() / 2;
             int frameH = iceBallSheet.getHeight();
             int left = frameW * iceBallFrame;
@@ -257,11 +261,13 @@ public class Stage2Monster {
     }
 
     public void startBlinking(int damage) {
+        System.out.println("Stage2Monster taking damage: " + damage + ", current HP: " + currentHp);
         isBlinking = true;
         blinkCount = 0;
         blinkTimer = 0f;
         pendingDamage = damage;
         takeDamage(damage);  // 데미지를 즉시 적용
+        System.out.println("After damage, HP: " + currentHp);
     }
 
     public boolean isBlinking() {
