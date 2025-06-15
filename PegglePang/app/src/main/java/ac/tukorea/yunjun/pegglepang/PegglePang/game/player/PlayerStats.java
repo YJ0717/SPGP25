@@ -26,6 +26,17 @@ public class PlayerStats {
     private int rogueMagicBuff = 0;
     private int rogueHealBuff = 0;
     
+    // 전투 로그라이크 효과들
+    private boolean hasCriticalChance = false;
+    private float criticalChance = 0.1f; // 10% 확률
+    private float criticalMultiplier = 1.5f; // 1.5배 데미지
+    
+    private boolean hasDamageReduction = false;
+    private float damageReductionRate = 0.5f; // 50% 데미지 감소
+    
+    private boolean hasStunChance = false;
+    private float stunChance = 0.2f; // 20% 확률
+    
     // 패시브 아이템 관련
     private boolean hasHourglassItem = false;
     private Bitmap hourglassBitmap;
@@ -257,5 +268,74 @@ public class PlayerStats {
         
         return touchX >= currentItemX && touchX <= currentItemX + itemSize &&
                touchY >= itemY && touchY <= itemY + itemSize;
+    }
+    
+    // 전투 로그라이크 효과 관련 메서드들
+    public void applyCriticalChance() {
+        this.hasCriticalChance = true;
+    }
+    
+    public void applyDamageReduction() {
+        this.hasDamageReduction = true;
+    }
+    
+    public void applyStunChance() {
+        this.hasStunChance = true;
+    }
+    
+    public boolean hasCriticalChance() {
+        return hasCriticalChance;
+    }
+    
+    public boolean hasDamageReduction() {
+        return hasDamageReduction;
+    }
+    
+    public boolean hasStunChance() {
+        return hasStunChance;
+    }
+    
+    public float getCriticalChance() {
+        return criticalChance;
+    }
+    
+    public float getCriticalMultiplier() {
+        return criticalMultiplier;
+    }
+    
+    public float getDamageReductionRate() {
+        return damageReductionRate;
+    }
+    
+    public float getStunChance() {
+        return stunChance;
+    }
+    
+    // 크리티컬 데미지 계산
+    public int calculateCriticalDamage(int baseDamage) {
+        System.out.println("크리티컬 체크 - hasCriticalChance: " + hasCriticalChance + ", 확률: " + criticalChance);
+        if (hasCriticalChance && Math.random() < criticalChance) {
+            int criticalDamage = (int)(baseDamage * criticalMultiplier);
+            System.out.println("크리티컬 발동! 기본데미지: " + baseDamage + " -> 크리티컬데미지: " + criticalDamage);
+            return criticalDamage;
+        }
+        System.out.println("크리티컬 미발동, 기본데미지: " + baseDamage);
+        return baseDamage;
+    }
+    
+    // 받는 데미지 계산
+    public float calculateReceivedDamage(float incomingDamage) {
+        if (hasDamageReduction) {
+            return incomingDamage * (1.0f - damageReductionRate);
+        }
+        return incomingDamage;
+    }
+    
+    // 마비 확률 체크
+    public boolean checkStunChance() {
+        System.out.println("마비 체크 - hasStunChance: " + hasStunChance + ", 확률: " + stunChance);
+        boolean stunResult = hasStunChance && Math.random() < stunChance;
+        System.out.println("마비 결과: " + stunResult);
+        return stunResult;
     }
 } 

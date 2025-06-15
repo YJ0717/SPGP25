@@ -17,6 +17,11 @@ public class StageManager {
     // 퍼즐 로그라이크 설정
     private static boolean bombBlocksEnabled = false;
 
+    // 전투 로그라이크 효과들 (스테이지 3 시리즈에서 지속)
+    private static boolean battleCriticalEnabled = false;
+    private static boolean battleDamageReductionEnabled = false;
+    private static boolean battleStunEnabled = false;
+
     private StageManager() {
         stageDataMap = new HashMap<>();
         stageDataMap.put("1-1", new StageData(true));  
@@ -108,6 +113,56 @@ public class StageManager {
 
     public static void disableBombBlocks() {
         bombBlocksEnabled = false;
+    }
+
+    // 전투 로그라이크 효과 관리 메서드들
+    public static void enableBattleCritical() {
+        battleCriticalEnabled = true;
+    }
+    
+    public static void enableBattleDamageReduction() {
+        battleDamageReductionEnabled = true;
+    }
+    
+    public static void enableBattleStun() {
+        battleStunEnabled = true;
+    }
+    
+    public static boolean isBattleCriticalEnabled() {
+        return battleCriticalEnabled;
+    }
+    
+    public static boolean isBattleDamageReductionEnabled() {
+        return battleDamageReductionEnabled;
+    }
+    
+    public static boolean isBattleStunEnabled() {
+        return battleStunEnabled;
+    }
+    
+    // 스테이지 3 진입 시 전투 로그라이크 효과를 PlayerStats에 적용
+    public static void applyBattleRoguelikeEffects(PlayerStats playerStats) {
+        System.out.println("=== 전투 로그라이크 효과 적용 체크 ===");
+        System.out.println("크리티컬 활성화: " + battleCriticalEnabled);
+        System.out.println("데미지 감소 활성화: " + battleDamageReductionEnabled);
+        System.out.println("마비 활성화: " + battleStunEnabled);
+        
+        if (battleCriticalEnabled) {
+            playerStats.applyCriticalChance();
+            System.out.println("크리티컬 효과 적용됨");
+        }
+        if (battleDamageReductionEnabled) {
+            playerStats.applyDamageReduction();
+            System.out.println("데미지 감소 효과 적용됨");
+        }
+        if (battleStunEnabled) {
+            playerStats.applyStunChance();
+            System.out.println("마비 효과 적용됨");
+        }
+        
+        System.out.println("PlayerStats 상태 - 크리티컬: " + playerStats.hasCriticalChance() + 
+                          ", 데미지감소: " + playerStats.hasDamageReduction() + 
+                          ", 마비: " + playerStats.hasStunChance());
     }
 
     private static class StageData {

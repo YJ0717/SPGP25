@@ -651,7 +651,7 @@ public class S1_1 extends BaseStageScene {
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }
-        
+
         // 스테이지 클리어 화면 표시
         StageClearScene.getInstance(context).draw(canvas);
     }

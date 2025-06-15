@@ -74,6 +74,10 @@ public class Stage3Monster {
     private AttackCallback attackCallback;
     private boolean isMagicAttack = false;
 
+    // 마비 상태 관련
+    private boolean isStunned = false;
+    private int stunTurnsRemaining = 0;
+
     public interface AttackCallback {
         void onAttackComplete();
     }
@@ -294,6 +298,12 @@ public class Stage3Monster {
             float hpY = y - 10;
             hpPaint.setColor(Color.WHITE);
             canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
+            
+            // 마비 상태 표시
+            if (isStunned) {
+                hpPaint.setColor(Color.YELLOW);
+                canvas.drawText("마비", hpX, hpY - 30, hpPaint);
+            }
         }
     }
 
@@ -360,5 +370,28 @@ public class Stage3Monster {
 
     public int getMaxHp() {
         return maxHp;
+    }
+
+    // 마비 관련 메서드들
+    public void setStunned(int turns) {
+        this.isStunned = true;
+        this.stunTurnsRemaining = turns;
+    }
+    
+    public boolean isStunned() {
+        return isStunned;
+    }
+    
+    public void reduceStunTurns() {
+        if (stunTurnsRemaining > 0) {
+            stunTurnsRemaining--;
+            if (stunTurnsRemaining <= 0) {
+                isStunned = false;
+            }
+        }
+    }
+    
+    public boolean canAttack() {
+        return !isStunned && isAlive && !isDying;
     }
 } 

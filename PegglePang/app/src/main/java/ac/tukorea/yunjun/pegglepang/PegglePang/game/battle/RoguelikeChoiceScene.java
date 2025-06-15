@@ -118,15 +118,39 @@ public class RoguelikeChoiceScene {
                 RectF healRect = new RectF(cardRect.left + iconWidth * 2, cardRect.top, cardRect.right, cardRect.bottom);
                 if (step == Step.ATTACK) {
                     if (physicalRect.contains(x, y)) {
-                        playerStats.applyRoguePhysicalBuff(10);
+                        if (useSecondImages) {
+                            // 전투 로그라이크: 크리티컬 확률
+                            System.out.println("=== 전투 로그라이크: 크리티컬 선택 ===\n크리티컬 효과 활성화됨");
+                            playerStats.applyCriticalChance();
+                            StageManager.enableBattleCritical();
+                        } else {
+                            // 기존 로그라이크: 물리 공격력 버프
+                            playerStats.applyRoguePhysicalBuff(10);
+                        }
                         step = Step.PUZZLE;
                         return true;
                     } else if (magicRect.contains(x, y)) {
-                        playerStats.applyRogueMagicBuff(8);
+                        if (useSecondImages) {
+                            // 전투 로그라이크: 데미지 감소
+                            System.out.println("=== 전투 로그라이크: 데미지 감소 선택 ===\n데미지 감소 효과 활성화됨");
+                            playerStats.applyDamageReduction();
+                            StageManager.enableBattleDamageReduction();
+                        } else {
+                            // 기존 로그라이크: 마법 공격력 버프
+                            playerStats.applyRogueMagicBuff(8);
+                        }
                         step = Step.PUZZLE;
                         return true;
                     } else if (healRect.contains(x, y)) {
-                        playerStats.applyRogueHealBuff(5);
+                        if (useSecondImages) {
+                            // 전투 로그라이크: 마비 확률
+                            System.out.println("=== 전투 로그라이크: 마비 선택 ===\n마비 효과 활성화됨");
+                            playerStats.applyStunChance();
+                            StageManager.enableBattleStun();
+                        } else {
+                            // 기존 로그라이크: 힐 버프
+                            playerStats.applyRogueHealBuff(5);
+                        }
                         step = Step.PUZZLE;
                         return true;
                     }

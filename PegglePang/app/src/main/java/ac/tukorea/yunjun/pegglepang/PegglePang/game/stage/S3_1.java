@@ -97,6 +97,7 @@ public class S3_1 extends BaseStageScene {
             monster = new Stage2Monster(context, R.mipmap.slime_idle, 4, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
             monster.setMaxHp(25);
             System.out.println("몬스터 생성 완료: HP 25");
+            System.out.println("실제 몬스터 maxHP: " + monster.getMaxHp() + ", currentHP: " + monster.getCurrentHp());
         } else {
             monster = null;
             System.out.println("몬스터 생성 안함 (3-2 이미 해금됨)");
@@ -162,38 +163,59 @@ public class S3_1 extends BaseStageScene {
                     isWaitingForAnim = true;
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
                         int totalDamage = lastSword + lastMagic;
-                        System.out.println("Using SWORD attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
+                        // 전투 로그라이크: 크리티컬 데미지 적용
+                        int finalDamage = playerStats.calculateCriticalDamage(totalDamage);
+                        System.out.println("Using SWORD attack with total damage: " + finalDamage + " (Base: " + totalDamage + ", Critical: " + (finalDamage > totalDamage) + ")");
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
                                 if (monster != null && monster.isAlive()) {
-                                    monster.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                    monster.startBlinking(finalDamage);
+                                    damageText.showDamage(finalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
                                     isMonsterBlinkPhase = true;
+                                    
+                                    // 전투 로그라이크: 마비 효과 적용
+                                    if (playerStats.checkStunChance()) {
+                                        monster.setStunned(1); // 1턴 마비
+                                    }
                                 }
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
                         int totalDamage = lastSword + lastMagic;
-                        System.out.println("Using MAGIC attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
+                        // 전투 로그라이크: 크리티컬 데미지 적용
+                        int finalDamage = playerStats.calculateCriticalDamage(totalDamage);
+                        System.out.println("Using MAGIC attack with total damage: " + finalDamage + " (Base: " + totalDamage + ", Critical: " + (finalDamage > totalDamage) + ")");
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
                                 if (monster != null && monster.isAlive()) {
-                                    monster.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                    monster.startBlinking(finalDamage);
+                                    damageText.showDamage(finalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
                                     isMonsterBlinkPhase = true;
+                                    
+                                    // 전투 로그라이크: 마비 효과 적용
+                                    if (playerStats.checkStunChance()) {
+                                        monster.setStunned(1); // 1턴 마비
+                                    }
                                 }
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else {
                         int totalDamage = lastSword + lastMagic;
-                        System.out.println("Using HEAL with amount: " + lastHeal + " and total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
+                        // 전투 로그라이크: 크리티컬 데미지 적용
+                        int finalDamage = playerStats.calculateCriticalDamage(totalDamage);
+                        System.out.println("Using HEAL with amount: " + lastHeal + " and total damage: " + finalDamage + " (Base: " + totalDamage + ", Critical: " + (finalDamage > totalDamage) + ")");
                         player.playHeal(() -> {
                             if (monster != null && monster.isAlive()) {
-                                monster.startBlinking(totalDamage);
-                                damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                monster.startBlinking(finalDamage);
+                                damageText.showDamage(finalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
                                 isMonsterBlinkPhase = true;
+                                
+                                // 전투 로그라이크: 마비 효과 적용
+                                if (playerStats.checkStunChance()) {
+                                    monster.setStunned(1); // 1턴 마비
+                                }
                             }
                             playerStats.heal(lastHeal);
                         });
@@ -203,21 +225,36 @@ public class S3_1 extends BaseStageScene {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
                     if (monster != null && monster.isAlive()) {
-                        monster.attack(() -> {
-                            float damage = monster.getAttackPower();
-                            player.takeDamage(damage);
-                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
-                            if (!player.isAlive()) {
-                                player.die();
-                                isGameOver = true;
-                                GameOverScene.getInstance().show();
-                                return;
-                            }
+                        // 마비 상태 체크
+                        if (monster.canAttack()) {
+                            monster.attack(() -> {
+                                float baseDamage = monster.getAttackPower();
+                                // 전투 로그라이크: 데미지 감소 적용
+                                float finalDamage = playerStats.calculateReceivedDamage(baseDamage);
+                                player.takeDamage(finalDamage);
+                                damageText.showDamage((int)finalDamage, player.getX() + player.getWidth()/2, player.getY(), true);
+                                if (!player.isAlive()) {
+                                    player.die();
+                                    isGameOver = true;
+                                    GameOverScene.getInstance().show();
+                                    return;
+                                }
+                                // 마비 턴 감소
+                                monster.reduceStunTurns();
+                                isBattlePhase = false;
+                                isPuzzleFrozen = false;
+                                playerStats.reset();
+                                isWaitingForAnim = false;
+                            });
+                        } else {
+                            // 몬스터가 마비 상태 - 공격하지 않고 바로 다음 턴으로
+                            System.out.println("Monster is stunned - skipping attack");
+                            monster.reduceStunTurns();
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
                             playerStats.reset();
                             isWaitingForAnim = false;
-                        });
+                        }
                     } else {
                         isBattlePhase = false;
                         isPuzzleFrozen = false;
@@ -404,6 +441,15 @@ public class S3_1 extends BaseStageScene {
     @Override
     public void onEnter() {
         super.onEnter();
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            activity.setContentView(R.layout.game_scene);
+            setupStageSpecificElements();
+        }
+        
+        // 스테이지 3부터 전투 로그라이크 효과 적용
+        StageManager.applyBattleRoguelikeEffects(playerStats);
+        
         if (StageManager.getInstance().isStageCleared(3, 1)) {
             StageClearScene.getInstance(context).show(3, 1);
             isStageClearShown = true;

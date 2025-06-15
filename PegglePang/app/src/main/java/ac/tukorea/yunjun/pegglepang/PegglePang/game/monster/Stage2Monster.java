@@ -64,6 +64,10 @@ public class Stage2Monster {
 
     private float magicDamageThreshold;  // 마법 공격력 기준값
 
+    // 마비 상태 관련
+    private boolean isStunned = false;
+    private int stunTurnsRemaining = 0;
+
     public interface AttackCallback {
         void onAttackComplete();
     }
@@ -73,7 +77,7 @@ public class Stage2Monster {
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
         // magicDamageThreshold가 0보다 크면 magicman (S1_2), 0이면 axeman (S2_1)
         if (magicDamageThreshold > 0) {
-            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
             this.attackFrameCount = 4; // magicman은 4프레임
         } else {
             this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.axeman_attack);
@@ -233,6 +237,12 @@ public class Stage2Monster {
             float hpY = y - 10;
             hpPaint.setColor(Color.WHITE);
             canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
+            
+            // 마비 상태 표시
+            if (isStunned) {
+                hpPaint.setColor(Color.YELLOW);
+                canvas.drawText("마비", hpX, hpY - 30, hpPaint);
+            }
         }
     }
 
@@ -336,5 +346,28 @@ public class Stage2Monster {
     
     public float getHeight() {
         return height;
+    }
+
+    // 마비 관련 메서드들
+    public void setStunned(int turns) {
+        this.isStunned = true;
+        this.stunTurnsRemaining = turns;
+    }
+    
+    public boolean isStunned() {
+        return isStunned;
+    }
+    
+    public void reduceStunTurns() {
+        if (stunTurnsRemaining > 0) {
+            stunTurnsRemaining--;
+            if (stunTurnsRemaining <= 0) {
+                isStunned = false;
+            }
+        }
+    }
+    
+    public boolean canAttack() {
+        return !isStunned && isAlive && !isDying;
     }
 } 

@@ -87,7 +87,7 @@ public class S2_1 extends BaseStageScene {
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
         if (!StageManager.getInstance().isStageUnlocked(2, 2)) {
             float monster1DrawHeight = battleHeight * 0.7f; // 세로 크기
-            float monster1DrawWidth = 80f; 
+            float monster1DrawWidth = 80f;
             float monster1Left = Metrics.width - monster1DrawWidth - (Metrics.width * 0.05f);
             float monster1Top = battleHeight - monster1DrawHeight - (battleHeight * 0.05f);
             monster1 = new Stage2Monster(context, R.mipmap.axeman_idle, 3, monster1Left, monster1Top, monster1DrawWidth, monster1DrawHeight, 0f);
@@ -395,7 +395,7 @@ public class S2_1 extends BaseStageScene {
 
         // 데미지 텍스트 그리기 (몬스터 바로 다음에)
         damageText.draw(canvas);
-        
+
         if (isGameOver) {
             GameOverScene.getInstance().draw(canvas);
         }

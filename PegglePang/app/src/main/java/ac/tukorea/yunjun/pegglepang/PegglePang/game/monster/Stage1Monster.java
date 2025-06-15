@@ -48,6 +48,10 @@ public class Stage1Monster {
     private float deathTimer = 0f;
     private static final float DEATH_DURATION = 0.9f;  
 
+    // 마비 상태 관련
+    private boolean isStunned = false;
+    private int stunTurnsRemaining = 0;
+
     public interface AttackCallback {
         void onAttackComplete();
     }
@@ -176,6 +180,12 @@ public class Stage1Monster {
         float hpY = y - 10; // 몬스터 위 10픽셀 위에 표시
         hpPaint.setColor(Color.WHITE);
         canvas.drawText(currentHp + "/" + maxHp, hpX, hpY, hpPaint);
+        
+        // 마비 상태 표시
+        if (isStunned) {
+            hpPaint.setColor(Color.YELLOW);
+            canvas.drawText("마비", hpX, hpY - 30, hpPaint);
+        }
     }
 
     public void setPosition(float x, float y, float width, float height) {
@@ -267,5 +277,28 @@ public class Stage1Monster {
     
     public float getHeight() {
         return height;
+    }
+
+    // 마비 관련 메서드들
+    public void setStunned(int turns) {
+        this.isStunned = true;
+        this.stunTurnsRemaining = turns;
+    }
+    
+    public boolean isStunned() {
+        return isStunned;
+    }
+    
+    public void reduceStunTurns() {
+        if (stunTurnsRemaining > 0) {
+            stunTurnsRemaining--;
+            if (stunTurnsRemaining <= 0) {
+                isStunned = false;
+            }
+        }
+    }
+    
+    public boolean canAttack() {
+        return !isStunned && isAlive && !isDying;
     }
 } 
