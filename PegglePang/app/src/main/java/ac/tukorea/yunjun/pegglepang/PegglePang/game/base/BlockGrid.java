@@ -246,6 +246,11 @@ public class BlockGrid {
     }
 
     private void addRockFromBottom() {
+        // 퍼즐 로그라이크: 돌블럭 생성 방지 효과 체크
+        if (playerStats != null && playerStats.hasRockBlockPrevention()) {
+            return;
+        }
+        
         if (rockBottomRow > 0) {
             rockBottomRow--;
             for (int col = 0; col < GRID_SIZE; col++) {
@@ -344,8 +349,12 @@ public class BlockGrid {
         }
 
         if (hasMatches && playerStats != null) {
-            playerStats.addPhysicalAttack(swordCount);
-            playerStats.addMagicAttack(magicCount);
+            // 퍼즐 로그라이크: 칼블럭과 마법블럭 2배 효과 적용
+            int finalSwordCount = playerStats.calculateSwordBlockScore(swordCount);
+            int finalMagicCount = playerStats.calculateMagicBlockScore(magicCount);
+            
+            playerStats.addPhysicalAttack(finalSwordCount);
+            playerStats.addMagicAttack(finalMagicCount);
             playerStats.addHealing(healCount);
 
             for (int row = 0; row < GRID_SIZE; row++) {
@@ -468,9 +477,9 @@ public class BlockGrid {
                     
                     // 새로 생성된 블록 위치 저장
                     newBlockPositions.add(new int[]{targetRow, col});
+                }
             }
         }
-    }
         
         // 매치로 인한 생성이고 폭탄 블록이 활성화된 경우, 새로 생성된 블록 중 하나를 폭탄 블록으로 변경
         if (!isBombDestroy && bombBlockEnabled && currentStage >= 2 && currentSubStage >= 1 && 
@@ -495,8 +504,6 @@ public class BlockGrid {
             blocks[row][col].startAnimation(puzzleLeft + col * blockSize, targetY, true);
         }
     }
-
-
 
     public void update(float deltaTime) {
         for (int row = 0; row < GRID_SIZE; row++) {
@@ -580,7 +587,6 @@ public class BlockGrid {
                 playerStats.addPhysicalAttack(swordCount);
                 playerStats.addMagicAttack(magicCount);
                 playerStats.addHealing(healCount);
-    
             }
             
             // 블록들 떨어뜨리고 새로운 블록 생성 (폭탄으로 인한 생성이므로 새로운 폭탄 블록 생성 안함)

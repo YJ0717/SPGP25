@@ -120,7 +120,6 @@ public class RoguelikeChoiceScene {
                     if (physicalRect.contains(x, y)) {
                         if (useSecondImages) {
                             // 전투 로그라이크: 크리티컬 확률
-                            System.out.println("=== 전투 로그라이크: 크리티컬 선택 ===\n크리티컬 효과 활성화됨");
                             playerStats.applyCriticalChance();
                             StageManager.enableBattleCritical();
                         } else {
@@ -132,47 +131,51 @@ public class RoguelikeChoiceScene {
                     } else if (magicRect.contains(x, y)) {
                         if (useSecondImages) {
                             // 전투 로그라이크: 데미지 감소
-                            System.out.println("=== 전투 로그라이크: 데미지 감소 선택 ===\n데미지 감소 효과 활성화됨");
                             playerStats.applyDamageReduction();
                             StageManager.enableBattleDamageReduction();
                         } else {
                             // 기존 로그라이크: 마법 공격력 버프
-                            playerStats.applyRogueMagicBuff(8);
+                            playerStats.applyRogueMagicBuff(10);
                         }
                         step = Step.PUZZLE;
                         return true;
                     } else if (healRect.contains(x, y)) {
                         if (useSecondImages) {
                             // 전투 로그라이크: 마비 확률
-                            System.out.println("=== 전투 로그라이크: 마비 선택 ===\n마비 효과 활성화됨");
                             playerStats.applyStunChance();
                             StageManager.enableBattleStun();
                         } else {
-                            // 기존 로그라이크: 힐 버프
-                            playerStats.applyRogueHealBuff(5);
+                            // 기존 로그라이크: 힐링 버프
+                            playerStats.applyRogueHealBuff(10);
                         }
                         step = Step.PUZZLE;
                         return true;
                     }
                 } else if (step == Step.PUZZLE) {
                     if (physicalRect.contains(x, y)) {
-                        // 폭탄 선택 - 폭탄 블록 활성화
+                        // 퍼즐 로그라이크: 돌블럭 생성 방지 (망치 아이콘)
+                        playerStats.applyRockBlockPrevention();
+                        StageManager.enablePuzzleRockPrevention();
                         step = Step.DONE;
                         hide();
                         if (listener != null) listener.onRoguelikeDone(0);
                         return true;
                     } else if (magicRect.contains(x, y)) {
-                        // 모래시계 선택 - 퍼즐 시간 연장
+                        // 퍼즐 로그라이크: 칼블럭 2배 (칼 아이콘)
+                        playerStats.applySwordBlockDouble();
+                        StageManager.enablePuzzleSwordDouble();
                         step = Step.DONE;
                         hide();
                         if (listener != null) listener.onRoguelikeDone(1);
                         return true;
                     } else if (healRect.contains(x, y)) {
-                        // 주머니 선택 - 무작위 블록 5개 터뜨리기
-                    step = Step.DONE;
-                    hide();
+                        // 퍼즐 로그라이크: 마법블럭 2배 (마법 아이콘)
+                        playerStats.applyMagicBlockDouble();
+                        StageManager.enablePuzzleMagicDouble();
+                        step = Step.DONE;
+                        hide();
                         if (listener != null) listener.onRoguelikeDone(2);
-                    return true;
+                        return true;
                     }
                 }
             }

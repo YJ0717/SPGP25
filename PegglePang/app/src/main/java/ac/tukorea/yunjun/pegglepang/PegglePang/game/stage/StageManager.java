@@ -17,6 +17,11 @@ public class StageManager {
     // 퍼즐 로그라이크 설정
     private static boolean bombBlocksEnabled = false;
 
+    // 퍼즐 로그라이크 효과들 (스테이지 3 시리즈에서 지속)
+    private static boolean puzzleRockPreventionEnabled = false;
+    private static boolean puzzleSwordDoubleEnabled = false;
+    private static boolean puzzleMagicDoubleEnabled = false;
+
     // 전투 로그라이크 효과들 (스테이지 3 시리즈에서 지속)
     private static boolean battleCriticalEnabled = false;
     private static boolean battleDamageReductionEnabled = false;
@@ -115,6 +120,44 @@ public class StageManager {
         bombBlocksEnabled = false;
     }
 
+    // 퍼즐 로그라이크 효과 관리 메서드들
+    public static void enablePuzzleRockPrevention() {
+        puzzleRockPreventionEnabled = true;
+    }
+    
+    public static void enablePuzzleSwordDouble() {
+        puzzleSwordDoubleEnabled = true;
+    }
+    
+    public static void enablePuzzleMagicDouble() {
+        puzzleMagicDoubleEnabled = true;
+    }
+    
+    public static boolean isPuzzleRockPreventionEnabled() {
+        return puzzleRockPreventionEnabled;
+    }
+    
+    public static boolean isPuzzleSwordDoubleEnabled() {
+        return puzzleSwordDoubleEnabled;
+    }
+    
+    public static boolean isPuzzleMagicDoubleEnabled() {
+        return puzzleMagicDoubleEnabled;
+    }
+    
+    // 스테이지 3 진입 시 퍼즐 로그라이크 효과를 PlayerStats에 적용
+    public static void applyPuzzleRoguelikeEffects(PlayerStats playerStats) {
+        if (puzzleRockPreventionEnabled) {
+            playerStats.applyRockBlockPrevention();
+        }
+        if (puzzleSwordDoubleEnabled) {
+            playerStats.applySwordBlockDouble();
+        }
+        if (puzzleMagicDoubleEnabled) {
+            playerStats.applyMagicBlockDouble();
+        }
+    }
+
     // 전투 로그라이크 효과 관리 메서드들
     public static void enableBattleCritical() {
         battleCriticalEnabled = true;
@@ -142,27 +185,15 @@ public class StageManager {
     
     // 스테이지 3 진입 시 전투 로그라이크 효과를 PlayerStats에 적용
     public static void applyBattleRoguelikeEffects(PlayerStats playerStats) {
-        System.out.println("=== 전투 로그라이크 효과 적용 체크 ===");
-        System.out.println("크리티컬 활성화: " + battleCriticalEnabled);
-        System.out.println("데미지 감소 활성화: " + battleDamageReductionEnabled);
-        System.out.println("마비 활성화: " + battleStunEnabled);
-        
         if (battleCriticalEnabled) {
             playerStats.applyCriticalChance();
-            System.out.println("크리티컬 효과 적용됨");
         }
         if (battleDamageReductionEnabled) {
             playerStats.applyDamageReduction();
-            System.out.println("데미지 감소 효과 적용됨");
         }
         if (battleStunEnabled) {
             playerStats.applyStunChance();
-            System.out.println("마비 효과 적용됨");
         }
-        
-        System.out.println("PlayerStats 상태 - 크리티컬: " + playerStats.hasCriticalChance() + 
-                          ", 데미지감소: " + playerStats.hasDamageReduction() + 
-                          ", 마비: " + playerStats.hasStunChance());
     }
 
     private static class StageData {

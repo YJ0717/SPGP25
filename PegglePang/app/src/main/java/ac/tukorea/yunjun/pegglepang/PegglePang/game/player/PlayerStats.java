@@ -42,6 +42,11 @@ public class PlayerStats {
     private Bitmap hourglassBitmap;
     private boolean hasPocketItem = false;
     private Bitmap pocketBitmap;
+    
+    // 퍼즐 로그라이크 효과들
+    private boolean hasRockBlockPrevention = false; // 돌블럭 생성 방지
+    private boolean hasSwordBlockDouble = false;    // 칼블럭 2배
+    private boolean hasMagicBlockDouble = false;    // 마법블럭 2배
 
     public PlayerStats() {
         this(null);
@@ -313,13 +318,9 @@ public class PlayerStats {
     
     // 크리티컬 데미지 계산
     public int calculateCriticalDamage(int baseDamage) {
-        System.out.println("크리티컬 체크 - hasCriticalChance: " + hasCriticalChance + ", 확률: " + criticalChance);
         if (hasCriticalChance && Math.random() < criticalChance) {
-            int criticalDamage = (int)(baseDamage * criticalMultiplier);
-            System.out.println("크리티컬 발동! 기본데미지: " + baseDamage + " -> 크리티컬데미지: " + criticalDamage);
-            return criticalDamage;
+            return (int)(baseDamage * criticalMultiplier);
         }
-        System.out.println("크리티컬 미발동, 기본데미지: " + baseDamage);
         return baseDamage;
     }
     
@@ -333,9 +334,49 @@ public class PlayerStats {
     
     // 마비 확률 체크
     public boolean checkStunChance() {
-        System.out.println("마비 체크 - hasStunChance: " + hasStunChance + ", 확률: " + stunChance);
-        boolean stunResult = hasStunChance && Math.random() < stunChance;
-        System.out.println("마비 결과: " + stunResult);
-        return stunResult;
+        return hasStunChance && Math.random() < stunChance;
+    }
+
+    // 퍼즐 로그라이크 효과 관련 메서드들
+    public void applyRockBlockPrevention() {
+        this.hasRockBlockPrevention = true;
+    }
+    
+    public void applySwordBlockDouble() {
+        this.hasSwordBlockDouble = true;
+    }
+    
+    public void applyMagicBlockDouble() {
+        this.hasMagicBlockDouble = true;
+    }
+    
+    public boolean hasRockBlockPrevention() {
+        return hasRockBlockPrevention;
+    }
+    
+    public boolean hasSwordBlockDouble() {
+        return hasSwordBlockDouble;
+    }
+    
+    public boolean hasMagicBlockDouble() {
+        return hasMagicBlockDouble;
+    }
+    
+    // 칼블럭 점수 계산 (2배 적용)
+    public int calculateSwordBlockScore(int blockCount) {
+        int baseScore = blockCount * 1; // 기본 1점
+        if (hasSwordBlockDouble) {
+            return baseScore * 2; // 2배
+        }
+        return baseScore;
+    }
+    
+    // 마법블럭 점수 계산 (2배 적용)
+    public int calculateMagicBlockScore(int blockCount) {
+        int baseScore = blockCount * 1; // 기본 1점
+        if (hasMagicBlockDouble) {
+            return baseScore * 2; // 2배
+        }
+        return baseScore;
     }
 } 

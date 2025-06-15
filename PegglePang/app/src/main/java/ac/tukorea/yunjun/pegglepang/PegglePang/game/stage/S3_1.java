@@ -85,8 +85,6 @@ public class S3_1 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         boolean is3_2Unlocked = StageManager.getInstance().isStageUnlocked(3, 2);
-        System.out.println("=== S3_1 몬스터 생성 체크 ===");
-        System.out.println("3-2 해금 상태: " + is3_2Unlocked);
         
         if (!is3_2Unlocked) {
             // 3-1 스테이지용 몬스터 (슬라임, HP 25, 공격력 12)
@@ -96,11 +94,8 @@ public class S3_1 extends BaseStageScene {
             float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
             monster = new Stage2Monster(context, R.mipmap.slime_idle, 4, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
             monster.setMaxHp(25);
-            System.out.println("몬스터 생성 완료: HP 25");
-            System.out.println("실제 몬스터 maxHP: " + monster.getMaxHp() + ", currentHP: " + monster.getCurrentHp());
         } else {
             monster = null;
-            System.out.println("몬스터 생성 안함 (3-2 이미 해금됨)");
         }
         
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
@@ -449,6 +444,9 @@ public class S3_1 extends BaseStageScene {
         
         // 스테이지 3부터 전투 로그라이크 효과 적용
         StageManager.applyBattleRoguelikeEffects(playerStats);
+        
+        // 스테이지 3부터 퍼즐 로그라이크 효과 적용
+        StageManager.applyPuzzleRoguelikeEffects(playerStats);
         
         if (StageManager.getInstance().isStageCleared(3, 1)) {
             StageClearScene.getInstance(context).show(3, 1);
