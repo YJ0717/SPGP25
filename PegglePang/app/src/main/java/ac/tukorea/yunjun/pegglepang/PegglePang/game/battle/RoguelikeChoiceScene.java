@@ -18,12 +18,15 @@ public class RoguelikeChoiceScene {
     private boolean isVisible = false;
     private Bitmap attackBitmap;
     private Bitmap puzzleBitmap;
+    private Bitmap attackBitmap2;
+    private Bitmap puzzleBitmap2;
     private RectF cardRect;
     private Paint borderPaint;
     private OnRoguelikeDoneListener listener;
     private Context context;
     private Step step = Step.ATTACK;
     private PlayerStats playerStats;
+    private boolean useSecondImages = false;
 
     private enum Step { ATTACK, PUZZLE, DONE }
 
@@ -35,6 +38,8 @@ public class RoguelikeChoiceScene {
         this.context = context;
         this.attackBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.attack_rogue);
         this.puzzleBitmap = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue);
+        this.attackBitmap2 = BitmapFactory.decodeResource(context.getResources(), R.mipmap.attack_rogue2);
+        this.puzzleBitmap2 = BitmapFactory.decodeResource(context.getResources(), R.mipmap.puzzle_rogue2);
         float centerX = Metrics.width / 2f;
         float centerY = Metrics.height / 2f;
         float cardW = 820f;
@@ -59,6 +64,15 @@ public class RoguelikeChoiceScene {
         isVisible = true;
         this.listener = listener;
         step = Step.ATTACK;
+        useSecondImages = false;
+    }
+
+    public void showBattleRogue(OnRoguelikeDoneListener listener) {
+        if (isVisible) return;
+        isVisible = true;
+        this.listener = listener;
+        step = Step.ATTACK;
+        useSecondImages = true;
     }
 
     public void hide() {
@@ -72,9 +86,11 @@ public class RoguelikeChoiceScene {
         float imgX = Metrics.width / 2f - imgW / 2;
         float imgY = Metrics.height / 2f - imgH / 2;
         if (step == Step.ATTACK) {
-            canvas.drawBitmap(attackBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
+            Bitmap currentAttackBitmap = useSecondImages ? attackBitmap2 : attackBitmap;
+            canvas.drawBitmap(currentAttackBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         } else if (step == Step.PUZZLE) {
-            canvas.drawBitmap(puzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
+            Bitmap currentPuzzleBitmap = useSecondImages ? puzzleBitmap2 : puzzleBitmap;
+            canvas.drawBitmap(currentPuzzleBitmap, null, new RectF(imgX, imgY, imgX+imgW, imgY+imgH), null);
         }
         // 디버깅용: 각 아이콘 클릭 영역 빨간색 테두리로 표시
         float iconWidth = cardRect.width() / 3f;

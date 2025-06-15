@@ -10,6 +10,7 @@ import android.content.Context;
 import android.view.MotionEvent;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.RoguelikeChoiceScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
@@ -57,6 +58,7 @@ public class S2_3 extends BaseStageScene {
     private boolean isGameOver = false;
     private boolean isStageClearShown = false;
     private boolean isMonsterBlinkPhase = false;
+    private boolean isRoguelikeChoiceShown = false;
     private DamageText damageText;
 
     public S2_3(Context context) {
@@ -218,12 +220,7 @@ public class S2_3 extends BaseStageScene {
                         isPuzzleFrozen = false;
                         playerStats.reset();
                         isWaitingForAnim = false;
-                        if (!isStageClearShown) {
-                            StageClearScene.getInstance(context).show(2, 3);
-                            isStageClearShown = true;
-                            StageManager.getInstance().unlockWorld(3);
-                            StageManager.getInstance().unlockStage(3, 1);
-                        }
+                        // 로그라이크 창이 먼저 뜨도록 스테이지 클리어 창은 여기서 표시하지 않음
                     }
                 }
             }
@@ -239,9 +236,22 @@ public class S2_3 extends BaseStageScene {
             return;
         }
 
-        if (!isStageClearShown && (dragonMonster == null || (!dragonMonster.isAlive() && !dragonMonster.isDying()))) {
-            StageClearScene.getInstance(context).show(2, 3);
-            isStageClearShown = true;
+        if (!isRoguelikeChoiceShown && !isStageClearShown && (dragonMonster == null || (!dragonMonster.isAlive() && !dragonMonster.isDying()))) {
+            isRoguelikeChoiceShown = true;
+            RoguelikeChoiceScene.getInstance(context).showBattleRogue(new RoguelikeChoiceScene.OnRoguelikeDoneListener() {
+                @Override
+                public void onRoguelikeDone(int puzzleChoice) {
+                    // 로그라이크 선택 완료 후 스테이지 클리어 창 표시
+                    if (!isStageClearShown) {
+                        // 월드3 해금 및 3-1 스테이지 해금
+                        StageManager.getInstance().unlockWorld(3);
+                        StageManager.getInstance().unlockStage(3, 1);
+                        
+                        StageClearScene.getInstance(context).show(2, 3);
+                        isStageClearShown = true;
+                    }
+                }
+            });
         }
 
         if (!isGameOver && player.isDead()) {
@@ -253,6 +263,10 @@ public class S2_3 extends BaseStageScene {
     public boolean onTouchEvent(MotionEvent event) {
         if (isGameOver) {
             return GameOverScene.getInstance().onTouchEvent(event);
+        }
+
+        if (RoguelikeChoiceScene.getInstance(context).onTouchEvent(event)) {
+            return true;
         }
 
         if (StageClearScene.getInstance(context).onTouchEvent(event)) {
@@ -401,6 +415,7 @@ public class S2_3 extends BaseStageScene {
             GameOverScene.getInstance().draw(canvas);
         }
 
+        RoguelikeChoiceScene.getInstance(context).draw(canvas);
         StageClearScene.getInstance(context).draw(canvas);
     }
 
