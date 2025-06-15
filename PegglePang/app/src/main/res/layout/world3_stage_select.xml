@@ -9,7 +9,7 @@
         android:id="@+id/background_image"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:src="@mipmap/world1"
+        android:src="@mipmap/world3_sg"
         android:scaleType="fitXY" />
 
     <View
@@ -28,49 +28,29 @@
         android:layout_height="match_parent"
         android:background="@android:color/transparent"
         app:layout_constraintEnd_toEndOf="@+id/background_image"
-        tools:layout_editor_absoluteY="0dp" />
+        tools:layout_editor_absoluteY="48dp" />
 
     <TextView
-        android:id="@+id/world_select_title"
+        android:id="@+id/back_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="30sp"
-        android:layout_marginTop="32dp"
-        android:layout_gravity="center"
-        app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginStart="340dp"
+        android:layout_marginTop="64dp"
+        android:text="Back"
+        android:textColor="@android:color/white"
+        android:textSize="18sp"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
-        android:id="@+id/stage1_button"
+        android:id="@+id/stage3_1_button"
         android:layout_width="120dp"
-        android:layout_height="80dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginBottom="88dp"
+        android:layout_height="120dp"
+        android:layout_marginStart="144dp"
+        android:layout_marginTop="232dp"
         android:background="@android:color/transparent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/world2_button"
-        android:layout_width="120dp"
-        android:layout_height="80dp"
-        android:layout_marginBottom="88dp"
-        android:background="@android:color/transparent"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:contentDescription="Stage 3-1"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <Button
-        android:id="@+id/world3_button"
-        android:layout_width="120dp"
-        android:layout_height="80dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="88dp"
-        android:background="@android:color/transparent"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout> 

@@ -8,26 +8,23 @@ import android.graphics.BitmapFactory;
 import android.graphics.RectF;
 import android.content.Context;
 import android.view.MotionEvent;
+import android.widget.TextView;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.battle.BaseStageScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage3Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage1Monster;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
-import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
 import ac.tukorea.yunjun.pegglepang.R;
-import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
-import android.widget.TextView;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
+import ac.tukorea.yunjun.pegglepang.framework.view.Metrics;
+import ac.tukorea.yunjun.pegglepang.framework.view.GameView;
 
-public class S2_3 extends BaseStageScene {
-    private static final int GRID_SIZE = 6;              
-    private static final float SWIPE_THRESHOLD = 20.0f;   
-    
+public class S3_1 extends BaseStageScene {
     private Paint linePaint;      
     private Bitmap gridBitmap;    
     private RectF gridRect;       
@@ -50,7 +47,7 @@ public class S2_3 extends BaseStageScene {
     private float touchStartY;    
 
     private Player player;
-    private Stage3Monster dragonMonster; // 드래곤 몬스터
+    private Stage1Monster monster;
     private Bitmap battleBg;
     private Bitmap stateBg;
 
@@ -59,8 +56,8 @@ public class S2_3 extends BaseStageScene {
     private boolean isMonsterBlinkPhase = false;
     private DamageText damageText;
 
-    public S2_3(Context context) {
-        super(context, 2, 3);
+    public S3_1(Context context) {
+        super(context, 3, 1);
         
         linePaint = new Paint();
         linePaint.setColor(Color.BLACK);
@@ -79,7 +76,7 @@ public class S2_3 extends BaseStageScene {
         player = new Player(context, playerLeft, playerTop, playerDrawWidth, playerDrawHeight, playerStats);
         blockGrid = new BlockGrid(context);
         blockGrid.setPlayerStats(playerStats);
-        blockGrid.setStageInfo(2, 3); // 스테이지 2-3 정보 설정
+        blockGrid.setStageInfo(3, 1); // 스테이지 3-1 정보 설정
         
         // 전역 설정에서 폭탄 블록이 활성화되어 있으면 적용
         if (StageManager.isBombBlocksEnabled()) {
@@ -88,39 +85,45 @@ public class S2_3 extends BaseStageScene {
         isPuzzleFrozen = false;
 
         // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
-        if (!StageManager.getInstance().isStageCleared(2, 3)) {
-            // 드래곤 몬스터 (화면 중앙에 위치)
-            dragonMonster = new Stage3Monster(context, R.mipmap.dragon_idle, 1, playerInfoStart, 20f);
+        if (!StageManager.getInstance().isStageUnlocked(3, 2)) {
+            // 3-1 스테이지용 몬스터 (슬라임, HP 25, 공격력 12)
+            float monsterDrawHeight = battleHeight * 0.5f;
+            float monsterDrawWidth = 80f;
+            float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
+            float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
+            monster = new Stage1Monster(context, R.mipmap.slime_idle, 25, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight);
         } else {
-            // 이미 클리어된 상태라면 몬스터를 null로 설정
-            dragonMonster = null;
+            monster = null;
         }
-
+        
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
         stateBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.state);
 
         player.getAnimation().setFrameDuration(0.15f);
         playerStats.resetStatsAndTimer();
 
-        // magic effect 위치 설정 (드래곤 중앙)
+        // magic effect 위치 설정
         float effectWidth = Metrics.width * 0.4f;
         float effectHeight = effectWidth * (350f / (713f / 3f));
-        float effectX = Metrics.width * 0.5f - effectWidth / 2; // 화면 중앙
+        float effectX = (playerLeft + playerDrawWidth + (Metrics.width - 80f - (Metrics.width * 0.05f))) / 2 - effectWidth / 2;
         float effectY = playerTop + playerDrawHeight * 0.2f;
         player.setMagicEffectPosition(effectX, effectY, effectWidth, effectHeight);
 
         // sword effect 위치 설정
         float swordEffectWidth = Metrics.width * 0.35f;
         float swordEffectHeight = swordEffectWidth * (139f / 190f);
-        float swordEffectX = Metrics.width * 0.5f - swordEffectWidth / 2; // 화면 중앙
+        float swordEffectX = (playerLeft + playerDrawWidth + (Metrics.width - 80f - (Metrics.width * 0.05f))) / 2 - swordEffectWidth / 2;
         float swordEffectY = playerTop + playerDrawHeight * 0.3f;
         player.setSwordEffectPosition(swordEffectX, swordEffectY, swordEffectWidth, swordEffectHeight);
         
         damageText = new DamageText(context);
+        
+        setupStageSpecificElements();
     }
 
     @Override
     protected void setupStageSpecificElements() {
+        // 3-1 스테이지 특화 설정
     }
 
     @Override
@@ -129,8 +132,8 @@ public class S2_3 extends BaseStageScene {
         float dt = GameView.frameTime;
         blockGrid.update(dt);
         player.update(dt);
-        if (dragonMonster != null) {
-            dragonMonster.update(dt);
+        if (monster != null) {
+            monster.update(dt);
         }
         damageText.update(dt);
 
@@ -144,6 +147,7 @@ public class S2_3 extends BaseStageScene {
             lastSword = playerStats.getPhysicalAttack();
             lastMagic = playerStats.getMagicAttack();
             lastHeal = playerStats.getHealing();
+            System.out.println("Battle stats - Sword: " + lastSword + ", Magic: " + lastMagic + ", Heal: " + lastHeal);
         }
 
         if (isBattlePhase) {
@@ -151,40 +155,40 @@ public class S2_3 extends BaseStageScene {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
                     if (lastSword >= lastMagic && lastSword >= lastHeal) {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using SWORD attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playSwordAttack(() -> {
                             player.playSwordEffect(() -> {
-                                // 드래곤은 물리+마법 합산 데미지
-                                if (dragonMonster != null && dragonMonster.isAlive()) {
-                                    int totalDamage = lastSword + lastMagic;
-                                    dragonMonster.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, dragonMonster.getX() + dragonMonster.getWidth()/2, dragonMonster.getY() + dragonMonster.getHeight()/2, false);
+                                if (monster != null && monster.isAlive()) {
+                                    monster.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                    isMonsterBlinkPhase = true;
                                 }
-                                isMonsterBlinkPhase = true;
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else if (lastMagic >= lastSword && lastMagic >= lastHeal) {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using MAGIC attack with total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playMagicAttack(() -> {
                             player.playMagicEffect(() -> {
-                                // 드래곤은 물리+마법 합산 데미지
-                                if (dragonMonster != null && dragonMonster.isAlive()) {
-                                    int totalDamage = lastSword + lastMagic;
-                                    dragonMonster.startBlinking(totalDamage);
-                                    damageText.showDamage(totalDamage, dragonMonster.getX() + dragonMonster.getWidth()/2, dragonMonster.getY() + dragonMonster.getHeight()/2, false);
+                                if (monster != null && monster.isAlive()) {
+                                    monster.startBlinking(totalDamage);
+                                    damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                    isMonsterBlinkPhase = true;
                                 }
-                                isMonsterBlinkPhase = true;
                                 playerStats.heal(lastHeal);
                             });
                         });
                     } else {
+                        int totalDamage = lastSword + lastMagic;
+                        System.out.println("Using HEAL with amount: " + lastHeal + " and total damage: " + totalDamage + " (Sword: " + lastSword + " + Magic: " + lastMagic + ")");
                         player.playHeal(() -> {
-                            // 드래곤은 물리+마법 합산 데미지
-                            if (dragonMonster != null && dragonMonster.isAlive()) {
-                                int totalDamage = lastSword + lastMagic;
-                                dragonMonster.startBlinking(totalDamage);
-                                damageText.showDamage(totalDamage, dragonMonster.getX() + dragonMonster.getWidth()/2, dragonMonster.getY() + dragonMonster.getHeight()/2, false);
+                            if (monster != null && monster.isAlive()) {
+                                monster.startBlinking(totalDamage);
+                                damageText.showDamage(totalDamage, monster.getX() + monster.getWidth()/2, monster.getY(), false);
+                                isMonsterBlinkPhase = true;
                             }
-                            isMonsterBlinkPhase = true;
                             playerStats.heal(lastHeal);
                         });
                     }
@@ -192,55 +196,39 @@ public class S2_3 extends BaseStageScene {
             } else {
                 if (!isWaitingForAnim) {
                     isWaitingForAnim = true;
-                    
-                    // 드래곤 공격
-                    if (dragonMonster != null && dragonMonster.isAlive()) {
-                        dragonMonster.attack(() -> {
-                            float damage = dragonMonster.getAttackPower();
-                            player.takeDamage(damage);
-                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
-                            if (!player.isAlive()) {
-                                player.die();
-                                isGameOver = true;
-                                GameOverScene.getInstance().show();
-                                return;
-                            }
-                            
-                            // 공격 완료
+                    if (monster != null && monster.isAlive()) {
+                        monster.attack(() -> {
+                            int damage = (int)monster.getAttackPower();
+                            player.startBlinking(damage);
+                            damageText.showDamage(damage, player.getX() + player.getWidth()/2, player.getY(), true);
+                            isWaitingForAnim = false;
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
-                            playerStats.reset();
-                            isWaitingForAnim = false;
-                        }, false); // 물리 공격으로 설정
-                    } else {
-                        // 드래곤이 죽은 경우
-                        isBattlePhase = false;
-                        isPuzzleFrozen = false;
-                        playerStats.reset();
-                        isWaitingForAnim = false;
-                        if (!isStageClearShown) {
-                            StageClearScene.getInstance(context).show(2, 3);
-                            isStageClearShown = true;
-                            StageManager.getInstance().unlockWorld(3);
-                            StageManager.getInstance().unlockStage(3, 1);
-                        }
+                            isPlayerTurn = true;
+                            playerStats.resetStatsAndTimer();
+                            blockGrid.reset();
+                        });
                     }
+                }
+            }
+
+            if (isMonsterBlinkPhase && monster != null && !monster.isBlinking()) {
+                isMonsterBlinkPhase = false;
+                if (!monster.isAlive()) {
+                    isWaitingForAnim = false;
+                    isBattlePhase = false;
+                    isPuzzleFrozen = false;
+                    isPlayerTurn = true;
+                    playerStats.resetStatsAndTimer();
+                    blockGrid.reset();
+                } else {
+                    isPlayerTurn = false;
                 }
             }
         }
 
-        if (isMonsterBlinkPhase && (dragonMonster == null || !dragonMonster.isBlinking())) {
-            isMonsterBlinkPhase = false;
-            isPlayerTurn = false;
-            isWaitingForAnim = false;
-        }
-
-        if (isGameOver) {
-            return;
-        }
-
-        if (!isStageClearShown && (dragonMonster == null || (!dragonMonster.isAlive() && !dragonMonster.isDying()))) {
-            StageClearScene.getInstance(context).show(2, 3);
+        if (!isStageClearShown && (monster == null || (!monster.isAlive() && !monster.isDying()))) {
+            StageClearScene.getInstance(context).show(3, 1);
             isStageClearShown = true;
         }
 
@@ -273,14 +261,12 @@ public class S2_3 extends BaseStageScene {
             float puzzleStart = Metrics.height * 0.45f;
             if (playerStats.isPocketClicked(x, y, Metrics.width, playerInfoStart, puzzleStart)) {
                 blockGrid.destroyRandomBlocks(5);
-                // 주머니 사용 후 매치 처리를 위해 약간의 지연 후 체크
                 new Thread(() -> {
                     try {
-                        Thread.sleep(100); // 블록 떨어지는 시간 대기
+                        Thread.sleep(100);
                         while (blockGrid.isAnyBlockAnimating() || blockGrid.isAnyBlockFalling()) {
                             Thread.sleep(50);
                         }
-                        // 매치가 있으면 처리
                         if (blockGrid.hasChainMatches()) {
                             blockGrid.forceProcessMatches();
                         }
@@ -295,13 +281,12 @@ public class S2_3 extends BaseStageScene {
         int col = (int)((x - puzzleLeft) / blockSize);
         int row = (int)((y - puzzleTop) / blockSize);
         
-        if (row >= 0 && row < BlockGrid.getGridSize() && col >= 0 && col < BlockGrid.getGridSize()) {
+        if (row >= 0 && row < blockGrid.getGridSize() && col >= 0 && col < blockGrid.getGridSize()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:  
-                    // 폭탄 블록 클릭 확인
                     if (blockGrid.getBlock(row, col) != null && blockGrid.getBlock(row, col).isBomb()) {
                         if (blockGrid.handleBombClick(row, col)) {
-                            return true; // 폭탄이 터졌으므로 이벤트 처리 완료
+                            return true;
                         }
                     }
                     
@@ -317,7 +302,7 @@ public class S2_3 extends BaseStageScene {
                         float dx = x - touchStartX;
                         float dy = y - touchStartY;
                         
-                        if (Math.abs(dx) > SWIPE_THRESHOLD || Math.abs(dy) > SWIPE_THRESHOLD) {
+                        if (Math.abs(dx) > 20.0f || Math.abs(dy) > 20.0f) {
                             int newRow = selectedRow;
                             int newCol = selectedCol;
                             if (Math.abs(dx) > Math.abs(dy)) {
@@ -326,8 +311,8 @@ public class S2_3 extends BaseStageScene {
                                 newRow += (dy > 0) ? 1 : -1;  
                             }
                             
-                            if (newRow >= 0 && newRow < BlockGrid.getGridSize() && 
-                                newCol >= 0 && newCol < BlockGrid.getGridSize()) {
+                            if (newRow >= 0 && newRow < blockGrid.getGridSize() && 
+                                newCol >= 0 && newCol < blockGrid.getGridSize()) {
                                 blockGrid.swapBlocks(selectedRow, selectedCol, newRow, newCol);
                             }
                         }
@@ -373,7 +358,7 @@ public class S2_3 extends BaseStageScene {
         gridRect.set(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
         canvas.drawBitmap(gridBitmap, null, gridRect, null);
 
-        blockSize = puzzleSize / BlockGrid.getGridSize();
+        blockSize = puzzleSize / blockGrid.getGridSize();
         blockGrid.setGridMetrics(puzzleLeft, puzzleTop, puzzleSize);
         
         canvas.save();
@@ -390,11 +375,10 @@ public class S2_3 extends BaseStageScene {
         playerStats.draw(canvas, Metrics.width, playerInfoStart, puzzleStart);
 
         player.draw(canvas);
-        if (dragonMonster != null) {
-            dragonMonster.draw(canvas);
+        if (monster != null) {
+            monster.draw(canvas);
         }
 
-        // 데미지 텍스트 그리기 (몬스터 바로 다음에)
         damageText.draw(canvas);
         
         if (isGameOver) {
@@ -407,18 +391,16 @@ public class S2_3 extends BaseStageScene {
     @Override
     public void onEnter() {
         super.onEnter();
-        if (StageManager.getInstance().isStageCleared(2, 3)) {
-            // 이미 스테이지가 클리어된 상태라면 클리어 창을 바로 표시
-            StageClearScene.getInstance(context).show(2, 3);
+        if (StageManager.getInstance().isStageCleared(3, 1)) {
+            StageClearScene.getInstance(context).show(3, 1);
             isStageClearShown = true;
             
-            // Back 버튼 비활성화
             if (context instanceof PegglePangActivity) {
                 PegglePangActivity activity = (PegglePangActivity) context;
                 TextView backText = activity.findViewById(R.id.back_text);
                 if (backText != null) {
                     backText.setEnabled(false);
-                    backText.setAlpha(0.5f); // 반투명하게 표시
+                    backText.setAlpha(0.5f);
                 }
             }
         }
@@ -427,7 +409,6 @@ public class S2_3 extends BaseStageScene {
     @Override
     public void onExit() {
         super.onExit();
-        // Back 버튼 다시 활성화
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             TextView backText = activity.findViewById(R.id.back_text);
@@ -437,4 +418,4 @@ public class S2_3 extends BaseStageScene {
             }
         }
     }
-} 
+}

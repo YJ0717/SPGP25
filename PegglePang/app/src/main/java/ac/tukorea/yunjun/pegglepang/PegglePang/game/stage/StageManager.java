@@ -12,6 +12,7 @@ public class StageManager {
     private Map<String, StageData> stageDataMap;
     private static PlayerStats playerStats = new PlayerStats();
     private boolean world2Unlocked = false;
+    private boolean world3Unlocked = false;
 
     // 퍼즐 로그라이크 설정
     private static boolean bombBlocksEnabled = false;
@@ -24,6 +25,8 @@ public class StageManager {
         stageDataMap.put("2-1", new StageData(false)); // 월드 2 스테이지 1
         stageDataMap.put("2-2", new StageData(false)); // 월드 2 스테이지 2
         stageDataMap.put("2-3", new StageData(false)); // 월드 2 스테이지 3
+        stageDataMap.put("3-1", new StageData(false)); // 월드 3 스테이지 1
+        stageDataMap.put("3-2", new StageData(false)); // 월드 3 스테이지 2
     }
 
     public static StageManager getInstance() {
@@ -87,10 +90,11 @@ public class StageManager {
 
     public void unlockWorld(int worldNumber) {
         if (worldNumber == 2) world2Unlocked = true;
+        if (worldNumber == 3) world3Unlocked = true;
     }
 
     public boolean isWorldUnlocked(int worldNumber) {
-        return worldNumber == 1 || (worldNumber == 2 && world2Unlocked);
+        return worldNumber == 1 || (worldNumber == 2 && world2Unlocked) || (worldNumber == 3 && world3Unlocked);
     }
 
     // 퍼즐 로그라이크 관련 메소드들

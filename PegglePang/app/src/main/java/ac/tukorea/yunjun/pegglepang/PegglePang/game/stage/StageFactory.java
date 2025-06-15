@@ -7,12 +7,14 @@ import android.content.Context;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 
 public class StageFactory {
-    public static Scene createStage(Context context, int stageNumber, int subStageNumber) {
-        switch (stageNumber) {
+    public static Scene createStage(Context context, int worldNumber, int subStageNumber) {
+        switch (worldNumber) {
             case 1:
                 return createStage1(context, subStageNumber);
             case 2:
                 return createStage2(context, subStageNumber);
+            case 3:
+                return createStage3(context, subStageNumber);
             default:
                 return null;
         }
@@ -41,6 +43,17 @@ public class StageFactory {
                 return new S2_2(context);
             case 3:
                 return new S2_3(context);
+            default:
+                return null;
+        }
+    }
+
+    private static Scene createStage3(Context context, int subStageNumber) {
+        switch (subStageNumber) {
+            case 0:
+                return new Stage3_Scene(context);
+            case 1:
+                return new S3_1(context);
             default:
                 return null;
         }

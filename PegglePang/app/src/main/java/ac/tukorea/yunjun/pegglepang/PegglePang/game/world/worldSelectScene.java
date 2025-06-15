@@ -18,6 +18,7 @@ import android.widget.ImageView;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage3_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
@@ -92,12 +93,24 @@ public class worldSelectScene extends Scene {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
             
-            // 월드2 해금 상태에 따라 배경 이미지 설정
+            // 월드 해금 상태에 따라 배경 이미지 설정
             ImageView backgroundImageView = activity.findViewById(R.id.background_image);
             if (backgroundImageView != null) {
-                if (worldNumber == 2 || StageManager.getInstance().isWorldUnlocked(2)) {
+                boolean world3Unlocked = StageManager.getInstance().isWorldUnlocked(3);
+                boolean world2Unlocked = StageManager.getInstance().isWorldUnlocked(2);
+                
+                System.out.println("=== 월드 해금 상태 ===");
+                System.out.println("월드2 해금: " + world2Unlocked);
+                System.out.println("월드3 해금: " + world3Unlocked);
+                
+                if (world3Unlocked) {
+                    System.out.println("월드3 배경 이미지 설정");
+                    backgroundImageView.setImageResource(R.mipmap.world3);
+                } else if (world2Unlocked) {
+                    System.out.println("월드2 배경 이미지 설정");
                     backgroundImageView.setImageResource(R.mipmap.world2);
                 } else {
+                    System.out.println("월드1 배경 이미지 설정");
                     backgroundImageView.setImageResource(R.mipmap.world1);
                 }
             }
@@ -110,6 +123,7 @@ public class worldSelectScene extends Scene {
             
             setupStage1Button();
             setupWorld2Button();
+            setupWorld3Button();
             setupBackButton();
         }
     }
@@ -120,7 +134,7 @@ public class worldSelectScene extends Scene {
             Button world2Button = activity.findViewById(R.id.world2_button);
             
             if (world2Button != null) {
-                if (worldNumber == 2 || StageManager.getInstance().isWorldUnlocked(2)) {
+                if (StageManager.getInstance().isWorldUnlocked(2)) {
                     world2Button.setVisibility(View.VISIBLE);
                     world2Button.setOnClickListener(v -> {
                         Stage2_Scene stage2Scene = new Stage2_Scene(context);
@@ -133,12 +147,54 @@ public class worldSelectScene extends Scene {
         }
     }
 
+    public void setupWorld3Button() {
+        if (context instanceof PegglePangActivity) {
+            PegglePangActivity activity = (PegglePangActivity) context;
+            Button world3Button = activity.findViewById(R.id.world3_button);
+            
+            if (world3Button != null) {
+                if (StageManager.getInstance().isWorldUnlocked(3)) {
+                    world3Button.setVisibility(View.VISIBLE);
+                    world3Button.setOnClickListener(v -> {
+                        activity.setContentView(R.layout.world3_stage_select);
+                        Stage3_Scene stage3Scene = new Stage3_Scene(context);
+                        activity.getGameView().changeScene(stage3Scene);
+                    });
+                } else {
+                    world3Button.setVisibility(View.GONE);
+                }
+            }
+        }
+    }
+
     @Override
     public void onResume() {
         super.onResume();
         if (context instanceof PegglePangActivity) {
             PegglePangActivity activity = (PegglePangActivity) context;
             activity.setContentView(R.layout.world_select);
+            
+            // 월드 해금 상태에 따라 배경 이미지 설정
+            ImageView backgroundImageView = activity.findViewById(R.id.background_image);
+            if (backgroundImageView != null) {
+                boolean world3Unlocked = StageManager.getInstance().isWorldUnlocked(3);
+                boolean world2Unlocked = StageManager.getInstance().isWorldUnlocked(2);
+                
+                System.out.println("=== 월드 해금 상태 ===");
+                System.out.println("월드2 해금: " + world2Unlocked);
+                System.out.println("월드3 해금: " + world3Unlocked);
+                
+                if (world3Unlocked) {
+                    System.out.println("월드3 배경 이미지 설정");
+                    backgroundImageView.setImageResource(R.mipmap.world3);
+                } else if (world2Unlocked) {
+                    System.out.println("월드2 배경 이미지 설정");
+                    backgroundImageView.setImageResource(R.mipmap.world2);
+                } else {
+                    System.out.println("월드1 배경 이미지 설정");
+                    backgroundImageView.setImageResource(R.mipmap.world1);
+                }
+            }
             
             // Back 버튼 숨기기
             TextView backText = activity.findViewById(R.id.back_text);
@@ -147,6 +203,8 @@ public class worldSelectScene extends Scene {
             }
             
             setupStage1Button();
+            setupWorld2Button();
+            setupWorld3Button();
             setupBackButton();
         }
     }

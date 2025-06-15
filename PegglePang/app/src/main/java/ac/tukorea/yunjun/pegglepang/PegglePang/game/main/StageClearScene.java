@@ -14,6 +14,7 @@ import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_2;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_3;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage3_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageFactory;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageManager;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.world.worldSelectScene;
@@ -80,6 +81,13 @@ public class StageClearScene {
             // 월드2 해금 및 스테이지 2-1 해금
             StageManager.getInstance().unlockWorld(2);
             StageManager.getInstance().unlockStage(2, 1);
+        } else if (stage == 2 && subStage == 3) {
+            // 월드3 해금 및 스테이지 3-1 해금
+            System.out.println("=== S2_3 클리어 ===");
+            System.out.println("월드3 해금 시작");
+            StageManager.getInstance().unlockWorld(3);
+            StageManager.getInstance().unlockStage(3, 1);
+            System.out.println("월드3 해금 완료");
         } else if (stage == 1 && subStage == 2) {
             StageManager.getInstance().unlockStage(1, 3);
         } else {
@@ -122,15 +130,15 @@ public class StageClearScene {
                         activity.setContentView(R.layout.world2_stage_select);
                         Scene stage2Scene = new Stage2_Scene(context);
                         activity.getGameView().changeScene(stage2Scene);
+                    } else if (currentStage == 3) {
+                        // 월드3 스테이지 선택화면으로
+                        activity.setContentView(R.layout.world3_stage_select);
+                        Scene stage3Scene = new Stage3_Scene(context);
+                        activity.getGameView().changeScene(stage3Scene);
                     }
                 }
                 return true;
             } else if (nextStageButtonRect.contains(x, y)) {
-                // 2-3이 마지막 스테이지이므로 Next Level 버튼 비활성화
-                if (currentStage == 2 && currentSubStage == 3) {
-                    return true; // 클릭 무시
-                }
-                
                 hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
@@ -151,6 +159,13 @@ public class StageClearScene {
                         activity.setContentView(R.layout.game_scene);
                         S2_3 stage = new S2_3(context);
                         activity.getGameView().changeScene(stage);
+                    } else if (currentStage == 2 && currentSubStage == 3) {
+                        // 2-3 클리어 후 3-1로
+                        Scene nextStage = StageFactory.createStage(context, 3, 1);
+                        if (nextStage != null) {
+                            activity.setContentView(R.layout.game_scene);
+                            activity.getGameView().changeScene(nextStage);
+                        }
                     } else {
                         // 일반적인 다음 스테이지
                         Scene nextStage = StageFactory.createStage(context, currentStage, currentSubStage + 1);

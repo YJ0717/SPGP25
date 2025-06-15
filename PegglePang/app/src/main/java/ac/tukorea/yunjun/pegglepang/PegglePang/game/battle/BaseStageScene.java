@@ -13,6 +13,7 @@ import android.widget.TextView;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage3_Scene;
 import ac.tukorea.yunjun.pegglepang.R;
 import ac.tukorea.yunjun.pegglepang.framework.scene.Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.app.PegglePangActivity;
@@ -42,6 +43,9 @@ public abstract class BaseStageScene extends Scene {
                 } else if (stageNumber == 2) {
                     gameActivity.setContentView(R.layout.world2_stage_select);
                     gameActivity.getGameView().changeScene(new Stage2_Scene(context));
+                } else if (stageNumber == 3) {
+                    gameActivity.setContentView(R.layout.world3_stage_select);
+                    gameActivity.getGameView().changeScene(new Stage3_Scene(context));
                 }
             }
         });

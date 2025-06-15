@@ -25,7 +25,7 @@ public class Stage2_Scene extends Scene {
             if (backText != null) {
                 backText.setOnClickListener(v -> {
                     activity.setContentView(R.layout.world_select);
-                    worldSelectScene worldScene = new worldSelectScene(context, 2);
+                    worldSelectScene worldScene = new worldSelectScene(context);
                     activity.getGameView().changeScene(worldScene);
                 });
             }
