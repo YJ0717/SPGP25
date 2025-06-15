@@ -87,12 +87,12 @@ public class S3_1 extends BaseStageScene {
         boolean is3_2Unlocked = StageManager.getInstance().isStageUnlocked(3, 2);
         
         if (!is3_2Unlocked) {
-            // 3-1 스테이지용 몬스터 (슬라임, HP 25, 공격력 12)
+            // 3-1 스테이지용 몬스터 (고스트, HP 25, 공격력 12)
             float monsterDrawHeight = battleHeight * 0.5f;
             float monsterDrawWidth = 80f;
             float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
             float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
-            monster = new Stage2Monster(context, R.mipmap.slime_idle, 4, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
+            monster = new Stage2Monster(context, R.mipmap.ghost_idle, 3, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
             monster.setMaxHp(25);
         } else {
             monster = null;
@@ -228,6 +228,12 @@ public class S3_1 extends BaseStageScene {
                                 float finalDamage = playerStats.calculateReceivedDamage(baseDamage);
                                 player.takeDamage(finalDamage);
                                 damageText.showDamage((int)finalDamage, player.getX() + player.getWidth()/2, player.getY(), true);
+                                
+                                // 고스트의 공포 효과 체크
+                                if (monster.canCauseFear() && monster.checkFearEffect()) {
+                                    playerStats.applyFear();
+                                }
+                                
                                 if (!player.isAlive()) {
                                     player.die();
                                     isGameOver = true;
@@ -243,7 +249,6 @@ public class S3_1 extends BaseStageScene {
                             });
                         } else {
                             // 몬스터가 마비 상태 - 공격하지 않고 바로 다음 턴으로
-                            System.out.println("Monster is stunned - skipping attack");
                             monster.reduceStunTurns();
                             isBattlePhase = false;
                             isPuzzleFrozen = false;

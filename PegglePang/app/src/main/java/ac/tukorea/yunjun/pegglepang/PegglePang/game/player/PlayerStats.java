@@ -48,6 +48,10 @@ public class PlayerStats {
     private boolean hasSwordBlockDouble = false;    // 칼블럭 2배
     private boolean hasMagicBlockDouble = false;    // 마법블럭 2배
 
+    // 공포 상태 관련
+    private boolean isFeared = false; // 공포 상태
+    private long fearStartTime = 0;   // 공포 시작 시간
+
     public PlayerStats() {
         this(null);
     }
@@ -104,9 +108,17 @@ public class PlayerStats {
         float lineHeight = 45;
         float startY = centerY - lineHeight * 1.5f;
         
-        textPaint.setColor(0xFFE91E63); 
+        textPaint.setColor(0xFFE91E63);
         textPaint.setTextAlign(Paint.Align.LEFT);
         canvas.drawText("HP: " + currentHp + "/" + maxHp, leftMargin, startY, textPaint);
+        
+        // 공포 상태 표시 (HP 위에)
+        if (isFeared) {
+            textPaint.setColor(0xFF800080); // 보라색
+            textPaint.setTextSize(40); // 크기도 키우기
+            canvas.drawText("공포", leftMargin, startY - 40, textPaint);
+            textPaint.setTextSize(30); // 원래 크기로 복원
+        }
         
         // 패시브 아이템들 표시 (HP 아래)
         float itemY = startY + lineHeight * 0.8f; // HP 아래에 위치
@@ -154,7 +166,8 @@ public class PlayerStats {
 
     public boolean isGameOver() {
         if (isGameOver) return true;
-        if (System.currentTimeMillis() - gameStartTime >= GAME_DURATION + extendedDuration) {
+        long gameDuration = isFeared ? GAME_DURATION / 2 : GAME_DURATION; // 공포 상태면 50% 감소
+        if (System.currentTimeMillis() - gameStartTime >= gameDuration + extendedDuration) {
             isGameOver = true;
             return true;
         }
@@ -163,7 +176,8 @@ public class PlayerStats {
 
     public int getRemainingSeconds() {
         long elapsed = System.currentTimeMillis() - gameStartTime;
-        return Math.max(0, (int)((GAME_DURATION + extendedDuration - elapsed) / 1000));
+        long gameDuration = isFeared ? GAME_DURATION / 2 : GAME_DURATION; // 공포 상태면 50% 감소
+        return Math.max(0, (int)((gameDuration + extendedDuration - elapsed) / 1000));
     }
 
     public void reset() {
@@ -172,6 +186,7 @@ public class PlayerStats {
         healing = 0;
         gameStartTime = System.currentTimeMillis();
         isGameOver = false;
+        // 공포 효과는 다음 퍼즐 턴에 적용되어야 하므로 여기서는 해제하지 않음
     }
 
     public void resetTimerOnly() {
@@ -197,6 +212,7 @@ public class PlayerStats {
         healing = 0;
         gameStartTime = System.currentTimeMillis();
         isGameOver = false;
+        clearFear();
     }
 
     public void applyRoguePhysicalBuff(int amount) {
@@ -378,5 +394,28 @@ public class PlayerStats {
             return baseScore * 2; // 2배
         }
         return baseScore;
+    }
+
+    // 공포 상태 관련 메서드들
+    public void applyFear() {
+        this.isFeared = true;
+        this.fearStartTime = System.currentTimeMillis();
+    }
+    
+    public boolean isFeared() {
+        return isFeared;
+    }
+    
+    public void clearFear() {
+        this.isFeared = false;
+        this.fearStartTime = 0;
+    }
+    
+    // 공포 상태일 때 퍼즐 시간 계산 (50% 감소)
+    public long getFearReducedGameDuration() {
+        if (isFeared) {
+            return GAME_DURATION / 2; // 50% 감소
+        }
+        return GAME_DURATION;
     }
 } 

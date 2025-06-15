@@ -68,6 +68,10 @@ public class Stage2Monster {
     private boolean isStunned = false;
     private int stunTurnsRemaining = 0;
 
+    // 공포 효과 관련 (고스트 전용)
+    private boolean canCauseFear = false;
+    private float fearChance = 0.2f; // 20% 확률
+
     public interface AttackCallback {
         void onAttackComplete();
     }
@@ -75,16 +79,29 @@ public class Stage2Monster {
     public Stage2Monster(Context context, int resId, int frameCount, float x, float y, float width, float height, float magicDamageThreshold) {
         this.context = context;
         this.idleSheet = BitmapFactory.decodeResource(context.getResources(), resId);
+        
+        // 고스트인 경우
+        if (resId == R.mipmap.ghost_idle) {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ghost_attack);
+            this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ghost_die);
+            this.attackFrameCount = 3; // 고스트 공격은 3프레임
+            this.dieFrameCount = 3; // 고스트 죽음은 3프레임
+            this.canCauseFear = true; // 고스트는 공포 효과 가능
+        }
         // magicDamageThreshold가 0보다 크면 magicman (S1_2), 0이면 axeman (S2_1)
-        if (magicDamageThreshold > 0) {
-        this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+        else if (magicDamageThreshold > 0) {
+            this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_attack);
+            this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
             this.attackFrameCount = 4; // magicman은 4프레임
+            this.dieFrameCount = 6; // magicman 죽음은 6프레임
         } else {
             this.attackSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.axeman_attack);
+            this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
             this.attackFrameCount = 3; // axeman은 3프레임
+            this.dieFrameCount = 6; // 기본 죽음은 6프레임
         }
+        
         this.iceBallSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.ice_ball);
-        this.dieSheet = BitmapFactory.decodeResource(context.getResources(), R.mipmap.magicman_die);
         this.frameCount = frameCount;
         this.x = x;
         this.y = y;
@@ -205,7 +222,16 @@ public class Stage2Monster {
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
-            canvas.drawBitmap(attackSheet, src, dest, null);
+            
+            // 고스트인 경우 가로대칭으로 그리기
+            if (canCauseFear) {
+                canvas.save();
+                canvas.scale(-1f, 1f, x + width/2, y + height/2); // 좌우 반전
+                canvas.drawBitmap(attackSheet, src, dest, null);
+                canvas.restore();
+            } else {
+                canvas.drawBitmap(attackSheet, src, dest, null);
+            }
         } else if (idleSheet != null) {
             int frameW = idleSheet.getWidth() / frameCount;
             int frameH = idleSheet.getHeight();
@@ -213,12 +239,27 @@ public class Stage2Monster {
             int right = left + frameW;
             Rect src = new Rect(left, 0, right, frameH);
             RectF dest = new RectF(x, y, x + width, y + height);
-            if (isBlinking) {
-                Paint blinkPaint = new Paint();
-                blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
-                canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+            
+            // 고스트인 경우 가로대칭으로 그리기
+            if (canCauseFear) {
+                canvas.save();
+                canvas.scale(-1f, 1f, x + width/2, y + height/2); // 좌우 반전
+                if (isBlinking) {
+                    Paint blinkPaint = new Paint();
+                    blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
+                    canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+                } else {
+                    canvas.drawBitmap(idleSheet, src, dest, null);
+                }
+                canvas.restore();
             } else {
-                canvas.drawBitmap(idleSheet, src, dest, null);
+                if (isBlinking) {
+                    Paint blinkPaint = new Paint();
+                    blinkPaint.setAlpha(blinkCount % 2 == 0 ? 255 : 80);  // 80% 투명도로 깜빡임
+                    canvas.drawBitmap(idleSheet, src, dest, blinkPaint);
+                } else {
+                    canvas.drawBitmap(idleSheet, src, dest, null);
+                }
             }
         }
 
@@ -369,5 +410,14 @@ public class Stage2Monster {
     
     public boolean canAttack() {
         return !isStunned && isAlive && !isDying;
+    }
+
+    // 공포 효과 체크 (고스트 전용)
+    public boolean checkFearEffect() {
+        return canCauseFear && Math.random() < fearChance;
+    }
+    
+    public boolean canCauseFear() {
+        return canCauseFear;
     }
 } 
