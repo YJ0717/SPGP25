@@ -15,7 +15,7 @@ import ac.tukorea.yunjun.pegglepang.PegglePang.game.ui.DamageText;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.Block;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.base.BlockGrid;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.GameOverScene;
-import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage1Monster;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.monster.Stage2Monster;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.main.StageClearScene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.Player;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.player.PlayerStats;
@@ -47,7 +47,7 @@ public class S3_1 extends BaseStageScene {
     private float touchStartY;    
 
     private Player player;
-    private Stage1Monster monster;
+    private Stage2Monster monster;
     private Bitmap battleBg;
     private Bitmap stateBg;
 
@@ -84,16 +84,22 @@ public class S3_1 extends BaseStageScene {
         }
         isPuzzleFrozen = false;
 
-        // 스테이지가 이미 클리어된 상태가 아닐 때만 몬스터 생성
-        if (!StageManager.getInstance().isStageUnlocked(3, 2)) {
+        boolean is3_2Unlocked = StageManager.getInstance().isStageUnlocked(3, 2);
+        System.out.println("=== S3_1 몬스터 생성 체크 ===");
+        System.out.println("3-2 해금 상태: " + is3_2Unlocked);
+        
+        if (!is3_2Unlocked) {
             // 3-1 스테이지용 몬스터 (슬라임, HP 25, 공격력 12)
             float monsterDrawHeight = battleHeight * 0.5f;
             float monsterDrawWidth = 80f;
             float monsterLeft = Metrics.width - monsterDrawWidth - (Metrics.width * 0.05f);
             float monsterTop = battleHeight - monsterDrawHeight - (battleHeight * 0.05f);
-            monster = new Stage1Monster(context, R.mipmap.slime_idle, 25, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight);
+            monster = new Stage2Monster(context, R.mipmap.slime_idle, 4, monsterLeft, monsterTop, monsterDrawWidth, monsterDrawHeight, 0f);
+            monster.setMaxHp(25);
+            System.out.println("몬스터 생성 완료: HP 25");
         } else {
             monster = null;
+            System.out.println("몬스터 생성 안함 (3-2 이미 해금됨)");
         }
         
         battleBg = BitmapFactory.decodeResource(context.getResources(), R.mipmap.stage1);
@@ -198,38 +204,45 @@ public class S3_1 extends BaseStageScene {
                     isWaitingForAnim = true;
                     if (monster != null && monster.isAlive()) {
                         monster.attack(() -> {
-                            int damage = (int)monster.getAttackPower();
-                            player.startBlinking(damage);
-                            damageText.showDamage(damage, player.getX() + player.getWidth()/2, player.getY(), true);
-                            isWaitingForAnim = false;
+                            float damage = monster.getAttackPower();
+                            player.takeDamage(damage);
+                            damageText.showDamage((int)damage, player.getX() + player.getWidth()/2, player.getY(), true);
+                            if (!player.isAlive()) {
+                                player.die();
+                                isGameOver = true;
+                                GameOverScene.getInstance().show();
+                                return;
+                            }
                             isBattlePhase = false;
                             isPuzzleFrozen = false;
-                            isPlayerTurn = true;
-                            playerStats.resetStatsAndTimer();
-                            blockGrid.reset();
+                            playerStats.reset();
+                            isWaitingForAnim = false;
                         });
+                    } else {
+                        isBattlePhase = false;
+                        isPuzzleFrozen = false;
+                        playerStats.reset();
+                        isWaitingForAnim = false;
+                        if (!isStageClearShown) {
+                            StageClearScene.getInstance(context).show(3, 1);
+                            isStageClearShown = true;
+                            StageManager.getInstance().unlockStage(3, 2);
+                        }
                     }
                 }
             }
 
-            if (isMonsterBlinkPhase && monster != null && !monster.isBlinking()) {
-                isMonsterBlinkPhase = false;
-                if (!monster.isAlive()) {
-                    isWaitingForAnim = false;
-                    isBattlePhase = false;
-                    isPuzzleFrozen = false;
-                    isPlayerTurn = true;
-                    playerStats.resetStatsAndTimer();
-                    blockGrid.reset();
-                } else {
-                    isPlayerTurn = false;
-                }
-            }
+                    if (isMonsterBlinkPhase && monster != null && !monster.isBlinking()) {
+            isMonsterBlinkPhase = false;
+            isPlayerTurn = false;
+            isWaitingForAnim = false;
+        }
         }
 
         if (!isStageClearShown && (monster == null || (!monster.isAlive() && !monster.isDying()))) {
             StageClearScene.getInstance(context).show(3, 1);
             isStageClearShown = true;
+            StageManager.getInstance().unlockStage(3, 2);
         }
 
         if (!isGameOver && player.isDead()) {
@@ -281,7 +294,7 @@ public class S3_1 extends BaseStageScene {
         int col = (int)((x - puzzleLeft) / blockSize);
         int row = (int)((y - puzzleTop) / blockSize);
         
-        if (row >= 0 && row < blockGrid.getGridSize() && col >= 0 && col < blockGrid.getGridSize()) {
+        if (row >= 0 && row < BlockGrid.getGridSize() && col >= 0 && col < BlockGrid.getGridSize()) {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:  
                     if (blockGrid.getBlock(row, col) != null && blockGrid.getBlock(row, col).isBomb()) {
@@ -311,8 +324,8 @@ public class S3_1 extends BaseStageScene {
                                 newRow += (dy > 0) ? 1 : -1;  
                             }
                             
-                            if (newRow >= 0 && newRow < blockGrid.getGridSize() && 
-                                newCol >= 0 && newCol < blockGrid.getGridSize()) {
+                            if (newRow >= 0 && newRow < BlockGrid.getGridSize() && 
+                                newCol >= 0 && newCol < BlockGrid.getGridSize()) {
                                 blockGrid.swapBlocks(selectedRow, selectedCol, newRow, newCol);
                             }
                         }
@@ -358,7 +371,7 @@ public class S3_1 extends BaseStageScene {
         gridRect.set(puzzleLeft, puzzleTop, puzzleLeft + puzzleSize, puzzleTop + puzzleSize);
         canvas.drawBitmap(gridBitmap, null, gridRect, null);
 
-        blockSize = puzzleSize / blockGrid.getGridSize();
+        blockSize = puzzleSize / BlockGrid.getGridSize();
         blockGrid.setGridMetrics(puzzleLeft, puzzleTop, puzzleSize);
         
         canvas.save();

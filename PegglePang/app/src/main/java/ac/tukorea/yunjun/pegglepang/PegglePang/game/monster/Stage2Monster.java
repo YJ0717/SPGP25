@@ -96,6 +96,11 @@ public class Stage2Monster {
         hpPaint.setTextAlign(Paint.Align.CENTER);
     }
 
+    public void setMaxHp(int maxHp) {
+        this.maxHp = maxHp;
+        this.currentHp = maxHp;
+    }
+
     public void setTargetPosition(float x, float y) {
         this.targetX = x;
         this.targetY = y;
