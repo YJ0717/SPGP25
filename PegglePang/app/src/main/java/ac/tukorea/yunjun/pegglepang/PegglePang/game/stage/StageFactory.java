@@ -39,6 +39,8 @@ public class StageFactory {
                 return new S2_1(context);
             case 2:
                 return new S2_2(context);
+            case 3:
+                return new S2_3(context);
             default:
                 return null;
         }

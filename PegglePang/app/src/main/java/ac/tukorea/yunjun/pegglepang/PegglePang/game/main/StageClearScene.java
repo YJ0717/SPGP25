@@ -11,6 +11,7 @@ import android.view.MotionEvent;
 
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_1;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_2;
+import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.S2_3;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage1_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.Stage2_Scene;
 import ac.tukorea.yunjun.pegglepang.PegglePang.game.stage.StageFactory;
@@ -125,6 +126,11 @@ public class StageClearScene {
                 }
                 return true;
             } else if (nextStageButtonRect.contains(x, y)) {
+                // 2-3이 마지막 스테이지이므로 Next Level 버튼 비활성화
+                if (currentStage == 2 && currentSubStage == 3) {
+                    return true; // 클릭 무시
+                }
+                
                 hide();
                 if (context instanceof PegglePangActivity) {
                     PegglePangActivity activity = (PegglePangActivity) context;
@@ -139,6 +145,11 @@ public class StageClearScene {
                         // 2-1 클리어 후 2-2로
                         activity.setContentView(R.layout.game_scene);
                         S2_2 stage = new S2_2(context);
+                        activity.getGameView().changeScene(stage);
+                    } else if (currentStage == 2 && currentSubStage == 2) {
+                        // 2-2 클리어 후 2-3으로
+                        activity.setContentView(R.layout.game_scene);
+                        S2_3 stage = new S2_3(context);
                         activity.getGameView().changeScene(stage);
                     } else {
                         // 일반적인 다음 스테이지

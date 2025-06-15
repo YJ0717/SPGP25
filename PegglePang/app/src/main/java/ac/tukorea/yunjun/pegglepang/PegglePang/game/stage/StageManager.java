@@ -23,6 +23,7 @@ public class StageManager {
         stageDataMap.put("1-3", new StageData(false));
         stageDataMap.put("2-1", new StageData(false)); // 월드 2 스테이지 1
         stageDataMap.put("2-2", new StageData(false)); // 월드 2 스테이지 2
+        stageDataMap.put("2-3", new StageData(false)); // 월드 2 스테이지 3
     }
 
     public static StageManager getInstance() {
